@@ -22,7 +22,7 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Skeleton } from '@/components/ui/skeleton';
-import { AppCard } from '@/components/AppCard';
+import { AppCardVisual } from '@/components/AppCardVisual';
 import { useAuth } from '@/hooks/useAuth';
 import { useApps, useCategories, useUserUpvotes, useToggleUpvote } from '@/hooks/useApps';
 import { useSetting } from '@/hooks/useSettings';
@@ -302,28 +302,25 @@ export default function Apps() {
           {/* App Grid */}
           <main className="flex-1">
             {appsLoading ? (
-              <div className="space-y-4">
-                {[1, 2, 3, 4].map(i => (
-                  <div key={i} className="p-4 rounded-2xl bg-card/80">
-                    <div className="flex gap-4">
-                      <Skeleton className="w-32 h-32 rounded-xl" />
-                      <div className="flex-1 space-y-3">
-                        <Skeleton className="h-6 w-48" />
-                        <Skeleton className="h-4 w-full" />
-                        <Skeleton className="h-4 w-3/4" />
-                        <div className="flex gap-2">
-                          <Skeleton className="h-5 w-16" />
-                          <Skeleton className="h-5 w-16" />
-                        </div>
+              <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-5">
+                {[1, 2, 3, 4, 5, 6].map(i => (
+                  <div key={i} className="rounded-2xl bg-card/80 overflow-hidden">
+                    <Skeleton className="aspect-video w-full" />
+                    <div className="p-4 space-y-3">
+                      <Skeleton className="h-5 w-3/4" />
+                      <Skeleton className="h-4 w-full" />
+                      <div className="flex gap-2">
+                        <Skeleton className="h-5 w-16" />
+                        <Skeleton className="h-5 w-16" />
                       </div>
                     </div>
                   </div>
                 ))}
               </div>
             ) : apps && apps.length > 0 ? (
-              <div className="space-y-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-5">
                 {apps.map(app => (
-                  <AppCard
+                  <AppCardVisual
                     key={app.id}
                     id={app.id}
                     title={app.title}
