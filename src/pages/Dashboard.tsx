@@ -17,6 +17,7 @@ import {
   AlertDialogTrigger 
 } from '@/components/ui/alert-dialog';
 import { AppStatusBadge } from '@/components/AppStatusBadge';
+import { NotificationBell } from '@/components/NotificationBell';
 import { useAuth } from '@/hooks/useAuth';
 import { useMyApps, useMyStats, useDeleteApp } from '@/hooks/useMyApps';
 import { toast } from '@/hooks/use-toast';
@@ -82,6 +83,7 @@ export default function Dashboard() {
               </div>
             </div>
             <div className="flex items-center gap-3">
+              <NotificationBell />
               <Link to="/profil/redigera">
                 <Button variant="outline" size="sm" className="gap-2">
                   <User className="h-4 w-4" />
