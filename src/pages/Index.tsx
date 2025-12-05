@@ -2,6 +2,7 @@ import { Link } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
 import { useIsAdmin } from '@/hooks/useAdmin';
 import { Button } from '@/components/ui/button';
+import { NotificationBell } from '@/components/NotificationBell';
 import { Sparkles, ArrowRight, BookOpen, Rocket, Users, Heart, Code, ExternalLink, Shield } from 'lucide-react';
 
 export default function Index() {
@@ -43,6 +44,7 @@ export default function Index() {
                     </Link>
                   </Button>
                 )}
+                <NotificationBell />
                 <Button variant="ghost" asChild>
                   <Link to="/min-sida">Min sida</Link>
                 </Button>
