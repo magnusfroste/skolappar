@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { Search, Filter, X, ArrowRight, Sparkles, LayoutGrid, List } from 'lucide-react';
+import { Search, Filter, X, ArrowRight, Sparkles } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
@@ -22,7 +22,6 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Skeleton } from '@/components/ui/skeleton';
-import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
 import { AppCard } from '@/components/AppCard';
 import { useAuth } from '@/hooks/useAuth';
 import { useApps, useCategories, useUserUpvotes, useToggleUpvote } from '@/hooks/useApps';
@@ -39,7 +38,6 @@ export default function Apps() {
   const [selectedAges, setSelectedAges] = useState<string[]>([]);
   const [selectedTypes, setSelectedTypes] = useState<string[]>([]);
   const [sort, setSort] = useState<'newest' | 'popular' | 'comments'>('popular');
-  const [viewMode, setViewMode] = useState<'card' | 'list'>('card');
   const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false);
 
   const { data: categories, isLoading: categoriesLoading } = useCategories();
@@ -212,21 +210,6 @@ export default function Apps() {
           
           {showFilters && (
             <div className="flex gap-2">
-              {/* View toggle */}
-              <ToggleGroup 
-                type="single" 
-                value={viewMode} 
-                onValueChange={(v) => v && setViewMode(v as 'card' | 'list')}
-                className="border rounded-lg"
-              >
-                <ToggleGroupItem value="card" aria-label="Kortvy" className="px-3">
-                  <LayoutGrid className="w-4 h-4" />
-                </ToggleGroupItem>
-                <ToggleGroupItem value="list" aria-label="Listvy" className="px-3">
-                  <List className="w-4 h-4" />
-                </ToggleGroupItem>
-              </ToggleGroup>
-
               {/* Mobile filter button */}
               <Sheet open={mobileFiltersOpen} onOpenChange={setMobileFiltersOpen}>
                 <SheetTrigger asChild>
@@ -319,40 +302,26 @@ export default function Apps() {
           {/* App Grid */}
           <main className="flex-1">
             {appsLoading ? (
-              <div className={viewMode === 'card' ? "grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4" : "space-y-4"}>
-                {[1, 2, 3, 4, 5, 6].map(i => (
-                  viewMode === 'card' ? (
-                    <div key={i} className="rounded-2xl bg-card/80 overflow-hidden">
-                      <Skeleton className="aspect-video w-full" />
-                      <div className="p-4 space-y-3">
-                        <Skeleton className="h-6 w-3/4" />
+              <div className="space-y-4">
+                {[1, 2, 3, 4].map(i => (
+                  <div key={i} className="p-4 rounded-2xl bg-card/80">
+                    <div className="flex gap-4">
+                      <Skeleton className="w-32 h-32 rounded-xl" />
+                      <div className="flex-1 space-y-3">
+                        <Skeleton className="h-6 w-48" />
                         <Skeleton className="h-4 w-full" />
+                        <Skeleton className="h-4 w-3/4" />
                         <div className="flex gap-2">
                           <Skeleton className="h-5 w-16" />
                           <Skeleton className="h-5 w-16" />
                         </div>
                       </div>
                     </div>
-                  ) : (
-                    <div key={i} className="p-4 rounded-2xl bg-card/80">
-                      <div className="flex gap-4">
-                        <Skeleton className="w-32 h-32 rounded-xl" />
-                        <div className="flex-1 space-y-3">
-                          <Skeleton className="h-6 w-48" />
-                          <Skeleton className="h-4 w-full" />
-                          <Skeleton className="h-4 w-3/4" />
-                          <div className="flex gap-2">
-                            <Skeleton className="h-5 w-16" />
-                            <Skeleton className="h-5 w-16" />
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  )
+                  </div>
                 ))}
               </div>
             ) : apps && apps.length > 0 ? (
-              <div className={viewMode === 'card' ? "grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4" : "space-y-4"}>
+              <div className="space-y-4">
                 {apps.map(app => (
                   <AppCard
                     key={app.id}
@@ -368,7 +337,6 @@ export default function Apps() {
                     categories={app.categories}
                     hasUpvoted={userUpvotes.includes(app.id)}
                     onUpvote={() => handleUpvote(app.id)}
-                    variant={viewMode}
                   />
                 ))}
               </div>

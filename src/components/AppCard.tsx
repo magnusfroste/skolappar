@@ -25,7 +25,6 @@ interface AppCardProps {
   categories: Category[];
   hasUpvoted?: boolean;
   onUpvote?: () => void;
-  variant?: 'list' | 'card';
 }
 
 export function AppCard({
@@ -41,112 +40,7 @@ export function AppCard({
   categories,
   hasUpvoted,
   onUpvote,
-  variant = 'card',
 }: AppCardProps) {
-  // Card view - larger image on top
-  if (variant === 'card') {
-    return (
-      <Card className="group overflow-hidden border-0 bg-card/80 backdrop-blur-sm shadow-playful hover:shadow-playful-lg transition-all duration-300 hover:-translate-y-1">
-        <CardContent className="p-0">
-          {/* Large Image */}
-          <Link to={`/app/${id}`} className="block">
-            <div className="relative aspect-video w-full overflow-hidden bg-muted">
-              {imageUrl ? (
-                <img
-                  src={imageUrl}
-                  alt={title}
-                  className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                />
-              ) : (
-                <div className="w-full h-full flex items-center justify-center text-6xl bg-gradient-to-br from-primary/10 to-secondary/10">
-                  📱
-                </div>
-              )}
-            </div>
-          </Link>
-
-          {/* Content */}
-          <div className="p-4">
-            <div className="flex items-start justify-between gap-2 mb-2">
-              <Link to={`/app/${id}`} className="min-w-0 flex-1">
-                <h3 className="font-heading font-bold text-lg truncate hover:text-primary transition-colors">
-                  {title}
-                </h3>
-              </Link>
-              
-              {/* Upvote button */}
-              <Button
-                variant={hasUpvoted ? "default" : "outline"}
-                size="sm"
-                className={`flex-shrink-0 flex-col h-auto py-1.5 px-2.5 gap-0 ${
-                  hasUpvoted ? 'bg-primary text-primary-foreground' : ''
-                }`}
-                onClick={(e) => {
-                  e.preventDefault();
-                  onUpvote?.();
-                }}
-              >
-                <ChevronUp className="w-4 h-4" />
-                <span className="text-xs font-bold">{upvotesCount}</span>
-              </Button>
-            </div>
-
-            <p className="text-sm text-muted-foreground line-clamp-2 mb-3">
-              {description}
-            </p>
-
-            {/* Categories */}
-            <div className="flex flex-wrap gap-1.5 mb-3">
-              {categories.slice(0, 3).map((cat) => (
-                <Badge
-                  key={cat.id}
-                  variant="secondary"
-                  className="text-xs font-medium"
-                  style={{
-                    backgroundColor: `${cat.color}20`,
-                    color: cat.color,
-                  }}
-                >
-                  {cat.icon} {cat.name}
-                </Badge>
-              ))}
-            </div>
-
-            {/* Footer */}
-            <div className="flex items-center justify-between text-sm text-muted-foreground">
-              <div className="flex items-center gap-3">
-                {creatorName && creatorId && (
-                  <Link 
-                    to={`/profil/${creatorId}`} 
-                    className="truncate hover:text-foreground transition-colors"
-                    onClick={(e) => e.stopPropagation()}
-                  >
-                    av {creatorName}
-                  </Link>
-                )}
-                <span className="flex items-center gap-1">
-                  <MessageCircle className="w-3.5 h-3.5" />
-                  {commentsCount}
-                </span>
-              </div>
-              <a
-                href={url}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="flex items-center gap-1 text-primary hover:underline"
-                onClick={(e) => e.stopPropagation()}
-              >
-                Öppna
-                <ExternalLink className="w-3 h-3" />
-              </a>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
-    );
-  }
-
-  // List view - compact horizontal layout
   return (
     <Card className="group overflow-hidden border-0 bg-card/80 backdrop-blur-sm shadow-playful hover:shadow-playful-lg transition-all duration-300 hover:-translate-y-1">
       <CardContent className="p-0">
