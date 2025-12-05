@@ -32,7 +32,6 @@ export function usePendingApps() {
         .from('apps')
         .select(`
           *,
-          profiles!apps_user_id_fkey(display_name, avatar_url),
           app_categories(category_id, categories(*))
         `)
         .eq('status', 'pending')
