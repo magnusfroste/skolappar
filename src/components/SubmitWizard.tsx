@@ -1,0 +1,508 @@
+import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { z } from 'zod';
+import { ArrowLeft, ArrowRight, Check, Loader2, Globe, FileText, Tags, Eye } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
+import { Checkbox } from '@/components/ui/checkbox';
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage, FormDescription } from '@/components/ui/form';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
+import { ImageUploader } from './ImageUploader';
+import { useCategories } from '@/hooks/useApps';
+import { useSubmitApp } from '@/hooks/useSubmitApp';
+import { toast } from '@/hooks/use-toast';
+
+const formSchema = z.object({
+  title: z.string().min(3, 'Titel måste vara minst 3 tecken').max(100, 'Titel får max vara 100 tecken'),
+  url: z.string().url('Ange en giltig URL (börja med https://)'),
+  description: z.string().min(10, 'Beskrivning måste vara minst 10 tecken').max(200, 'Kort beskrivning får max vara 200 tecken'),
+  long_description: z.string().max(2000, 'Lång beskrivning får max vara 2000 tecken').optional(),
+  image_url: z.string().optional(),
+  categories: z.array(z.string()).min(1, 'Välj minst en kategori')
+});
+
+type FormData = z.infer<typeof formSchema>;
+
+const steps = [
+  { id: 1, title: 'Grundinfo', icon: Globe, description: 'Namn och länk' },
+  { id: 2, title: 'Kategorier', icon: Tags, description: 'Ämne, ålder & typ' },
+  { id: 3, title: 'Detaljer', icon: FileText, description: 'Bild & beskrivning' },
+  { id: 4, title: 'Granska', icon: Eye, description: 'Förhandsvisning' }
+];
+
+export function SubmitWizard() {
+  const [currentStep, setCurrentStep] = useState(1);
+  const navigate = useNavigate();
+  const { data: categories = [] } = useCategories();
+  const submitMutation = useSubmitApp();
+
+  const form = useForm<FormData>({
+    resolver: zodResolver(formSchema),
+    defaultValues: {
+      title: '',
+      url: '',
+      description: '',
+      long_description: '',
+      image_url: '',
+      categories: []
+    }
+  });
+
+  const subjectCategories = categories.filter(c => c.type === 'subject');
+  const ageCategories = categories.filter(c => c.type === 'age');
+  const typeCategories = categories.filter(c => c.type === 'type');
+
+  const validateStep = async (step: number) => {
+    switch (step) {
+      case 1:
+        return form.trigger(['title', 'url', 'description']);
+      case 2:
+        return form.trigger(['categories']);
+      case 3:
+        return true;
+      default:
+        return true;
+    }
+  };
+
+  const nextStep = async () => {
+    const isValid = await validateStep(currentStep);
+    if (isValid) {
+      setCurrentStep(prev => Math.min(prev + 1, 4));
+    }
+  };
+
+  const prevStep = () => {
+    setCurrentStep(prev => Math.max(prev - 1, 1));
+  };
+
+  const onSubmit = async (data: FormData) => {
+    try {
+      await submitMutation.mutateAsync({
+        title: data.title,
+        url: data.url,
+        description: data.description,
+        long_description: data.long_description,
+        image_url: data.image_url,
+        categories: data.categories
+      });
+      toast({
+        title: 'App inskickad! 🎉',
+        description: 'Din app granskas nu av vårt team och publiceras snart.'
+      });
+      navigate('/min-sida');
+    } catch (error) {
+      toast({
+        title: 'Något gick fel',
+        description: 'Kunde inte skicka in appen, försök igen',
+        variant: 'destructive'
+      });
+    }
+  };
+
+  const formValues = form.watch();
+  const selectedCategories = categories.filter(c => formValues.categories.includes(c.id));
+
+  return (
+    <div className="max-w-3xl mx-auto">
+      {/* Progress Steps */}
+      <div className="mb-8">
+        <div className="flex justify-between">
+          {steps.map((step, index) => (
+            <div key={step.id} className="flex-1 relative">
+              <div className="flex flex-col items-center">
+                <div className={`
+                  w-12 h-12 rounded-full flex items-center justify-center transition-all duration-300
+                  ${currentStep >= step.id 
+                    ? 'bg-primary text-primary-foreground shadow-lg shadow-primary/30' 
+                    : 'bg-muted text-muted-foreground'
+                  }
+                `}>
+                  {currentStep > step.id ? (
+                    <Check className="h-5 w-5" />
+                  ) : (
+                    <step.icon className="h-5 w-5" />
+                  )}
+                </div>
+                <div className="mt-2 text-center hidden sm:block">
+                  <p className={`text-sm font-medium ${currentStep >= step.id ? 'text-foreground' : 'text-muted-foreground'}`}>
+                    {step.title}
+                  </p>
+                  <p className="text-xs text-muted-foreground">{step.description}</p>
+                </div>
+              </div>
+              {index < steps.length - 1 && (
+                <div className={`
+                  absolute top-6 left-[calc(50%+24px)] right-[calc(-50%+24px)] h-0.5 transition-all duration-300
+                  ${currentStep > step.id ? 'bg-primary' : 'bg-muted'}
+                `} />
+              )}
+            </div>
+          ))}
+        </div>
+      </div>
+
+      <Form {...form}>
+        <form onSubmit={form.handleSubmit(onSubmit)}>
+          {/* Step 1: Basic Info */}
+          {currentStep === 1 && (
+            <Card className="border-2 border-primary/20">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Globe className="h-5 w-5 text-primary" />
+                  Grundläggande information
+                </CardTitle>
+                <CardDescription>
+                  Berätta om appen du vill dela med andra föräldrar
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-6">
+                <FormField
+                  control={form.control}
+                  name="title"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Appens namn *</FormLabel>
+                      <FormControl>
+                        <Input placeholder="t.ex. Khan Academy Kids" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name="url"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Länk till appen *</FormLabel>
+                      <FormControl>
+                        <Input placeholder="https://..." {...field} />
+                      </FormControl>
+                      <FormDescription>
+                        Länk till appens hemsida, App Store eller Google Play
+                      </FormDescription>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name="description"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Kort beskrivning *</FormLabel>
+                      <FormControl>
+                        <Textarea 
+                          placeholder="Beskriv appen kort - vad gör den bra för barn?" 
+                          className="resize-none"
+                          rows={3}
+                          {...field} 
+                        />
+                      </FormControl>
+                      <FormDescription>
+                        {field.value?.length || 0}/200 tecken
+                      </FormDescription>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </CardContent>
+            </Card>
+          )}
+
+          {/* Step 2: Categories */}
+          {currentStep === 2 && (
+            <Card className="border-2 border-primary/20">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Tags className="h-5 w-5 text-primary" />
+                  Kategorisera appen
+                </CardTitle>
+                <CardDescription>
+                  Hjälp andra föräldrar hitta appen genom att välja rätt kategorier
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-8">
+                <FormField
+                  control={form.control}
+                  name="categories"
+                  render={({ field }) => (
+                    <FormItem>
+                      <div className="space-y-6">
+                        {/* Subject Categories */}
+                        <div>
+                          <FormLabel className="text-base">Ämne</FormLabel>
+                          <p className="text-sm text-muted-foreground mb-3">Vad lär sig barnet?</p>
+                          <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+                            {subjectCategories.map(category => (
+                              <label
+                                key={category.id}
+                                className={`
+                                  flex items-center gap-2 p-3 rounded-lg border-2 cursor-pointer transition-all
+                                  ${field.value.includes(category.id)
+                                    ? 'border-primary bg-primary/10'
+                                    : 'border-muted hover:border-primary/50'
+                                  }
+                                `}
+                              >
+                                <Checkbox
+                                  checked={field.value.includes(category.id)}
+                                  onCheckedChange={(checked) => {
+                                    const newValue = checked
+                                      ? [...field.value, category.id]
+                                      : field.value.filter(id => id !== category.id);
+                                    field.onChange(newValue);
+                                  }}
+                                />
+                                <span className="text-sm">{category.icon} {category.name}</span>
+                              </label>
+                            ))}
+                          </div>
+                        </div>
+
+                        {/* Age Categories */}
+                        <div>
+                          <FormLabel className="text-base">Åldersgrupp</FormLabel>
+                          <p className="text-sm text-muted-foreground mb-3">Vilka åldrar passar appen för?</p>
+                          <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                            {ageCategories.map(category => (
+                              <label
+                                key={category.id}
+                                className={`
+                                  flex items-center gap-2 p-3 rounded-lg border-2 cursor-pointer transition-all
+                                  ${field.value.includes(category.id)
+                                    ? 'border-primary bg-primary/10'
+                                    : 'border-muted hover:border-primary/50'
+                                  }
+                                `}
+                              >
+                                <Checkbox
+                                  checked={field.value.includes(category.id)}
+                                  onCheckedChange={(checked) => {
+                                    const newValue = checked
+                                      ? [...field.value, category.id]
+                                      : field.value.filter(id => id !== category.id);
+                                    field.onChange(newValue);
+                                  }}
+                                />
+                                <span className="text-sm">{category.icon} {category.name}</span>
+                              </label>
+                            ))}
+                          </div>
+                        </div>
+
+                        {/* Type Categories */}
+                        <div>
+                          <FormLabel className="text-base">Typ av app</FormLabel>
+                          <p className="text-sm text-muted-foreground mb-3">Hur fungerar appen?</p>
+                          <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+                            {typeCategories.map(category => (
+                              <label
+                                key={category.id}
+                                className={`
+                                  flex items-center gap-2 p-3 rounded-lg border-2 cursor-pointer transition-all
+                                  ${field.value.includes(category.id)
+                                    ? 'border-primary bg-primary/10'
+                                    : 'border-muted hover:border-primary/50'
+                                  }
+                                `}
+                              >
+                                <Checkbox
+                                  checked={field.value.includes(category.id)}
+                                  onCheckedChange={(checked) => {
+                                    const newValue = checked
+                                      ? [...field.value, category.id]
+                                      : field.value.filter(id => id !== category.id);
+                                    field.onChange(newValue);
+                                  }}
+                                />
+                                <span className="text-sm">{category.icon} {category.name}</span>
+                              </label>
+                            ))}
+                          </div>
+                        </div>
+                      </div>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </CardContent>
+            </Card>
+          )}
+
+          {/* Step 3: Details */}
+          {currentStep === 3 && (
+            <Card className="border-2 border-primary/20">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <FileText className="h-5 w-5 text-primary" />
+                  Lägg till detaljer
+                </CardTitle>
+                <CardDescription>
+                  Lägg till en bild och mer information (valfritt)
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-6">
+                <FormField
+                  control={form.control}
+                  name="image_url"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Bild/Screenshot</FormLabel>
+                      <FormControl>
+                        <ImageUploader
+                          value={field.value}
+                          onChange={field.onChange}
+                        />
+                      </FormControl>
+                      <FormDescription>
+                        Ladda upp en screenshot eller logotyp för appen
+                      </FormDescription>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name="long_description"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Längre beskrivning (valfritt)</FormLabel>
+                      <FormControl>
+                        <Textarea 
+                          placeholder="Berätta mer om appen - varför gillar ditt barn den? Vad är bra och vad kunde vara bättre?" 
+                          className="resize-none"
+                          rows={6}
+                          {...field} 
+                        />
+                      </FormControl>
+                      <FormDescription>
+                        {field.value?.length || 0}/2000 tecken
+                      </FormDescription>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </CardContent>
+            </Card>
+          )}
+
+          {/* Step 4: Preview */}
+          {currentStep === 4 && (
+            <Card className="border-2 border-primary/20">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Eye className="h-5 w-5 text-primary" />
+                  Granska innan du skickar
+                </CardTitle>
+                <CardDescription>
+                  Kontrollera att allt ser rätt ut
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="rounded-xl border-2 border-muted overflow-hidden bg-card">
+                  {formValues.image_url && (
+                    <img 
+                      src={formValues.image_url} 
+                      alt={formValues.title}
+                      className="w-full h-48 object-cover"
+                    />
+                  )}
+                  <div className="p-6 space-y-4">
+                    <div>
+                      <h3 className="text-xl font-bold">{formValues.title || 'Appens namn'}</h3>
+                      <a 
+                        href={formValues.url} 
+                        target="_blank" 
+                        rel="noopener noreferrer"
+                        className="text-sm text-primary hover:underline"
+                      >
+                        {formValues.url || 'https://...'}
+                      </a>
+                    </div>
+                    
+                    <p className="text-muted-foreground">
+                      {formValues.description || 'Kort beskrivning...'}
+                    </p>
+
+                    {formValues.long_description && (
+                      <p className="text-sm text-muted-foreground border-t border-muted pt-4">
+                        {formValues.long_description}
+                      </p>
+                    )}
+
+                    <div className="flex flex-wrap gap-2 pt-2">
+                      {selectedCategories.map(cat => (
+                        <Badge key={cat.id} variant="secondary">
+                          {cat.icon} {cat.name}
+                        </Badge>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+
+                <div className="mt-6 p-4 rounded-lg bg-amber-500/10 border border-amber-500/20">
+                  <p className="text-sm text-amber-700 dark:text-amber-300">
+                    <strong>OBS:</strong> Din app kommer granskas av vårt team innan den publiceras. 
+                    Detta brukar ta 1-2 dagar.
+                  </p>
+                </div>
+              </CardContent>
+            </Card>
+          )}
+
+          {/* Navigation Buttons */}
+          <div className="flex justify-between mt-8">
+            <Button
+              type="button"
+              variant="outline"
+              onClick={prevStep}
+              disabled={currentStep === 1}
+              className="gap-2"
+            >
+              <ArrowLeft className="h-4 w-4" />
+              Tillbaka
+            </Button>
+
+            {currentStep < 4 ? (
+              <Button
+                type="button"
+                onClick={nextStep}
+                className="gap-2"
+              >
+                Nästa
+                <ArrowRight className="h-4 w-4" />
+              </Button>
+            ) : (
+              <Button
+                type="submit"
+                disabled={submitMutation.isPending}
+                className="gap-2 bg-gradient-to-r from-primary to-secondary hover:opacity-90"
+              >
+                {submitMutation.isPending ? (
+                  <>
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                    Skickar...
+                  </>
+                ) : (
+                  <>
+                    <Check className="h-4 w-4" />
+                    Skicka in app
+                  </>
+                )}
+              </Button>
+            )}
+          </div>
+        </form>
+      </Form>
+    </div>
+  );
+}

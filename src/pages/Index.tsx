@@ -26,15 +26,21 @@ export default function Index() {
           </Link>
           
           <div className="flex items-center gap-4">
+            <Button variant="ghost" asChild className="hidden sm:inline-flex">
+              <Link to="/apps">Utforska</Link>
+            </Button>
             {loading ? (
               <div className="w-8 h-8 rounded-full bg-muted animate-pulse" />
             ) : user ? (
               <div className="flex items-center gap-3">
                 <Button variant="ghost" asChild>
-                  <Link to="/submit">Skicka in app</Link>
+                  <Link to="/min-sida">Min sida</Link>
                 </Button>
-                <Button variant="outline" onClick={signOut}>
-                  Logga ut
+                <Button asChild>
+                  <Link to="/submit" className="gap-2">
+                    <Sparkles className="w-4 h-4" />
+                    <span className="hidden sm:inline">Lägg till app</span>
+                  </Link>
                 </Button>
               </div>
             ) : (
