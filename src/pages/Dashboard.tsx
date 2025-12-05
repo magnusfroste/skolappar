@@ -1,6 +1,6 @@
 import { useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import { Plus, ExternalLink, Edit, Trash2, ArrowLeft, Heart, MessageCircle, TrendingUp, Clock } from 'lucide-react';
+import { Plus, ExternalLink, Edit, Trash2, ArrowLeft, Heart, MessageCircle, TrendingUp, Clock, User } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -82,6 +82,12 @@ export default function Dashboard() {
               </div>
             </div>
             <div className="flex items-center gap-3">
+              <Link to="/profil/redigera">
+                <Button variant="outline" size="sm" className="gap-2">
+                  <User className="h-4 w-4" />
+                  <span className="hidden sm:inline">Profil</span>
+                </Button>
+              </Link>
               <Link to="/submit">
                 <Button className="gap-2">
                   <Plus className="h-4 w-4" />
