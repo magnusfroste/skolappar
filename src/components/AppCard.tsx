@@ -20,6 +20,7 @@ interface AppCardProps {
   imageUrl?: string;
   upvotesCount: number;
   commentsCount: number;
+  creatorId?: string;
   creatorName?: string;
   categories: Category[];
   hasUpvoted?: boolean;
@@ -34,6 +35,7 @@ export function AppCard({
   imageUrl,
   upvotesCount,
   commentsCount,
+  creatorId,
   creatorName,
   categories,
   hasUpvoted,
@@ -111,7 +113,16 @@ export function AppCard({
             {/* Footer */}
             <div className="flex items-center justify-between mt-auto pt-3 text-sm text-muted-foreground">
               <div className="flex items-center gap-3">
-                {creatorName && (
+                {creatorName && creatorId && (
+                  <Link 
+                    to={`/profil/${creatorId}`} 
+                    className="truncate hover:text-foreground transition-colors"
+                    onClick={(e) => e.stopPropagation()}
+                  >
+                    av {creatorName}
+                  </Link>
+                )}
+                {creatorName && !creatorId && (
                   <span className="truncate">av {creatorName}</span>
                 )}
                 <span className="flex items-center gap-1">

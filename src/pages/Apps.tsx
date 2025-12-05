@@ -326,6 +326,7 @@ export default function Apps() {
                     imageUrl={app.image_url || undefined}
                     upvotesCount={app.upvotes_count}
                     commentsCount={app.comments_count}
+                    creatorId={app.user_id}
                     creatorName={app.profile?.display_name || undefined}
                     categories={app.categories}
                     hasUpvoted={userUpvotes.includes(app.id)}
