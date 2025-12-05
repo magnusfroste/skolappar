@@ -118,10 +118,14 @@ export function AppCardVisual({
             ) : creatorName ? (
               <span className="truncate text-xs">{creatorName}</span>
             ) : null}
-            <span className="flex items-center gap-1 text-xs">
+            <Link
+              to={`/app/${id}#kommentarer`}
+              className="flex items-center gap-1 text-xs hover:text-foreground transition-colors"
+              onClick={(e) => e.stopPropagation()}
+            >
               <MessageCircle className="w-3 h-3" />
               {commentsCount}
-            </span>
+            </Link>
           </div>
           <a
             href={url}
