@@ -12,6 +12,7 @@ import Dashboard from "./pages/Dashboard";
 import EditApp from "./pages/EditApp";
 import Admin from "./pages/Admin";
 import Profile from "./pages/Profile";
+import EditProfile from "./pages/EditProfile";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -32,6 +33,7 @@ const App = () => (
             <Route path="/redigera/:id" element={<EditApp />} />
             <Route path="/admin" element={<Admin />} />
             <Route path="/profil/:id" element={<Profile />} />
+            <Route path="/profil/redigera" element={<EditProfile />} />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
           </Routes>
