@@ -1,0 +1,616 @@
+import { useEffect, useState } from 'react';
+import { useNavigate, Link } from 'react-router-dom';
+import { ArrowLeft, Check, X, Star, Clock, ExternalLink, Trash2, Plus, Edit2, Shield } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
+import { Skeleton } from '@/components/ui/skeleton';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from '@/components/ui/dialog';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from '@/components/ui/alert-dialog';
+import { AppStatusBadge } from '@/components/AppStatusBadge';
+import { useAuth } from '@/hooks/useAuth';
+import {
+  useIsAdmin,
+  usePendingApps,
+  useAllApps,
+  useUpdateAppStatus,
+  useDeleteAppAdmin,
+  useAdminCategories,
+  useCreateCategory,
+  useUpdateCategory,
+  useDeleteCategory
+} from '@/hooks/useAdmin';
+import { toast } from '@/hooks/use-toast';
+
+export default function Admin() {
+  const { user, loading: authLoading } = useAuth();
+  const navigate = useNavigate();
+  const { data: isAdmin, isLoading: adminLoading } = useIsAdmin();
+  const { data: pendingApps, isLoading: pendingLoading } = usePendingApps();
+  const { data: allApps, isLoading: allAppsLoading } = useAllApps();
+  const { data: categories, isLoading: categoriesLoading } = useAdminCategories();
+
+  const updateStatus = useUpdateAppStatus();
+  const deleteApp = useDeleteAppAdmin();
+  const createCategory = useCreateCategory();
+  const updateCategory = useUpdateCategory();
+  const deleteCategory = useDeleteCategory();
+
+  const [newCategory, setNewCategory] = useState({
+    name: '',
+    slug: '',
+    type: 'subject',
+    icon: '',
+    sort_order: 0
+  });
+  const [editingCategory, setEditingCategory] = useState<any>(null);
+  const [categoryDialogOpen, setCategoryDialogOpen] = useState(false);
+
+  useEffect(() => {
+    if (!authLoading && !user) {
+      navigate('/auth');
+    }
+  }, [user, authLoading, navigate]);
+
+  useEffect(() => {
+    if (!adminLoading && !isAdmin && user) {
+      navigate('/');
+      toast({
+        title: 'Åtkomst nekad',
+        description: 'Du har inte behörighet att se denna sida',
+        variant: 'destructive'
+      });
+    }
+  }, [isAdmin, adminLoading, navigate, user]);
+
+  const handleStatusChange = async (appId: string, status: 'approved' | 'rejected' | 'featured' | 'pending') => {
+    try {
+      await updateStatus.mutateAsync({ appId, status });
+      toast({
+        title: 'Status uppdaterad',
+        description: `Appen har markerats som ${status === 'approved' ? 'godkänd' : status === 'rejected' ? 'avvisad' : status === 'featured' ? 'utvald' : 'väntande'}`
+      });
+    } catch (error) {
+      toast({
+        title: 'Kunde inte uppdatera status',
+        variant: 'destructive'
+      });
+    }
+  };
+
+  const handleDeleteApp = async (appId: string) => {
+    try {
+      await deleteApp.mutateAsync(appId);
+      toast({ title: 'App borttagen' });
+    } catch (error) {
+      toast({ title: 'Kunde inte ta bort appen', variant: 'destructive' });
+    }
+  };
+
+  const handleCreateCategory = async () => {
+    if (!newCategory.name || !newCategory.slug) {
+      toast({ title: 'Fyll i namn och slug', variant: 'destructive' });
+      return;
+    }
+    try {
+      await createCategory.mutateAsync(newCategory);
+      toast({ title: 'Kategori skapad!' });
+      setNewCategory({ name: '', slug: '', type: 'subject', icon: '', sort_order: 0 });
+      setCategoryDialogOpen(false);
+    } catch (error) {
+      toast({ title: 'Kunde inte skapa kategorin', variant: 'destructive' });
+    }
+  };
+
+  const handleUpdateCategory = async () => {
+    if (!editingCategory) return;
+    try {
+      await updateCategory.mutateAsync(editingCategory);
+      toast({ title: 'Kategori uppdaterad!' });
+      setEditingCategory(null);
+    } catch (error) {
+      toast({ title: 'Kunde inte uppdatera kategorin', variant: 'destructive' });
+    }
+  };
+
+  const handleDeleteCategory = async (id: string) => {
+    try {
+      await deleteCategory.mutateAsync(id);
+      toast({ title: 'Kategori borttagen!' });
+    } catch (error) {
+      toast({ title: 'Kunde inte ta bort kategorin', variant: 'destructive' });
+    }
+  };
+
+  if (authLoading || adminLoading) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-background via-background to-primary/5 flex items-center justify-center">
+        <div className="animate-pulse text-primary">Laddar...</div>
+      </div>
+    );
+  }
+
+  if (!user || !isAdmin) return null;
+
+  const subjectCategories = categories?.filter(c => c.type === 'subject') || [];
+  const ageCategories = categories?.filter(c => c.type === 'age') || [];
+  const typeCategories = categories?.filter(c => c.type === 'type') || [];
+
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-background via-background to-primary/5">
+      {/* Header */}
+      <header className="border-b border-border/50 bg-background/80 backdrop-blur-sm sticky top-0 z-50">
+        <div className="container mx-auto px-4 py-4">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-4">
+              <Link to="/">
+                <Button variant="ghost" size="icon">
+                  <ArrowLeft className="h-5 w-5" />
+                </Button>
+              </Link>
+              <div className="flex items-center gap-2">
+                <Shield className="h-6 w-6 text-primary" />
+                <div>
+                  <h1 className="text-xl font-bold bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
+                    Admin Panel
+                  </h1>
+                  <p className="text-sm text-muted-foreground">
+                    Hantera appar och kategorier
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </header>
+
+      <main className="container mx-auto px-4 py-8">
+        <Tabs defaultValue="pending" className="space-y-6">
+          <TabsList className="grid w-full max-w-md grid-cols-3">
+            <TabsTrigger value="pending" className="gap-2">
+              <Clock className="h-4 w-4" />
+              Väntande ({pendingApps?.length || 0})
+            </TabsTrigger>
+            <TabsTrigger value="all">Alla appar</TabsTrigger>
+            <TabsTrigger value="categories">Kategorier</TabsTrigger>
+          </TabsList>
+
+          {/* Pending Apps Tab */}
+          <TabsContent value="pending">
+            <Card>
+              <CardHeader>
+                <CardTitle>Appar som väntar på granskning</CardTitle>
+                <CardDescription>
+                  Granska och godkänn eller avvisa inskickade appar
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                {pendingLoading ? (
+                  <div className="space-y-4">
+                    {[1, 2, 3].map(i => (
+                      <Skeleton key={i} className="h-32 w-full" />
+                    ))}
+                  </div>
+                ) : pendingApps?.length === 0 ? (
+                  <div className="text-center py-12 text-muted-foreground">
+                    <Clock className="h-12 w-12 mx-auto mb-4 opacity-50" />
+                    <p>Inga väntande appar just nu!</p>
+                  </div>
+                ) : (
+                  <div className="space-y-4">
+                    {pendingApps?.map((app: any) => (
+                      <div key={app.id} className="border rounded-lg p-4 space-y-4">
+                        <div className="flex items-start gap-4">
+                          {app.image_url ? (
+                            <img src={app.image_url} alt={app.title} className="h-20 w-20 rounded-lg object-cover" />
+                          ) : (
+                            <div className="h-20 w-20 rounded-lg bg-gradient-to-br from-primary/20 to-secondary/20 flex items-center justify-center text-2xl">
+                              📱
+                            </div>
+                          )}
+                          <div className="flex-1 min-w-0">
+                            <div className="flex items-center gap-2 flex-wrap">
+                              <h3 className="font-semibold">{app.title}</h3>
+                              <AppStatusBadge status={app.status} />
+                            </div>
+                            <p className="text-sm text-muted-foreground line-clamp-2 mt-1">{app.description}</p>
+                            <div className="flex items-center gap-2 mt-2 text-xs text-muted-foreground">
+                              <span>Av: {app.profile?.display_name || 'Okänd'}</span>
+                              <span>•</span>
+                              <a href={app.url} target="_blank" rel="noopener noreferrer" className="text-primary hover:underline flex items-center gap-1">
+                                <ExternalLink className="h-3 w-3" />
+                                Besök
+                              </a>
+                            </div>
+                            <div className="flex gap-1 mt-2 flex-wrap">
+                              {app.categories?.slice(0, 5).map((cat: any) => (
+                                <Badge key={cat.id} variant="outline" className="text-xs">
+                                  {cat.icon} {cat.name}
+                                </Badge>
+                              ))}
+                            </div>
+                          </div>
+                        </div>
+                        <div className="flex gap-2 justify-end">
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => handleStatusChange(app.id, 'rejected')}
+                            className="text-destructive hover:text-destructive"
+                          >
+                            <X className="h-4 w-4 mr-1" />
+                            Avvisa
+                          </Button>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => handleStatusChange(app.id, 'featured')}
+                          >
+                            <Star className="h-4 w-4 mr-1" />
+                            Utvald
+                          </Button>
+                          <Button
+                            size="sm"
+                            onClick={() => handleStatusChange(app.id, 'approved')}
+                          >
+                            <Check className="h-4 w-4 mr-1" />
+                            Godkänn
+                          </Button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          {/* All Apps Tab */}
+          <TabsContent value="all">
+            <Card>
+              <CardHeader>
+                <CardTitle>Alla appar</CardTitle>
+                <CardDescription>
+                  Översikt över alla appar i systemet
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                {allAppsLoading ? (
+                  <div className="space-y-4">
+                    {[1, 2, 3].map(i => (
+                      <Skeleton key={i} className="h-20 w-full" />
+                    ))}
+                  </div>
+                ) : (
+                  <div className="space-y-2">
+                    {allApps?.map((app: any) => (
+                      <div key={app.id} className="flex items-center gap-4 p-3 rounded-lg border hover:bg-muted/50 transition-colors">
+                        {app.image_url ? (
+                          <img src={app.image_url} alt={app.title} className="h-12 w-12 rounded-lg object-cover" />
+                        ) : (
+                          <div className="h-12 w-12 rounded-lg bg-gradient-to-br from-primary/20 to-secondary/20 flex items-center justify-center">
+                            📱
+                          </div>
+                        )}
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center gap-2">
+                            <span className="font-medium truncate">{app.title}</span>
+                            <AppStatusBadge status={app.status} />
+                          </div>
+                          <p className="text-xs text-muted-foreground">{app.profile?.display_name || 'Okänd'}</p>
+                        </div>
+                        <div className="flex items-center gap-1">
+                          <Select
+                            value={app.status}
+                            onValueChange={(value) => handleStatusChange(app.id, value as any)}
+                          >
+                            <SelectTrigger className="w-32 h-8 text-xs">
+                              <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="pending">Väntande</SelectItem>
+                              <SelectItem value="approved">Godkänd</SelectItem>
+                              <SelectItem value="featured">Utvald</SelectItem>
+                              <SelectItem value="rejected">Avvisad</SelectItem>
+                            </SelectContent>
+                          </Select>
+                          <AlertDialog>
+                            <AlertDialogTrigger asChild>
+                              <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive">
+                                <Trash2 className="h-4 w-4" />
+                              </Button>
+                            </AlertDialogTrigger>
+                            <AlertDialogContent>
+                              <AlertDialogHeader>
+                                <AlertDialogTitle>Ta bort app?</AlertDialogTitle>
+                                <AlertDialogDescription>
+                                  Är du säker på att du vill ta bort "{app.title}"? Detta går inte att ångra.
+                                </AlertDialogDescription>
+                              </AlertDialogHeader>
+                              <AlertDialogFooter>
+                                <AlertDialogCancel>Avbryt</AlertDialogCancel>
+                                <AlertDialogAction
+                                  onClick={() => handleDeleteApp(app.id)}
+                                  className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                                >
+                                  Ta bort
+                                </AlertDialogAction>
+                              </AlertDialogFooter>
+                            </AlertDialogContent>
+                          </AlertDialog>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          {/* Categories Tab */}
+          <TabsContent value="categories">
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between">
+                <div>
+                  <CardTitle>Kategorier</CardTitle>
+                  <CardDescription>Hantera ämnen, åldrar och apptyper</CardDescription>
+                </div>
+                <Dialog open={categoryDialogOpen} onOpenChange={setCategoryDialogOpen}>
+                  <DialogTrigger asChild>
+                    <Button className="gap-2">
+                      <Plus className="h-4 w-4" />
+                      Ny kategori
+                    </Button>
+                  </DialogTrigger>
+                  <DialogContent>
+                    <DialogHeader>
+                      <DialogTitle>Skapa ny kategori</DialogTitle>
+                    </DialogHeader>
+                    <div className="space-y-4 py-4">
+                      <div className="space-y-2">
+                        <Label>Namn</Label>
+                        <Input
+                          value={newCategory.name}
+                          onChange={(e) => setNewCategory({ ...newCategory, name: e.target.value })}
+                          placeholder="t.ex. Matematik"
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label>Slug</Label>
+                        <Input
+                          value={newCategory.slug}
+                          onChange={(e) => setNewCategory({ ...newCategory, slug: e.target.value })}
+                          placeholder="t.ex. matematik"
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label>Typ</Label>
+                        <Select
+                          value={newCategory.type}
+                          onValueChange={(value) => setNewCategory({ ...newCategory, type: value })}
+                        >
+                          <SelectTrigger>
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="subject">Ämne</SelectItem>
+                            <SelectItem value="age">Ålder</SelectItem>
+                            <SelectItem value="type">Apptyp</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+                      <div className="space-y-2">
+                        <Label>Ikon (emoji)</Label>
+                        <Input
+                          value={newCategory.icon}
+                          onChange={(e) => setNewCategory({ ...newCategory, icon: e.target.value })}
+                          placeholder="t.ex. 🔢"
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label>Sorteringsordning</Label>
+                        <Input
+                          type="number"
+                          value={newCategory.sort_order}
+                          onChange={(e) => setNewCategory({ ...newCategory, sort_order: parseInt(e.target.value) || 0 })}
+                        />
+                      </div>
+                    </div>
+                    <DialogFooter>
+                      <Button variant="outline" onClick={() => setCategoryDialogOpen(false)}>Avbryt</Button>
+                      <Button onClick={handleCreateCategory}>Skapa</Button>
+                    </DialogFooter>
+                  </DialogContent>
+                </Dialog>
+              </CardHeader>
+              <CardContent className="space-y-6">
+                {categoriesLoading ? (
+                  <div className="space-y-4">
+                    {[1, 2, 3].map(i => (
+                      <Skeleton key={i} className="h-20 w-full" />
+                    ))}
+                  </div>
+                ) : (
+                  <>
+                    {/* Subject Categories */}
+                    <div>
+                      <h3 className="font-semibold mb-3 text-sm text-muted-foreground uppercase tracking-wide">Ämnen</h3>
+                      <div className="grid gap-2">
+                        {subjectCategories.map((cat) => (
+                          <CategoryRow
+                            key={cat.id}
+                            category={cat}
+                            onEdit={() => setEditingCategory(cat)}
+                            onDelete={() => handleDeleteCategory(cat.id)}
+                          />
+                        ))}
+                      </div>
+                    </div>
+
+                    {/* Age Categories */}
+                    <div>
+                      <h3 className="font-semibold mb-3 text-sm text-muted-foreground uppercase tracking-wide">Åldrar</h3>
+                      <div className="grid gap-2">
+                        {ageCategories.map((cat) => (
+                          <CategoryRow
+                            key={cat.id}
+                            category={cat}
+                            onEdit={() => setEditingCategory(cat)}
+                            onDelete={() => handleDeleteCategory(cat.id)}
+                          />
+                        ))}
+                      </div>
+                    </div>
+
+                    {/* Type Categories */}
+                    <div>
+                      <h3 className="font-semibold mb-3 text-sm text-muted-foreground uppercase tracking-wide">Apptyper</h3>
+                      <div className="grid gap-2">
+                        {typeCategories.map((cat) => (
+                          <CategoryRow
+                            key={cat.id}
+                            category={cat}
+                            onEdit={() => setEditingCategory(cat)}
+                            onDelete={() => handleDeleteCategory(cat.id)}
+                          />
+                        ))}
+                      </div>
+                    </div>
+                  </>
+                )}
+
+                {/* Edit Category Dialog */}
+                <Dialog open={!!editingCategory} onOpenChange={(open) => !open && setEditingCategory(null)}>
+                  <DialogContent>
+                    <DialogHeader>
+                      <DialogTitle>Redigera kategori</DialogTitle>
+                    </DialogHeader>
+                    {editingCategory && (
+                      <div className="space-y-4 py-4">
+                        <div className="space-y-2">
+                          <Label>Namn</Label>
+                          <Input
+                            value={editingCategory.name}
+                            onChange={(e) => setEditingCategory({ ...editingCategory, name: e.target.value })}
+                          />
+                        </div>
+                        <div className="space-y-2">
+                          <Label>Slug</Label>
+                          <Input
+                            value={editingCategory.slug}
+                            onChange={(e) => setEditingCategory({ ...editingCategory, slug: e.target.value })}
+                          />
+                        </div>
+                        <div className="space-y-2">
+                          <Label>Typ</Label>
+                          <Select
+                            value={editingCategory.type}
+                            onValueChange={(value) => setEditingCategory({ ...editingCategory, type: value })}
+                          >
+                            <SelectTrigger>
+                              <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="subject">Ämne</SelectItem>
+                              <SelectItem value="age">Ålder</SelectItem>
+                              <SelectItem value="type">Apptyp</SelectItem>
+                            </SelectContent>
+                          </Select>
+                        </div>
+                        <div className="space-y-2">
+                          <Label>Ikon (emoji)</Label>
+                          <Input
+                            value={editingCategory.icon || ''}
+                            onChange={(e) => setEditingCategory({ ...editingCategory, icon: e.target.value })}
+                          />
+                        </div>
+                        <div className="space-y-2">
+                          <Label>Sorteringsordning</Label>
+                          <Input
+                            type="number"
+                            value={editingCategory.sort_order || 0}
+                            onChange={(e) => setEditingCategory({ ...editingCategory, sort_order: parseInt(e.target.value) || 0 })}
+                          />
+                        </div>
+                      </div>
+                    )}
+                    <DialogFooter>
+                      <Button variant="outline" onClick={() => setEditingCategory(null)}>Avbryt</Button>
+                      <Button onClick={handleUpdateCategory}>Spara</Button>
+                    </DialogFooter>
+                  </DialogContent>
+                </Dialog>
+              </CardContent>
+            </Card>
+          </TabsContent>
+        </Tabs>
+      </main>
+    </div>
+  );
+}
+
+function CategoryRow({ category, onEdit, onDelete }: { category: any; onEdit: () => void; onDelete: () => void }) {
+  return (
+    <div className="flex items-center justify-between p-3 rounded-lg border hover:bg-muted/50 transition-colors">
+      <div className="flex items-center gap-3">
+        <span className="text-xl">{category.icon || '📁'}</span>
+        <div>
+          <p className="font-medium">{category.name}</p>
+          <p className="text-xs text-muted-foreground">{category.slug}</p>
+        </div>
+      </div>
+      <div className="flex items-center gap-1">
+        <Badge variant="outline" className="text-xs">#{category.sort_order}</Badge>
+        <Button variant="ghost" size="icon" className="h-8 w-8" onClick={onEdit}>
+          <Edit2 className="h-4 w-4" />
+        </Button>
+        <AlertDialog>
+          <AlertDialogTrigger asChild>
+            <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive">
+              <Trash2 className="h-4 w-4" />
+            </Button>
+          </AlertDialogTrigger>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>Ta bort kategori?</AlertDialogTitle>
+              <AlertDialogDescription>
+                Är du säker på att du vill ta bort "{category.name}"? Appar med denna kategori kommer förlora kopplingen.
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel>Avbryt</AlertDialogCancel>
+              <AlertDialogAction
+                onClick={onDelete}
+                className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+              >
+                Ta bort
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
+      </div>
+    </div>
+  );
+}
