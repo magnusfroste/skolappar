@@ -25,11 +25,13 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { AppCard } from '@/components/AppCard';
 import { useAuth } from '@/hooks/useAuth';
 import { useApps, useCategories, useUserUpvotes, useToggleUpvote } from '@/hooks/useApps';
+import { useSetting } from '@/hooks/useSettings';
 import { useToast } from '@/hooks/use-toast';
 
 export default function Apps() {
   const { user, signOut, loading: authLoading } = useAuth();
   const { toast } = useToast();
+  const { data: showFilters } = useSetting('show_filters');
   
   const [search, setSearch] = useState('');
   const [selectedSubjects, setSelectedSubjects] = useState<string[]>([]);
@@ -206,46 +208,48 @@ export default function Apps() {
             />
           </div>
           
-          <div className="flex gap-2">
-            {/* Mobile filter button */}
-            <Sheet open={mobileFiltersOpen} onOpenChange={setMobileFiltersOpen}>
-              <SheetTrigger asChild>
-                <Button variant="outline" className="lg:hidden h-11 gap-2">
-                  <Filter className="w-4 h-4" />
-                  Filter
-                  {activeFiltersCount > 0 && (
-                    <Badge variant="secondary" className="ml-1">{activeFiltersCount}</Badge>
-                  )}
-                </Button>
-              </SheetTrigger>
-              <SheetContent side="left" className="w-80">
-                <SheetHeader>
-                  <SheetTitle>Filter</SheetTitle>
-                  <SheetDescription>
-                    Filtrera appar efter ämne, ålder och typ
-                  </SheetDescription>
-                </SheetHeader>
-                <div className="mt-6">
-                  <FiltersContent />
-                </div>
-              </SheetContent>
-            </Sheet>
+          {showFilters && (
+            <div className="flex gap-2">
+              {/* Mobile filter button */}
+              <Sheet open={mobileFiltersOpen} onOpenChange={setMobileFiltersOpen}>
+                <SheetTrigger asChild>
+                  <Button variant="outline" className="lg:hidden h-11 gap-2">
+                    <Filter className="w-4 h-4" />
+                    Filter
+                    {activeFiltersCount > 0 && (
+                      <Badge variant="secondary" className="ml-1">{activeFiltersCount}</Badge>
+                    )}
+                  </Button>
+                </SheetTrigger>
+                <SheetContent side="left" className="w-80">
+                  <SheetHeader>
+                    <SheetTitle>Filter</SheetTitle>
+                    <SheetDescription>
+                      Filtrera appar efter ämne, ålder och typ
+                    </SheetDescription>
+                  </SheetHeader>
+                  <div className="mt-6">
+                    <FiltersContent />
+                  </div>
+                </SheetContent>
+              </Sheet>
 
-            <Select value={sort} onValueChange={(v) => setSort(v as typeof sort)}>
-              <SelectTrigger className="w-[160px] h-11">
-                <SelectValue placeholder="Sortera" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="popular">Populärast</SelectItem>
-                <SelectItem value="newest">Nyast</SelectItem>
-                <SelectItem value="comments">Mest diskuterade</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
+              <Select value={sort} onValueChange={(v) => setSort(v as typeof sort)}>
+                <SelectTrigger className="w-[160px] h-11">
+                  <SelectValue placeholder="Sortera" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="popular">Populärast</SelectItem>
+                  <SelectItem value="newest">Nyast</SelectItem>
+                  <SelectItem value="comments">Mest diskuterade</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          )}
         </div>
 
         {/* Active filters */}
-        {activeFiltersCount > 0 && (
+        {showFilters && activeFiltersCount > 0 && (
           <div className="flex flex-wrap gap-2 mb-6">
             {[...selectedSubjects, ...selectedAges, ...selectedTypes].map(slug => {
               const cat = categories?.find(c => c.slug === slug);
@@ -272,26 +276,28 @@ export default function Apps() {
           </div>
         )}
 
-        <div className="flex gap-8">
+        <div className={showFilters ? "flex gap-8" : ""}>
           {/* Desktop Sidebar */}
-          <aside className="hidden lg:block w-64 flex-shrink-0">
-            <div className="sticky top-24 p-5 rounded-2xl bg-card/80 backdrop-blur-sm shadow-playful">
-              <h3 className="font-heading font-bold text-lg mb-4">Filter</h3>
-              {categoriesLoading ? (
-                <div className="space-y-4">
-                  {[1, 2, 3].map(i => (
-                    <div key={i} className="space-y-2">
-                      <Skeleton className="h-4 w-20" />
-                      <Skeleton className="h-4 w-full" />
-                      <Skeleton className="h-4 w-full" />
-                    </div>
-                  ))}
-                </div>
-              ) : (
-                <FiltersContent />
-              )}
-            </div>
-          </aside>
+          {showFilters && (
+            <aside className="hidden lg:block w-64 flex-shrink-0">
+              <div className="sticky top-24 p-5 rounded-2xl bg-card/80 backdrop-blur-sm shadow-playful">
+                <h3 className="font-heading font-bold text-lg mb-4">Filter</h3>
+                {categoriesLoading ? (
+                  <div className="space-y-4">
+                    {[1, 2, 3].map(i => (
+                      <div key={i} className="space-y-2">
+                        <Skeleton className="h-4 w-20" />
+                        <Skeleton className="h-4 w-full" />
+                        <Skeleton className="h-4 w-full" />
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <FiltersContent />
+                )}
+              </div>
+            </aside>
+          )}
 
           {/* App Grid */}
           <main className="flex-1">

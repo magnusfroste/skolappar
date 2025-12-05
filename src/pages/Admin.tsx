@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import { ArrowLeft, Check, X, Star, Clock, ExternalLink, Trash2, Plus, Edit2, Shield } from 'lucide-react';
+import { ArrowLeft, Check, X, Star, Clock, ExternalLink, Trash2, Plus, Edit2, Shield, Settings } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -9,6 +9,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Switch } from '@/components/ui/switch';
 import {
   Dialog,
   DialogContent,
@@ -42,6 +43,7 @@ import {
   useUpdateCategory,
   useDeleteCategory
 } from '@/hooks/useAdmin';
+import { useSetting, useUpdateSetting } from '@/hooks/useSettings';
 import { toast } from '@/hooks/use-toast';
 
 export default function Admin() {
@@ -57,6 +59,9 @@ export default function Admin() {
   const createCategory = useCreateCategory();
   const updateCategory = useUpdateCategory();
   const deleteCategory = useDeleteCategory();
+  
+  const { data: showFilters } = useSetting('show_filters');
+  const updateSetting = useUpdateSetting();
 
   const [newCategory, setNewCategory] = useState({
     name: '',
@@ -188,13 +193,17 @@ export default function Admin() {
 
       <main className="container mx-auto px-4 py-8">
         <Tabs defaultValue="pending" className="space-y-6">
-          <TabsList className="grid w-full max-w-md grid-cols-3">
+          <TabsList className="grid w-full max-w-lg grid-cols-4">
             <TabsTrigger value="pending" className="gap-2">
               <Clock className="h-4 w-4" />
-              Väntande ({pendingApps?.length || 0})
+              <span className="hidden sm:inline">Väntande</span> ({pendingApps?.length || 0})
             </TabsTrigger>
             <TabsTrigger value="all">Alla appar</TabsTrigger>
             <TabsTrigger value="categories">Kategorier</TabsTrigger>
+            <TabsTrigger value="settings" className="gap-2">
+              <Settings className="h-4 w-4" />
+              <span className="hidden sm:inline">Inställningar</span>
+            </TabsTrigger>
           </TabsList>
 
           {/* Pending Apps Tab */}
@@ -562,6 +571,34 @@ export default function Admin() {
                     </DialogFooter>
                   </DialogContent>
                 </Dialog>
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          {/* Settings Tab */}
+          <TabsContent value="settings">
+            <Card>
+              <CardHeader>
+                <CardTitle>Inställningar</CardTitle>
+                <CardDescription>Justera hur appen visas för användare</CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-6">
+                <div className="flex items-center justify-between p-4 rounded-lg border">
+                  <div className="space-y-1">
+                    <Label htmlFor="show-filters" className="text-base font-medium">Visa filter</Label>
+                    <p className="text-sm text-muted-foreground">
+                      När avaktiverad visas apparna i en enkel lista utan filtreringsmöjligheter
+                    </p>
+                  </div>
+                  <Switch
+                    id="show-filters"
+                    checked={showFilters === true}
+                    onCheckedChange={(checked) => {
+                      updateSetting.mutate({ key: 'show_filters', value: checked });
+                      toast({ title: checked ? 'Filter aktiverade' : 'Filter avaktiverade' });
+                    }}
+                  />
+                </div>
               </CardContent>
             </Card>
           </TabsContent>
