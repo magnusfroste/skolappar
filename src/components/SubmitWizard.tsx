@@ -51,6 +51,7 @@ interface SubmitWizardProps {
 
 export function SubmitWizard({ mode = 'create', appId, initialData }: SubmitWizardProps) {
   const [currentStep, setCurrentStep] = useState(1);
+  const [previewLoading, setPreviewLoading] = useState(false);
   const navigate = useNavigate();
   const { data: categories = [] } = useCategories();
   const submitMutation = useSubmitApp();
@@ -81,6 +82,14 @@ export function SubmitWizard({ mode = 'create', appId, initialData }: SubmitWiza
       });
     }
   }, [initialData, form]);
+
+  // Set loading state when URL changes for preview
+  const watchedUrl = form.watch('url');
+  useEffect(() => {
+    if (watchedUrl && watchedUrl.startsWith('https://')) {
+      setPreviewLoading(true);
+    }
+  }, [watchedUrl]);
 
   const subjectCategories = categories.filter(c => c.type === 'subject');
   const ageCategories = categories.filter(c => c.type === 'age');
@@ -270,11 +279,18 @@ export function SubmitWizard({ mode = 'create', appId, initialData }: SubmitWiza
                       </Button>
                     </div>
                     <div className="relative aspect-video rounded-md overflow-hidden bg-muted">
+                      {previewLoading && (
+                        <div className="absolute inset-0 flex items-center justify-center bg-muted z-10">
+                          <Loader2 className="h-8 w-8 animate-spin text-primary" />
+                        </div>
+                      )}
                       <img
                         src={getPreviewUrl(form.watch('url'))}
                         alt="Förhandsvisning"
-                        className="w-full h-full object-cover"
+                        className={`w-full h-full object-cover transition-opacity ${previewLoading ? 'opacity-0' : 'opacity-100'}`}
+                        onLoad={() => setPreviewLoading(false)}
                         onError={(e) => {
+                          setPreviewLoading(false);
                           e.currentTarget.style.display = 'none';
                         }}
                       />
