@@ -4,7 +4,6 @@ import { useIsAdmin } from '@/hooks/useAdmin';
 import { Button } from '@/components/ui/button';
 import { NotificationBell } from '@/components/NotificationBell';
 import { Sparkles, ArrowRight, BookOpen, Rocket, Users, Heart, Code, ExternalLink, Shield } from 'lucide-react';
-import logo from '@/assets/logo.png';
 
 export default function Index() {
   const { user, signOut, loading } = useAuth();
@@ -25,7 +24,7 @@ export default function Index() {
       <nav className="relative z-20 container mx-auto px-4 py-6">
         <div className="flex items-center justify-between">
           <Link to="/" className="flex items-center gap-2 text-xl font-heading font-bold text-foreground hover:text-primary transition-colors">
-            <img src={logo} alt="skolappar.com" className="w-8 h-8" />
+            <span className="text-2xl">📱</span>
             skolappar.com
           </Link>
           
@@ -245,7 +244,7 @@ export default function Index() {
         <div className="container mx-auto px-4 py-8">
           <div className="flex flex-col md:flex-row items-center justify-between gap-4">
             <div className="flex items-center gap-2 text-sm text-muted-foreground">
-              <img src={logo} alt="skolappar.com" className="w-5 h-5" />
+              <span className="text-lg">📱</span>
               <span>© 2024 skolappar.com · Skapad med ❤️ av vibe-codande föräldrar</span>
             </div>
             <div className="flex items-center gap-4">
