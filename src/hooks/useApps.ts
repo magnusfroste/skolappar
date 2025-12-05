@@ -201,9 +201,10 @@ export function useToggleUpvote() {
         if (error) throw error;
       }
     },
-    onSuccess: () => {
+    onSuccess: (_, variables) => {
       queryClient.invalidateQueries({ queryKey: ['apps'] });
       queryClient.invalidateQueries({ queryKey: ['upvotes'] });
+      queryClient.invalidateQueries({ queryKey: ['app', variables.appId] });
     },
   });
 }
