@@ -599,6 +599,20 @@ export default function Admin() {
                     }}
                   />
                 </div>
+
+                <div className="flex items-center justify-between p-4 rounded-lg border opacity-60">
+                  <div className="space-y-1">
+                    <Label htmlFor="google-login" className="text-base font-medium">Google-inloggning</Label>
+                    <p className="text-sm text-muted-foreground">
+                      Tillåt inloggning via Google (kommer snart)
+                    </p>
+                  </div>
+                  <Switch
+                    id="google-login"
+                    checked={false}
+                    disabled
+                  />
+                </div>
               </CardContent>
             </Card>
           </TabsContent>
