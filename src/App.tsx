@@ -10,6 +10,7 @@ import Apps from "./pages/Apps";
 import Submit from "./pages/Submit";
 import Dashboard from "./pages/Dashboard";
 import EditApp from "./pages/EditApp";
+import Admin from "./pages/Admin";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -28,6 +29,7 @@ const App = () => (
             <Route path="/submit" element={<Submit />} />
             <Route path="/min-sida" element={<Dashboard />} />
             <Route path="/redigera/:id" element={<EditApp />} />
+            <Route path="/admin" element={<Admin />} />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
           </Routes>

@@ -1,10 +1,12 @@
 import { Link } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
+import { useIsAdmin } from '@/hooks/useAdmin';
 import { Button } from '@/components/ui/button';
-import { Sparkles, ArrowRight, BookOpen, Rocket, Users, Heart, Code, ExternalLink } from 'lucide-react';
+import { Sparkles, ArrowRight, BookOpen, Rocket, Users, Heart, Code, ExternalLink, Shield } from 'lucide-react';
 
 export default function Index() {
   const { user, signOut, loading } = useAuth();
+  const { data: isAdmin } = useIsAdmin();
 
   return (
     <div className="min-h-screen bg-gradient-hero">
@@ -33,6 +35,14 @@ export default function Index() {
               <div className="w-8 h-8 rounded-full bg-muted animate-pulse" />
             ) : user ? (
               <div className="flex items-center gap-3">
+                {isAdmin && (
+                  <Button variant="ghost" asChild className="gap-1">
+                    <Link to="/admin">
+                      <Shield className="w-4 h-4" />
+                      <span className="hidden sm:inline">Admin</span>
+                    </Link>
+                  </Button>
+                )}
                 <Button variant="ghost" asChild>
                   <Link to="/min-sida">Min sida</Link>
                 </Button>
