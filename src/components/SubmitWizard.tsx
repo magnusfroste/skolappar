@@ -94,6 +94,11 @@ export function SubmitWizard({ mode = 'create', appId, initialData }: SubmitWiza
       if (!isCustomImage) {
         form.setValue('image_url', getPreviewUrl(watchedUrl));
       }
+      // Timeout fallback - stop loading after 10 seconds
+      const timeout = setTimeout(() => {
+        setPreviewLoading(false);
+      }, 10000);
+      return () => clearTimeout(timeout);
     }
   }, [watchedUrl, form]);
 
