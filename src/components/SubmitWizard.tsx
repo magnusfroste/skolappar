@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -14,6 +14,7 @@ import { Badge } from '@/components/ui/badge';
 import { ImageUploader } from './ImageUploader';
 import { useCategories } from '@/hooks/useApps';
 import { useSubmitApp } from '@/hooks/useSubmitApp';
+import { useUpdateApp } from '@/hooks/useEditApp';
 import { toast } from '@/hooks/use-toast';
 
 const formSchema = z.object({
@@ -34,23 +35,51 @@ const steps = [
   { id: 4, title: 'Granska', icon: Eye, description: 'Förhandsvisning' }
 ];
 
-export function SubmitWizard() {
+interface SubmitWizardProps {
+  mode?: 'create' | 'edit';
+  appId?: string;
+  initialData?: {
+    title: string;
+    url: string;
+    description: string;
+    long_description?: string | null;
+    image_url?: string | null;
+    categories: string[];
+  };
+}
+
+export function SubmitWizard({ mode = 'create', appId, initialData }: SubmitWizardProps) {
   const [currentStep, setCurrentStep] = useState(1);
   const navigate = useNavigate();
   const { data: categories = [] } = useCategories();
   const submitMutation = useSubmitApp();
+  const updateMutation = useUpdateApp();
 
   const form = useForm<FormData>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      title: '',
-      url: '',
-      description: '',
-      long_description: '',
-      image_url: '',
-      categories: []
+      title: initialData?.title || '',
+      url: initialData?.url || '',
+      description: initialData?.description || '',
+      long_description: initialData?.long_description || '',
+      image_url: initialData?.image_url || '',
+      categories: initialData?.categories || []
     }
   });
+
+  // Reset form when initialData changes (for edit mode)
+  useEffect(() => {
+    if (initialData) {
+      form.reset({
+        title: initialData.title,
+        url: initialData.url,
+        description: initialData.description,
+        long_description: initialData.long_description || '',
+        image_url: initialData.image_url || '',
+        categories: initialData.categories
+      });
+    }
+  }, [initialData, form]);
 
   const subjectCategories = categories.filter(c => c.type === 'subject');
   const ageCategories = categories.filter(c => c.type === 'age');
@@ -80,20 +109,41 @@ export function SubmitWizard() {
     setCurrentStep(prev => Math.max(prev - 1, 1));
   };
 
+  const isEditing = mode === 'edit';
+  const mutation = isEditing ? updateMutation : submitMutation;
+
   const onSubmit = async (data: FormData) => {
     try {
-      await submitMutation.mutateAsync({
-        title: data.title,
-        url: data.url,
-        description: data.description,
-        long_description: data.long_description,
-        image_url: data.image_url,
-        categories: data.categories
-      });
-      toast({
-        title: 'App inskickad! 🎉',
-        description: 'Din app granskas nu av vårt team och publiceras snart.'
-      });
+      if (isEditing && appId) {
+        await updateMutation.mutateAsync({
+          appId,
+          data: {
+            title: data.title,
+            url: data.url,
+            description: data.description,
+            long_description: data.long_description,
+            image_url: data.image_url,
+            categories: data.categories
+          }
+        });
+        toast({
+          title: 'App uppdaterad! ✨',
+          description: 'Dina ändringar har sparats.'
+        });
+      } else {
+        await submitMutation.mutateAsync({
+          title: data.title,
+          url: data.url,
+          description: data.description,
+          long_description: data.long_description,
+          image_url: data.image_url,
+          categories: data.categories
+        });
+        toast({
+          title: 'App inskickad! 🎉',
+          description: 'Din app granskas nu av vårt team och publiceras snart.'
+        });
+      }
       navigate('/min-sida');
     } catch (error) {
       toast({
@@ -484,18 +534,18 @@ export function SubmitWizard() {
             ) : (
               <Button
                 type="submit"
-                disabled={submitMutation.isPending}
+                disabled={mutation.isPending}
                 className="gap-2 bg-gradient-to-r from-primary to-secondary hover:opacity-90"
               >
-                {submitMutation.isPending ? (
+                {mutation.isPending ? (
                   <>
                     <Loader2 className="h-4 w-4 animate-spin" />
-                    Skickar...
+                    {isEditing ? 'Sparar...' : 'Skickar...'}
                   </>
                 ) : (
                   <>
                     <Check className="h-4 w-4" />
-                    Skicka in app
+                    {isEditing ? 'Spara ändringar' : 'Skicka in app'}
                   </>
                 )}
               </Button>
