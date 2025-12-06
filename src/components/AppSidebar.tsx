@@ -156,10 +156,10 @@ export function AppSidebar() {
                   <SidebarMenuItem key={app.id}>
                     <SidebarMenuButton
                       asChild
-                      isActive={isActive(`/app/${app.id}`)}
+                      isActive={location.pathname === `/min-sida/app/${app.id}`}
                       tooltip={app.title}
                     >
-                      <Link to={`/app/${app.id}`}>
+                      <Link to={`/min-sida/app/${app.id}`}>
                         {app.image_url ? (
                           <img
                             src={app.image_url}
