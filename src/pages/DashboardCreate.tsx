@@ -31,7 +31,7 @@ export default function DashboardCreate() {
     <SidebarProvider>
       <div className="min-h-screen flex w-full bg-background">
         <AppSidebar />
-        <main className="flex-1 p-6 overflow-auto">
+        <main className="flex-1 p-4 md:p-8 overflow-auto">
           <AppCreatePanel />
         </main>
       </div>
