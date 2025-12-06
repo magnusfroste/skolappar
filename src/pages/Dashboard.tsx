@@ -60,7 +60,7 @@ export default function Dashboard() {
             <div className="hidden md:block">
               <NotificationBell />
             </div>
-            <Link to="/submit">
+            <Link to="/min-sida/ny">
               <Button className="gap-2 shadow-playful">
                 <Plus className="h-4 w-4" />
                 Lägg till app
@@ -187,7 +187,7 @@ export default function Dashboard() {
                   <p className="text-muted-foreground text-sm mb-6 max-w-sm mx-auto">
                     Dela din första pedagogiska app med andra föräldrar!
                   </p>
-                  <Link to="/submit">
+                  <Link to="/min-sida/ny">
                     <Button className="gap-2 shadow-playful">
                       <Plus className="h-4 w-4" />
                       Lägg till din första app

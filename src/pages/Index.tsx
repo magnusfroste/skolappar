@@ -57,7 +57,7 @@ export default function Index() {
                   <Link to="/min-sida">Min sida</Link>
                 </Button>
                 <Button asChild>
-                  <Link to="/submit" className="gap-2">
+                  <Link to="/min-sida/ny" className="gap-2">
                     <Sparkles className="w-4 h-4" />
                     <span className="hidden sm:inline">Lägg till app</span>
                   </Link>
@@ -103,7 +103,7 @@ export default function Index() {
               </Link>
             </Button>
             <Button size="lg" variant="outline" className="h-14 px-8 text-lg font-semibold" asChild>
-              <Link to={user ? "/submit" : "/auth"}>
+              <Link to={user ? "/min-sida/ny" : "/auth"}>
                 Dela din app
               </Link>
             </Button>
@@ -239,7 +239,7 @@ export default function Index() {
             Gör det tillsammans med dina barn. <span className="font-semibold text-foreground">De är bara barn ett tag!</span>
           </p>
           <Button size="lg" className="h-14 px-8 text-lg font-semibold gap-2 shadow-playful-lg" asChild>
-            <Link to={user ? "/submit" : "/auth"}>
+            <Link to={user ? "/min-sida/ny" : "/auth"}>
               <Rocket className="w-5 h-5" />
               Kom igång nu
             </Link>
