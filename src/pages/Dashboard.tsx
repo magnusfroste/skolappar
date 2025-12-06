@@ -253,7 +253,7 @@ export default function Dashboard() {
                           </a>
                         </Button>
                         <Button variant="outline" size="sm" asChild>
-                          <Link to={`/redigera/${app.id}`}>
+                          <Link to={`/min-sida/app/${app.id}`}>
                             <Edit className="h-3 w-3" />
                           </Link>
                         </Button>
