@@ -124,7 +124,7 @@ export function AppCreatePanel() {
   };
 
   return (
-    <div className="max-w-2xl space-y-6">
+    <div className="max-w-4xl space-y-6">
       {/* Header */}
       <div>
         <h1 className="text-xl font-bold">Lägg till ny app</h1>
