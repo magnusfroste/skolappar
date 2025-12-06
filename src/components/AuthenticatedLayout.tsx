@@ -1,10 +1,10 @@
 import { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Menu } from 'lucide-react';
+
 import { SidebarProvider, SidebarTrigger } from '@/components/ui/sidebar';
 import { AppSidebar } from '@/components/AppSidebar';
 import { useAuth } from '@/hooks/useAuth';
-import { Button } from '@/components/ui/button';
+
 import { NotificationBell } from '@/components/NotificationBell';
 
 interface AuthenticatedLayoutProps {
@@ -38,11 +38,7 @@ export function AuthenticatedLayout({ children }: AuthenticatedLayoutProps) {
         <div className="flex-1 flex flex-col min-w-0">
           {/* Mobile header */}
           <header className="sticky top-0 z-40 flex items-center justify-between gap-4 border-b border-border/50 bg-background/80 backdrop-blur-sm px-4 py-3 md:hidden">
-            <SidebarTrigger asChild>
-              <Button variant="ghost" size="icon">
-                <Menu className="h-5 w-5" />
-              </Button>
-            </SidebarTrigger>
+            <SidebarTrigger className="h-9 w-9" />
             <span className="font-heading font-bold text-lg bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
               skolappar
             </span>
