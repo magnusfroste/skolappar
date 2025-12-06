@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom';
-import { Plus, ExternalLink, Edit, Trash2, Heart, MessageCircle, TrendingUp, Clock, Star, BarChart3 } from 'lucide-react';
+import { Plus, ExternalLink, Edit, Trash2, Heart, MessageCircle, TrendingUp, Clock, Star, BarChart3, MousePointerClick } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -128,16 +128,16 @@ export default function Dashboard() {
           <Card className="bg-card/80 backdrop-blur-sm shadow-playful">
             <CardContent className="pt-4 pb-4">
               <div className="flex items-center gap-3">
-                <div className="p-2 rounded-xl bg-warning/10">
-                  <Clock className="h-5 w-5 text-warning" />
+                <div className="p-2 rounded-xl bg-accent/10">
+                  <MousePointerClick className="h-5 w-5 text-accent" />
                 </div>
                 <div>
                   {statsLoading ? (
                     <Skeleton className="h-7 w-10" />
                   ) : (
-                    <p className="text-2xl font-bold">{stats?.pendingApps || 0}</p>
+                    <p className="text-2xl font-bold">{stats?.totalClicks || 0}</p>
                   )}
-                  <p className="text-xs text-muted-foreground">Väntar</p>
+                  <p className="text-xs text-muted-foreground">Klick</p>
                 </div>
               </div>
             </CardContent>

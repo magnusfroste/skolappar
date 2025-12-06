@@ -12,6 +12,7 @@ export interface MyApp {
   status: 'pending' | 'approved' | 'rejected' | 'featured';
   upvotes_count: number;
   comments_count: number;
+  clicks_count: number;
   created_at: string;
   updated_at: string;
   categories: {
@@ -51,6 +52,7 @@ export function useMyApps() {
         status: app.status as MyApp['status'],
         upvotes_count: app.upvotes_count || 0,
         comments_count: app.comments_count || 0,
+        clicks_count: app.clicks_count || 0,
         created_at: app.created_at,
         updated_at: app.updated_at,
         categories: app.app_categories?.map((ac: any) => ac.categories).filter(Boolean) || []
@@ -89,7 +91,7 @@ export function useMyStats() {
 
       const { data, error } = await supabase
         .from('apps')
-        .select('upvotes_count, comments_count, status')
+        .select('upvotes_count, comments_count, clicks_count, status')
         .eq('user_id', user.id);
 
       if (error) throw error;
@@ -97,6 +99,7 @@ export function useMyStats() {
       const totalApps = data.length;
       const totalUpvotes = data.reduce((sum, app) => sum + (app.upvotes_count || 0), 0);
       const totalComments = data.reduce((sum, app) => sum + (app.comments_count || 0), 0);
+      const totalClicks = data.reduce((sum, app) => sum + (app.clicks_count || 0), 0);
       const pendingApps = data.filter(app => app.status === 'pending').length;
       const approvedApps = data.filter(app => app.status === 'approved' || app.status === 'featured').length;
 
@@ -104,6 +107,7 @@ export function useMyStats() {
         totalApps,
         totalUpvotes,
         totalComments,
+        totalClicks,
         pendingApps,
         approvedApps
       };
