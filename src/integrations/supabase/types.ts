@@ -49,6 +49,7 @@ export type Database = {
       }
       apps: {
         Row: {
+          clicks_count: number | null
           comments_count: number | null
           created_at: string
           description: string
@@ -64,6 +65,7 @@ export type Database = {
           user_id: string
         }
         Insert: {
+          clicks_count?: number | null
           comments_count?: number | null
           created_at?: string
           description: string
@@ -79,6 +81,7 @@ export type Database = {
           user_id: string
         }
         Update: {
+          clicks_count?: number | null
           comments_count?: number | null
           created_at?: string
           description?: string

@@ -25,6 +25,7 @@ interface AppDetails {
   image_url: string | null;
   upvotes_count: number;
   comments_count: number;
+  clicks_count: number;
   status: string;
   created_at: string;
   user_id: string;
@@ -79,7 +80,18 @@ export function useAppDetails(appId: string | undefined) {
       }
 
       return {
-        ...app,
+        id: app.id,
+        title: app.title,
+        description: app.description,
+        long_description: app.long_description,
+        url: app.url,
+        image_url: app.image_url,
+        upvotes_count: app.upvotes_count || 0,
+        comments_count: app.comments_count || 0,
+        clicks_count: app.clicks_count || 0,
+        status: app.status,
+        created_at: app.created_at,
+        user_id: app.user_id,
         profile: profile || null,
         categories,
       };
