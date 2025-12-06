@@ -165,7 +165,7 @@ export default function Apps() {
               ) : user ? (
                 <>
                   <Button variant="ghost" size="sm" asChild>
-                    <Link to="/submit">Skicka in</Link>
+                    <Link to="/min-sida/ny">Skicka in</Link>
                   </Button>
                   <Button variant="outline" size="sm" onClick={signOut}>
                     Logga ut
@@ -355,7 +355,7 @@ export default function Apps() {
                   </Button>
                 ) : (
                   <Button asChild>
-                    <Link to={user ? "/submit" : "/auth"}>
+                    <Link to={user ? "/min-sida/ny" : "/auth"}>
                       Dela din första app
                       <ArrowRight className="w-4 h-4 ml-1" />
                     </Link>
