@@ -28,7 +28,7 @@ export default function Auth() {
 
   useEffect(() => {
     if (user && !loading) {
-      navigate('/');
+      navigate('/min-sida');
     }
   }, [user, loading, navigate]);
 
