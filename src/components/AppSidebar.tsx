@@ -1,7 +1,8 @@
 import { Link, useLocation } from 'react-router-dom';
-import { Home, Compass, Plus, Lightbulb, BookOpen, Sparkles, LogOut, Settings } from 'lucide-react';
+import { Home, Compass, Plus, Lightbulb, BookOpen, Sparkles, LogOut, Settings, ChevronLeft, ChevronRight, Shield } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 import { useMyApps } from '@/hooks/useMyApps';
+import { useIsAdmin } from '@/hooks/useAdmin';
 import {
   Sidebar,
   SidebarContent,
@@ -38,22 +39,35 @@ export function AppSidebar() {
   const { user, signOut } = useAuth();
   const { data: apps, isLoading: appsLoading } = useMyApps();
   const { data: profile } = useMyProfile();
+  const { data: isAdmin } = useIsAdmin();
 
   const isActive = (path: string) => location.pathname === path;
+
+  const { toggleSidebar } = useSidebar();
 
   return (
     <Sidebar collapsible="icon" className="border-r border-sidebar-border">
       <SidebarHeader className="p-4">
-        <Link to="/" className="flex items-center gap-3">
-          <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-primary to-secondary flex items-center justify-center text-primary-foreground font-bold text-sm">
-            S
-          </div>
-          {!collapsed && (
-            <span className="font-heading font-bold text-lg bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
-              skolappar
-            </span>
-          )}
-        </Link>
+        <div className="flex items-center justify-between">
+          <Link to="/" className="flex items-center gap-3">
+            <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-primary to-secondary flex items-center justify-center text-primary-foreground font-bold text-sm">
+              S
+            </div>
+            {!collapsed && (
+              <span className="font-heading font-bold text-lg bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
+                skolappar
+              </span>
+            )}
+          </Link>
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={toggleSidebar}
+            className="h-7 w-7 shrink-0"
+          >
+            {collapsed ? <ChevronRight className="h-4 w-4" /> : <ChevronLeft className="h-4 w-4" />}
+          </Button>
+        </div>
       </SidebarHeader>
 
       <SidebarContent>
@@ -75,6 +89,20 @@ export function AppSidebar() {
                   </SidebarMenuButton>
                 </SidebarMenuItem>
               ))}
+              {isAdmin && (
+                <SidebarMenuItem>
+                  <SidebarMenuButton
+                    asChild
+                    isActive={isActive('/admin')}
+                    tooltip="Admin"
+                  >
+                    <Link to="/admin">
+                      <Shield className="h-4 w-4" />
+                      <span>Admin</span>
+                    </Link>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+              )}
             </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>

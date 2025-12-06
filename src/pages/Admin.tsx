@@ -1,6 +1,6 @@
-import { useEffect, useState } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
-import { ArrowLeft, Check, X, Star, Clock, ExternalLink, Trash2, Plus, Edit2, Shield, Settings } from 'lucide-react';
+import { useState } from 'react';
+import { Link } from 'react-router-dom';
+import { Check, X, Star, Clock, ExternalLink, Trash2, Plus, Edit2, Shield, Settings } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -31,7 +31,7 @@ import {
   AlertDialogTrigger,
 } from '@/components/ui/alert-dialog';
 import { AppStatusBadge } from '@/components/AppStatusBadge';
-import { useAuth } from '@/hooks/useAuth';
+import { AuthenticatedLayout } from '@/components/AuthenticatedLayout';
 import {
   useIsAdmin,
   usePendingApps,
@@ -47,8 +47,6 @@ import { useSetting, useUpdateSetting } from '@/hooks/useSettings';
 import { toast } from '@/hooks/use-toast';
 
 export default function Admin() {
-  const { user, loading: authLoading } = useAuth();
-  const navigate = useNavigate();
   const { data: isAdmin, isLoading: adminLoading } = useIsAdmin();
   const { data: pendingApps, isLoading: pendingLoading } = usePendingApps();
   const { data: allApps, isLoading: allAppsLoading } = useAllApps();
@@ -72,23 +70,6 @@ export default function Admin() {
   });
   const [editingCategory, setEditingCategory] = useState<any>(null);
   const [categoryDialogOpen, setCategoryDialogOpen] = useState(false);
-
-  useEffect(() => {
-    if (!authLoading && !user) {
-      navigate('/auth');
-    }
-  }, [user, authLoading, navigate]);
-
-  useEffect(() => {
-    if (!adminLoading && !isAdmin && user) {
-      navigate('/');
-      toast({
-        title: 'Åtkomst nekad',
-        description: 'Du har inte behörighet att se denna sida',
-        variant: 'destructive'
-      });
-    }
-  }, [isAdmin, adminLoading, navigate, user]);
 
   const handleStatusChange = async (appId: string, status: 'approved' | 'rejected' | 'featured' | 'pending') => {
     try {
@@ -149,49 +130,49 @@ export default function Admin() {
     }
   };
 
-  if (authLoading || adminLoading) {
+  if (adminLoading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-background via-background to-primary/5 flex items-center justify-center">
-        <div className="animate-pulse text-primary">Laddar...</div>
-      </div>
+      <AuthenticatedLayout>
+        <div className="flex-1 flex items-center justify-center">
+          <div className="animate-pulse text-primary">Laddar...</div>
+        </div>
+      </AuthenticatedLayout>
     );
   }
 
-  if (!user || !isAdmin) return null;
+  if (!isAdmin) {
+    return (
+      <AuthenticatedLayout>
+        <div className="flex-1 flex items-center justify-center">
+          <div className="text-center">
+            <Shield className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
+            <p className="text-muted-foreground">Du har inte behörighet att se denna sida</p>
+          </div>
+        </div>
+      </AuthenticatedLayout>
+    );
+  }
 
   const subjectCategories = categories?.filter(c => c.type === 'subject') || [];
   const ageCategories = categories?.filter(c => c.type === 'age') || [];
   const typeCategories = categories?.filter(c => c.type === 'type') || [];
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-background via-background to-primary/5">
-      {/* Header */}
-      <header className="border-b border-border/50 bg-background/80 backdrop-blur-sm sticky top-0 z-50">
-        <div className="container mx-auto px-4 py-4">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-4">
-              <Link to="/">
-                <Button variant="ghost" size="icon">
-                  <ArrowLeft className="h-5 w-5" />
-                </Button>
-              </Link>
-              <div className="flex items-center gap-2">
-                <Shield className="h-6 w-6 text-primary" />
-                <div>
-                  <h1 className="text-xl font-bold bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
-                    Admin Panel
-                  </h1>
-                  <p className="text-sm text-muted-foreground">
-                    Hantera appar och kategorier
-                  </p>
-                </div>
-              </div>
-            </div>
+    <AuthenticatedLayout>
+      <div className="p-6 md:p-8 max-w-7xl mx-auto">
+        {/* Page Header */}
+        <div className="flex items-center gap-3 mb-8">
+          <Shield className="h-8 w-8 text-primary" />
+          <div>
+            <h1 className="text-2xl font-bold bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
+              Admin Panel
+            </h1>
+            <p className="text-sm text-muted-foreground">
+              Hantera appar och kategorier
+            </p>
           </div>
         </div>
-      </header>
 
-      <main className="container mx-auto px-4 py-8">
         <Tabs defaultValue="pending" className="space-y-6">
           <TabsList className="grid w-full max-w-lg grid-cols-4">
             <TabsTrigger value="pending" className="gap-2">
@@ -617,8 +598,8 @@ export default function Admin() {
             </Card>
           </TabsContent>
         </Tabs>
-      </main>
-    </div>
+      </div>
+    </AuthenticatedLayout>
   );
 }
 
