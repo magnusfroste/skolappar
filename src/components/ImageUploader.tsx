@@ -76,11 +76,11 @@ export function ImageUploader({ value, onChange }: ImageUploaderProps) {
 
   if (value) {
     return (
-      <div className="relative rounded-xl overflow-hidden border-2 border-primary/20 bg-card">
+      <div className="relative rounded-xl overflow-hidden border-2 border-primary/20 bg-muted/30">
         <img 
           src={value} 
           alt="App preview" 
-          className="w-full h-48 object-cover"
+          className="w-full max-h-80 object-contain"
         />
         <Button
           type="button"
