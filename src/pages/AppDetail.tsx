@@ -1,5 +1,5 @@
 import { useParams, Link, useNavigate } from 'react-router-dom';
-import { ArrowLeft, ExternalLink, ChevronUp, MessageCircle, Trash2, Send } from 'lucide-react';
+import { ArrowLeft, ExternalLink, ChevronUp, MessageCircle, Trash2, Send, MousePointerClick } from 'lucide-react';
 import { useState } from 'react';
 import { format } from 'date-fns';
 import { sv } from 'date-fns/locale';
@@ -11,6 +11,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useAppDetails, useAppComments, useAddComment, useDeleteComment } from '@/hooks/useAppDetails';
 import { useToggleUpvote, useUserUpvotes } from '@/hooks/useApps';
+import { useTrackClick } from '@/hooks/useTrackClick';
 import { useAuth } from '@/hooks/useAuth';
 import { toast } from 'sonner';
 
@@ -24,6 +25,7 @@ export default function AppDetail() {
   const { data: comments, isLoading: commentsLoading } = useAppComments(id);
   const { data: userUpvotes } = useUserUpvotes();
   const toggleUpvote = useToggleUpvote();
+  const trackClick = useTrackClick();
   const addComment = useAddComment();
   const deleteComment = useDeleteComment();
 
@@ -124,7 +126,12 @@ export default function AppDetail() {
               <span>{format(new Date(app.created_at), 'd MMM yyyy', { locale: sv })}</span>
             </div>
           </div>
-          <a href={app.url} target="_blank" rel="noopener noreferrer">
+          <a 
+            href={app.url} 
+            target="_blank" 
+            rel="noopener noreferrer"
+            onClick={() => trackClick.mutate(app.id)}
+          >
             <Button className="gap-2">
               Öppna
               <ExternalLink className="w-4 h-4" />
@@ -173,6 +180,10 @@ export default function AppDetail() {
           <span className="flex items-center gap-1.5 text-sm text-muted-foreground">
             <MessageCircle className="w-4 h-4" />
             {app.comments_count} kommentarer
+          </span>
+          <span className="flex items-center gap-1.5 text-sm text-muted-foreground">
+            <MousePointerClick className="w-4 h-4" />
+            {app.clicks_count || 0} öppningar
           </span>
         </div>
 

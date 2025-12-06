@@ -13,6 +13,7 @@ export interface App {
   is_featured: boolean;
   upvotes_count: number;
   comments_count: number;
+  clicks_count: number;
   created_at: string;
   user_id: string;
   profile?: {
@@ -123,6 +124,7 @@ export function useApps(filters: AppsFilters = {}) {
         is_featured: app.is_featured || false,
         upvotes_count: app.upvotes_count || 0,
         comments_count: app.comments_count || 0,
+        clicks_count: app.clicks_count || 0,
         created_at: app.created_at,
         user_id: app.user_id,
         profile: profilesMap.get(app.user_id) || null,

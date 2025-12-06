@@ -329,6 +329,7 @@ export default function Apps() {
                     imageUrl={app.image_url || undefined}
                     upvotesCount={app.upvotes_count}
                     commentsCount={app.comments_count}
+                    clicksCount={app.clicks_count}
                     creatorId={app.user_id}
                     creatorName={app.profile?.display_name || undefined}
                     categories={app.categories}
