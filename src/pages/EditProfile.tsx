@@ -1,16 +1,16 @@
 import { useState, useEffect } from "react";
-import { useNavigate, Link } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { useMyProfile, useUpdateProfile, useUploadAvatar } from "@/hooks/useProfile";
+import { AuthenticatedLayout } from "@/components/AuthenticatedLayout";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useToast } from "@/hooks/use-toast";
-import { ArrowLeft, Camera, Loader2 } from "lucide-react";
+import { Camera, Loader2 } from "lucide-react";
 
 const EditProfile = () => {
   const navigate = useNavigate();
@@ -93,12 +93,12 @@ const EditProfile = () => {
 
   if (authLoading || profileLoading) {
     return (
-      <div className="min-h-screen bg-background">
-        <div className="max-w-lg mx-auto px-4 py-8">
-          <Skeleton className="h-8 w-32 mb-8" />
+      <AuthenticatedLayout>
+        <div className="p-4 md:p-8 max-w-4xl space-y-6">
+          <Skeleton className="h-8 w-32" />
           <Skeleton className="h-64 w-full" />
         </div>
-      </div>
+      </AuthenticatedLayout>
     );
   }
 
@@ -109,112 +109,102 @@ const EditProfile = () => {
     .toUpperCase() || user?.email?.[0]?.toUpperCase() || "?";
 
   return (
-    <div className="min-h-screen bg-background">
-      <div className="max-w-lg mx-auto px-4 py-8">
-        <Button variant="ghost" asChild className="mb-6">
-          <Link to="/min-sida">
-            <ArrowLeft className="h-4 w-4 mr-2" />
-            Tillbaka
-          </Link>
-        </Button>
+    <AuthenticatedLayout>
+      <div className="p-4 md:p-8 max-w-4xl space-y-6">
+        {/* Header */}
+        <div>
+          <h1 className="text-xl font-bold">Redigera profil</h1>
+          <p className="text-muted-foreground text-sm">Uppdatera din profilinformation</p>
+        </div>
 
-        <Card>
-          <CardHeader>
-            <CardTitle>Redigera profil</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <form onSubmit={handleSubmit} className="space-y-6">
-              {/* Avatar */}
-              <div className="flex flex-col items-center gap-4">
-                <div className="relative">
-                  <Avatar className="h-24 w-24 border-4 border-border">
-                    <AvatarImage src={avatarUrl || undefined} />
-                    <AvatarFallback className="text-2xl bg-primary/10 text-primary">
-                      {initials}
-                    </AvatarFallback>
-                  </Avatar>
-                  <label
-                    htmlFor="avatar-upload"
-                    className="absolute bottom-0 right-0 p-2 rounded-full bg-primary text-primary-foreground cursor-pointer hover:bg-primary/90 transition-colors"
-                  >
-                    {uploadAvatar.isPending ? (
-                      <Loader2 className="h-4 w-4 animate-spin" />
-                    ) : (
-                      <Camera className="h-4 w-4" />
-                    )}
-                  </label>
-                  <input
-                    id="avatar-upload"
-                    type="file"
-                    accept="image/*"
-                    className="hidden"
-                    onChange={handleAvatarChange}
-                    disabled={uploadAvatar.isPending}
-                  />
-                </div>
-                <p className="text-sm text-muted-foreground">
-                  Klicka på kameran för att byta bild
-                </p>
-              </div>
+        <form onSubmit={handleSubmit} className="space-y-6">
+          {/* Avatar */}
+          <div className="flex items-center gap-6">
+            <div className="relative">
+              <Avatar className="h-20 w-20 border-2 border-border">
+                <AvatarImage src={avatarUrl || undefined} />
+                <AvatarFallback className="text-xl bg-primary/10 text-primary">
+                  {initials}
+                </AvatarFallback>
+              </Avatar>
+              <label
+                htmlFor="avatar-upload"
+                className="absolute bottom-0 right-0 p-1.5 rounded-full bg-primary text-primary-foreground cursor-pointer hover:bg-primary/90 transition-colors"
+              >
+                {uploadAvatar.isPending ? (
+                  <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                ) : (
+                  <Camera className="h-3.5 w-3.5" />
+                )}
+              </label>
+              <input
+                id="avatar-upload"
+                type="file"
+                accept="image/*"
+                className="hidden"
+                onChange={handleAvatarChange}
+                disabled={uploadAvatar.isPending}
+              />
+            </div>
+            <p className="text-sm text-muted-foreground">
+              Klicka på kameran för att byta bild
+            </p>
+          </div>
 
-              {/* Display Name */}
-              <div className="space-y-2">
-                <Label htmlFor="displayName">Visningsnamn</Label>
-                <Input
-                  id="displayName"
-                  value={displayName}
-                  onChange={(e) => setDisplayName(e.target.value)}
-                  placeholder="Ditt namn"
-                  maxLength={100}
-                />
-              </div>
+          {/* Display Name */}
+          <div className="space-y-2">
+            <Label htmlFor="displayName">Visningsnamn</Label>
+            <Input
+              id="displayName"
+              value={displayName}
+              onChange={(e) => setDisplayName(e.target.value)}
+              placeholder="Ditt namn"
+              maxLength={100}
+            />
+          </div>
 
-              {/* Bio */}
-              <div className="space-y-2">
-                <Label htmlFor="bio">Om dig</Label>
-                <Textarea
-                  id="bio"
-                  value={bio}
-                  onChange={(e) => setBio(e.target.value)}
-                  placeholder="Berätta lite om dig själv..."
-                  rows={4}
-                  maxLength={500}
-                />
-                <p className="text-xs text-muted-foreground text-right">
-                  {bio.length}/500
-                </p>
-              </div>
+          {/* Bio */}
+          <div className="space-y-2">
+            <Label htmlFor="bio">Om dig</Label>
+            <Textarea
+              id="bio"
+              value={bio}
+              onChange={(e) => setBio(e.target.value)}
+              placeholder="Berätta lite om dig själv..."
+              rows={4}
+              maxLength={500}
+            />
+            <p className="text-xs text-muted-foreground text-right">
+              {bio.length}/500
+            </p>
+          </div>
 
-              {/* Submit */}
-              <div className="flex gap-3">
-                <Button
-                  type="button"
-                  variant="outline"
-                  className="flex-1"
-                  onClick={() => navigate("/min-sida")}
-                >
-                  Avbryt
-                </Button>
-                <Button
-                  type="submit"
-                  className="flex-1"
-                  disabled={updateProfile.isPending}
-                >
-                  {updateProfile.isPending ? (
-                    <>
-                      <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                      Sparar...
-                    </>
-                  ) : (
-                    "Spara"
-                  )}
-                </Button>
-              </div>
-            </form>
-          </CardContent>
-        </Card>
+          {/* Submit */}
+          <div className="flex gap-3">
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => navigate("/min-sida")}
+            >
+              Avbryt
+            </Button>
+            <Button
+              type="submit"
+              disabled={updateProfile.isPending}
+            >
+              {updateProfile.isPending ? (
+                <>
+                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                  Sparar...
+                </>
+              ) : (
+                "Spara ändringar"
+              )}
+            </Button>
+          </div>
+        </form>
       </div>
-    </div>
+    </AuthenticatedLayout>
   );
 };
 
