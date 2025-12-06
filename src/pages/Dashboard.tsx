@@ -233,6 +233,9 @@ export default function Dashboard() {
                         <span className="flex items-center gap-1">
                           <MessageCircle className="h-3 w-3" /> {app.comments_count}
                         </span>
+                        <span className="flex items-center gap-1">
+                          <MousePointerClick className="h-3 w-3" /> {app.clicks_count}
+                        </span>
                       </div>
                       <div className="flex flex-wrap gap-1 mb-3">
                         {app.categories.slice(0, 3).map((cat) => (
