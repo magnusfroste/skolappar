@@ -9,6 +9,7 @@ import Auth from "./pages/Auth";
 import Apps from "./pages/Apps";
 import Submit from "./pages/Submit";
 import Dashboard from "./pages/Dashboard";
+import DashboardEdit from "./pages/DashboardEdit";
 import EditApp from "./pages/EditApp";
 import Admin from "./pages/Admin";
 import Profile from "./pages/Profile";
@@ -31,6 +32,7 @@ const App = () => (
             <Route path="/apps" element={<Apps />} />
             <Route path="/submit" element={<Submit />} />
             <Route path="/min-sida" element={<Dashboard />} />
+            <Route path="/min-sida/app/:id" element={<DashboardEdit />} />
             <Route path="/redigera/:id" element={<EditApp />} />
             <Route path="/admin" element={<Admin />} />
             <Route path="/profil/:id" element={<Profile />} />
