@@ -112,7 +112,7 @@ export function AppSidebar() {
           <SidebarGroupLabel className="flex items-center justify-between">
             <span>Mina appar</span>
             {!collapsed && (
-              <Link to="/submit">
+              <Link to="/min-sida/ny">
                 <Button variant="ghost" size="icon" className="h-5 w-5">
                   <Plus className="h-3 w-3" />
                 </Button>
@@ -124,7 +124,7 @@ export function AppSidebar() {
               {collapsed && (
                 <SidebarMenuItem>
                   <SidebarMenuButton asChild tooltip="Lägg till app">
-                    <Link to="/submit">
+                    <Link to="/min-sida/ny">
                       <Plus className="h-4 w-4" />
                       <span>Lägg till</span>
                     </Link>
@@ -143,7 +143,7 @@ export function AppSidebar() {
                     {collapsed ? '' : 'Inga appar än'}
                   </p>
                   {!collapsed && (
-                    <Link to="/submit">
+                    <Link to="/min-sida/ny">
                       <Button size="sm" variant="outline" className="w-full gap-2">
                         <Plus className="h-3 w-3" />
                         Lägg till
