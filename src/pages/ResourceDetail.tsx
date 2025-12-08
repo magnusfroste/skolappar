@@ -3,6 +3,7 @@ import { useResource } from "@/hooks/useResources";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
+import { MarkdownRenderer } from "@/components/MarkdownRenderer";
 
 export default function ResourceDetail() {
   const { category, slug } = useParams<{ category: string; slug: string }>();
@@ -35,35 +36,6 @@ export default function ResourceDetail() {
     );
   }
 
-  // Simple markdown to HTML conversion
-  const renderContent = (content: string) => {
-    return content
-      .split('\n')
-      .map((line, i) => {
-        // Headers
-        if (line.startsWith('### ')) {
-          return <h3 key={i} className="text-lg font-semibold mt-6 mb-2">{line.slice(4)}</h3>;
-        }
-        if (line.startsWith('## ')) {
-          return <h2 key={i} className="text-xl font-bold mt-8 mb-3">{line.slice(3)}</h2>;
-        }
-        if (line.startsWith('# ')) {
-          return <h1 key={i} className="text-2xl font-bold mb-4">{line.slice(2)}</h1>;
-        }
-        // List items
-        if (line.startsWith('- ')) {
-          const content = line.slice(2).replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
-          return <li key={i} className="ml-4" dangerouslySetInnerHTML={{ __html: content }} />;
-        }
-        // Bold text in paragraphs
-        if (line.trim()) {
-          const content = line.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
-          return <p key={i} className="mb-3 leading-relaxed" dangerouslySetInnerHTML={{ __html: content }} />;
-        }
-        return null;
-      });
-  };
-
   return (
     <div className="min-h-screen bg-background">
       <div className="container max-w-3xl py-12 px-4">
@@ -74,8 +46,8 @@ export default function ResourceDetail() {
           </Button>
         </Link>
 
-        <article className="prose prose-lg max-w-none">
-          {renderContent(resource.content)}
+        <article>
+          <MarkdownRenderer content={resource.content} />
         </article>
       </div>
     </div>
