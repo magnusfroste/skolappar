@@ -220,3 +220,98 @@ export function useDeleteCategory() {
     }
   });
 }
+
+// Resource management
+export function useAdminResources() {
+  return useQuery({
+    queryKey: ['admin-resources'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('resources')
+        .select('*')
+        .order('category')
+        .order('sort_order');
+
+      if (error) throw error;
+      return data;
+    }
+  });
+}
+
+export function useCreateResource() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (resource: {
+      title: string;
+      slug: string;
+      excerpt?: string;
+      content: string;
+      category: string;
+      icon?: string;
+      sort_order?: number;
+      is_published?: boolean;
+    }) => {
+      const { data, error } = await supabase
+        .from('resources')
+        .insert(resource)
+        .select()
+        .single();
+
+      if (error) throw error;
+      return data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['admin-resources'] });
+      queryClient.invalidateQueries({ queryKey: ['resources'] });
+    }
+  });
+}
+
+export function useUpdateResource() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({ id, ...updates }: {
+      id: string;
+      title?: string;
+      slug?: string;
+      excerpt?: string;
+      content?: string;
+      category?: string;
+      icon?: string;
+      sort_order?: number;
+      is_published?: boolean;
+    }) => {
+      const { error } = await supabase
+        .from('resources')
+        .update(updates)
+        .eq('id', id);
+
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['admin-resources'] });
+      queryClient.invalidateQueries({ queryKey: ['resources'] });
+    }
+  });
+}
+
+export function useDeleteResource() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (id: string) => {
+      const { error } = await supabase
+        .from('resources')
+        .delete()
+        .eq('id', id);
+
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['admin-resources'] });
+      queryClient.invalidateQueries({ queryKey: ['resources'] });
+    }
+  });
+}
