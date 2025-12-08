@@ -1,5 +1,5 @@
 import { useParams, Link, useNavigate } from 'react-router-dom';
-import { ArrowLeft, ExternalLink, ChevronUp, MessageCircle, Trash2, Send, MousePointerClick } from 'lucide-react';
+import { ArrowLeft, ExternalLink, ChevronUp, MessageCircle, Trash2, Send, MousePointerClick, Monitor, Tablet, Smartphone, Layers } from 'lucide-react';
 import { useState } from 'react';
 import { format } from 'date-fns';
 import { sv } from 'date-fns/locale';
@@ -9,11 +9,19 @@ import { Badge } from '@/components/ui/badge';
 import { Textarea } from '@/components/ui/textarea';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Skeleton } from '@/components/ui/skeleton';
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { useAppDetails, useAppComments, useAddComment, useDeleteComment } from '@/hooks/useAppDetails';
 import { useToggleUpvote, useUserUpvotes } from '@/hooks/useApps';
 import { useTrackClick } from '@/hooks/useTrackClick';
 import { useAuth } from '@/hooks/useAuth';
 import { toast } from 'sonner';
+
+const deviceConfig: Record<string, { icon: React.ReactNode; label: string }> = {
+  desktop: { icon: <Monitor className="h-4 w-4" />, label: 'Desktop' },
+  tablet: { icon: <Tablet className="h-4 w-4" />, label: 'Platta' },
+  mobile: { icon: <Smartphone className="h-4 w-4" />, label: 'Mobil' },
+  'all-devices': { icon: <Layers className="h-4 w-4" />, label: 'Alla enheter' },
+};
 
 export default function AppDetail() {
   const { id } = useParams<{ id: string }>();
@@ -139,22 +147,52 @@ export default function AppDetail() {
           </a>
         </div>
 
-        {/* Categories */}
+        {/* Categories & Device support */}
         {app.categories.length > 0 && (
-          <div className="flex flex-wrap gap-2">
-            {app.categories.map((cat) => (
-              <Badge
-                key={cat.id}
-                variant="secondary"
-                className="text-sm px-3 py-1"
-                style={{
-                  backgroundColor: `${cat.color}15`,
-                  color: cat.color || undefined,
-                }}
-              >
-                {cat.icon} {cat.name}
-              </Badge>
-            ))}
+          <div className="space-y-3">
+            {/* Regular categories */}
+            <div className="flex flex-wrap gap-2">
+              {app.categories
+                .filter((cat: any) => cat.type !== 'device')
+                .map((cat: any) => (
+                  <Badge
+                    key={cat.id}
+                    variant="secondary"
+                    className="text-sm px-3 py-1"
+                    style={{
+                      backgroundColor: `${cat.color}15`,
+                      color: cat.color || undefined,
+                    }}
+                  >
+                    {cat.icon} {cat.name}
+                  </Badge>
+                ))}
+            </div>
+            
+            {/* Device badges */}
+            {app.categories.some((cat: any) => cat.type === 'device') && (
+              <div className="flex items-center gap-2">
+                <span className="text-sm text-muted-foreground">Fungerar på:</span>
+                <div className="flex items-center gap-1.5">
+                  {app.categories
+                    .filter((cat: any) => cat.type === 'device')
+                    .map((cat: any) => {
+                      const config = deviceConfig[cat.slug] || deviceConfig[cat.name.toLowerCase()];
+                      if (!config) return null;
+                      return (
+                        <Tooltip key={cat.id}>
+                          <TooltipTrigger asChild>
+                            <div className="h-8 w-8 rounded-lg bg-muted flex items-center justify-center text-muted-foreground hover:text-foreground hover:bg-muted/80 transition-colors">
+                              {config.icon}
+                            </div>
+                          </TooltipTrigger>
+                          <TooltipContent>{config.label}</TooltipContent>
+                        </Tooltip>
+                      );
+                    })}
+                </div>
+              </div>
+            )}
           </div>
         )}
 
