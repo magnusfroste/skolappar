@@ -8,8 +8,8 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { MarkdownEditor } from '@/components/MarkdownEditor';
 import { Switch } from '@/components/ui/switch';
 import {
   Dialog,
@@ -710,11 +710,10 @@ export default function Admin() {
                       </div>
                       <div className="space-y-2">
                         <Label>Innehåll (Markdown) *</Label>
-                        <Textarea
+                        <MarkdownEditor
                           value={newResource.content}
-                          onChange={(e) => setNewResource({ ...newResource, content: e.target.value })}
-                          placeholder="# Rubrik&#10;&#10;Skriv ditt innehåll här..."
-                          className="min-h-[200px] font-mono text-sm"
+                          onChange={(value) => setNewResource({ ...newResource, content: value })}
+                          minHeight="250px"
                         />
                       </div>
                       <div className="flex items-center gap-2">
@@ -866,10 +865,10 @@ export default function Admin() {
                         </div>
                         <div className="space-y-2">
                           <Label>Innehåll (Markdown)</Label>
-                          <Textarea
+                          <MarkdownEditor
                             value={editingResource.content}
-                            onChange={(e) => setEditingResource({ ...editingResource, content: e.target.value })}
-                            className="min-h-[200px] font-mono text-sm"
+                            onChange={(value) => setEditingResource({ ...editingResource, content: value })}
+                            minHeight="250px"
                           />
                         </div>
                         <div className="flex items-center gap-2">
