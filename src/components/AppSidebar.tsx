@@ -27,9 +27,9 @@ const navigation = [
 ];
 
 const resources = [
-  { title: 'Tips & tricks', url: '#', icon: Lightbulb, disabled: true },
-  { title: 'Lär dig vibe-coda', url: '#', icon: BookOpen, disabled: true },
-  { title: 'Inspiration', url: '#', icon: Sparkles, disabled: true },
+  { title: 'Tips & tricks', url: '/resurser/tips', icon: Lightbulb },
+  { title: 'Lär dig vibe-coda', url: '/resurser/lara', icon: BookOpen },
+  { title: 'Inspiration', url: '/resurser/inspiration', icon: Sparkles },
 ];
 
 export function AppSidebar() {
@@ -209,15 +209,14 @@ export function AppSidebar() {
               {resources.map((item) => (
                 <SidebarMenuItem key={item.title}>
                   <SidebarMenuButton
-                    tooltip={item.disabled ? `${item.title} (kommer snart)` : item.title}
-                    disabled={item.disabled}
-                    className={item.disabled ? 'opacity-50 cursor-not-allowed' : ''}
+                    asChild
+                    isActive={location.pathname.startsWith(item.url)}
+                    tooltip={item.title}
                   >
-                    <item.icon className="h-4 w-4" />
-                    <span>{item.title}</span>
-                    {item.disabled && !collapsed && (
-                      <span className="ml-auto text-[10px] text-muted-foreground">Snart</span>
-                    )}
+                    <Link to={item.url}>
+                      <item.icon className="h-4 w-4" />
+                      <span>{item.title}</span>
+                    </Link>
                   </SidebarMenuButton>
                 </SidebarMenuItem>
               ))}
