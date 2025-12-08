@@ -121,9 +121,12 @@ export function AppEditPanel({ appId }: AppEditPanelProps) {
   const typeLabels: Record<string, string> = {
     subject: 'Ämne',
     age: 'Ålder',
-    type: 'Typ',
+    app_type: 'Typ av app',
+    device: 'Fungerar på',
     other: 'Övrigt',
   };
+
+  const typeOrder = ['subject', 'age', 'app_type', 'device', 'other'];
 
   if (isLoading) {
     return (
@@ -267,43 +270,48 @@ export function AppEditPanel({ appId }: AppEditPanelProps) {
               <FormItem>
                 <FormLabel>Kategorier</FormLabel>
                 <div className="space-y-4">
-                  {groupedCategories && Object.entries(groupedCategories).map(([type, cats]) => (
-                    <div key={type} className="space-y-2">
-                      <p className="text-sm font-medium text-muted-foreground">
-                        {typeLabels[type] || type}
-                      </p>
-                      <div className="flex flex-wrap gap-2">
-                        {cats?.map((cat) => {
-                          const isSelected = field.value.includes(cat.id);
-                          return (
-                            <label
-                              key={cat.id}
-                              className={`
-                                flex items-center gap-2 px-3 py-1.5 rounded-full text-sm cursor-pointer transition-colors
-                                ${isSelected
-                                  ? 'bg-primary text-primary-foreground'
-                                  : 'bg-muted hover:bg-muted/80'
-                                }
-                              `}
-                            >
-                              <Checkbox
-                                checked={isSelected}
-                                onCheckedChange={(checked) => {
-                                  if (checked) {
-                                    field.onChange([...field.value, cat.id]);
-                                  } else {
-                                    field.onChange(field.value.filter((id) => id !== cat.id));
-                                  }
-                                }}
-                                className="hidden"
-                              />
-                              {cat.name}
-                            </label>
-                          );
-                        })}
-                      </div>
-                    </div>
-                  ))}
+                  {groupedCategories && typeOrder
+                    .filter(type => groupedCategories[type])
+                    .map((type) => {
+                      const cats = groupedCategories[type];
+                      return (
+                        <div key={type} className="space-y-2">
+                          <p className="text-sm font-medium text-muted-foreground">
+                            {typeLabels[type] || type}
+                          </p>
+                          <div className="flex flex-wrap gap-2">
+                            {cats?.map((cat) => {
+                              const isSelected = field.value.includes(cat.id);
+                              return (
+                                <label
+                                  key={cat.id}
+                                  className={`
+                                    flex items-center gap-2 px-3 py-1.5 rounded-full text-sm cursor-pointer transition-colors
+                                    ${isSelected
+                                      ? 'bg-primary text-primary-foreground'
+                                      : 'bg-muted hover:bg-muted/80'
+                                    }
+                                  `}
+                                >
+                                  <Checkbox
+                                    checked={isSelected}
+                                    onCheckedChange={(checked) => {
+                                      if (checked) {
+                                        field.onChange([...field.value, cat.id]);
+                                      } else {
+                                        field.onChange(field.value.filter((id) => id !== cat.id));
+                                      }
+                                    }}
+                                    className="hidden"
+                                  />
+                                  {cat.name}
+                                </label>
+                              );
+                            })}
+                          </div>
+                        </div>
+                      );
+                    })}
                 </div>
                 <FormMessage />
               </FormItem>
