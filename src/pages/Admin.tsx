@@ -446,7 +446,7 @@ export default function Admin() {
                       Ny kategori
                     </Button>
                   </DialogTrigger>
-                  <DialogContent>
+                  <DialogContent aria-describedby={undefined}>
                     <DialogHeader>
                       <DialogTitle>Skapa ny kategori</DialogTitle>
                     </DialogHeader>
@@ -565,7 +565,7 @@ export default function Admin() {
 
                 {/* Edit Category Dialog */}
                 <Dialog open={!!editingCategory} onOpenChange={(open) => !open && setEditingCategory(null)}>
-                  <DialogContent>
+                  <DialogContent aria-describedby={undefined}>
                     <DialogHeader>
                       <DialogTitle>Redigera kategori</DialogTitle>
                     </DialogHeader>
@@ -643,7 +643,7 @@ export default function Admin() {
                       Ny resurs
                     </Button>
                   </DialogTrigger>
-                  <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+                  <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto" aria-describedby={undefined}>
                     <DialogHeader>
                       <DialogTitle>Skapa ny resurs</DialogTitle>
                     </DialogHeader>
@@ -801,7 +801,7 @@ export default function Admin() {
 
                 {/* Edit Resource Dialog */}
                 <Dialog open={!!editingResource} onOpenChange={(open) => !open && setEditingResource(null)}>
-                  <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+                  <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto" aria-describedby={undefined}>
                     <DialogHeader>
                       <DialogTitle>Redigera resurs</DialogTitle>
                     </DialogHeader>
