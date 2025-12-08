@@ -3,11 +3,13 @@ import { ChevronUp, MessageCircle, ExternalLink, MousePointerClick } from 'lucid
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
+import { DeviceBadges } from '@/components/DeviceBadges';
 import { useTrackClick } from '@/hooks/useTrackClick';
 
 interface Category {
   id: string;
   name: string;
+  slug?: string;
   icon: string;
   color: string;
   type: string;
@@ -97,21 +99,27 @@ export function AppCard({
               </Button>
             </div>
 
-            {/* Categories */}
-            <div className="flex flex-wrap gap-1.5 mt-3">
-              {categories.slice(0, 4).map((cat) => (
-                <Badge
-                  key={cat.id}
-                  variant="secondary"
-                  className="text-xs font-medium"
-                  style={{
-                    backgroundColor: `${cat.color}20`,
-                    color: cat.color,
-                  }}
-                >
-                  {cat.icon} {cat.name}
-                </Badge>
-              ))}
+            {/* Categories & Device badges */}
+            <div className="flex items-center gap-3 mt-3">
+              <div className="flex flex-wrap gap-1.5 flex-1">
+                {categories
+                  .filter(cat => cat.type !== 'device')
+                  .slice(0, 3)
+                  .map((cat) => (
+                    <Badge
+                      key={cat.id}
+                      variant="secondary"
+                      className="text-xs font-medium"
+                      style={{
+                        backgroundColor: `${cat.color}20`,
+                        color: cat.color,
+                      }}
+                    >
+                      {cat.icon} {cat.name}
+                    </Badge>
+                  ))}
+              </div>
+              <DeviceBadges categories={categories} />
             </div>
 
             {/* Footer */}
