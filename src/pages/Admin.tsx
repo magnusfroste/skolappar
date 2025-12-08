@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { Check, X, Star, Clock, ExternalLink, Trash2, Plus, Edit2, Shield, Settings } from 'lucide-react';
+import { Check, X, Star, Clock, ExternalLink, Trash2, Plus, Edit2, Shield, Settings, FileText, Eye, EyeOff } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -8,6 +8,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Switch } from '@/components/ui/switch';
 import {
@@ -41,7 +42,11 @@ import {
   useAdminCategories,
   useCreateCategory,
   useUpdateCategory,
-  useDeleteCategory
+  useDeleteCategory,
+  useAdminResources,
+  useCreateResource,
+  useUpdateResource,
+  useDeleteResource
 } from '@/hooks/useAdmin';
 import { useSetting, useUpdateSetting } from '@/hooks/useSettings';
 import { toast } from '@/hooks/use-toast';
@@ -51,12 +56,16 @@ export default function Admin() {
   const { data: pendingApps, isLoading: pendingLoading } = usePendingApps();
   const { data: allApps, isLoading: allAppsLoading } = useAllApps();
   const { data: categories, isLoading: categoriesLoading } = useAdminCategories();
+  const { data: resources, isLoading: resourcesLoading } = useAdminResources();
 
   const updateStatus = useUpdateAppStatus();
   const deleteApp = useDeleteAppAdmin();
   const createCategory = useCreateCategory();
   const updateCategory = useUpdateCategory();
   const deleteCategory = useDeleteCategory();
+  const createResource = useCreateResource();
+  const updateResource = useUpdateResource();
+  const deleteResource = useDeleteResource();
   
   const { data: showFilters } = useSetting('show_filters');
   const updateSetting = useUpdateSetting();
@@ -70,6 +79,20 @@ export default function Admin() {
   });
   const [editingCategory, setEditingCategory] = useState<any>(null);
   const [categoryDialogOpen, setCategoryDialogOpen] = useState(false);
+
+  // Resource state
+  const [newResource, setNewResource] = useState({
+    title: '',
+    slug: '',
+    excerpt: '',
+    content: '',
+    category: 'tips',
+    icon: '',
+    sort_order: 0,
+    is_published: true
+  });
+  const [editingResource, setEditingResource] = useState<any>(null);
+  const [resourceDialogOpen, setResourceDialogOpen] = useState(false);
 
   const handleStatusChange = async (appId: string, status: 'approved' | 'rejected' | 'featured' | 'pending') => {
     try {
@@ -130,6 +153,51 @@ export default function Admin() {
     }
   };
 
+  // Resource handlers
+  const handleCreateResource = async () => {
+    if (!newResource.title || !newResource.slug || !newResource.content) {
+      toast({ title: 'Fyll i titel, slug och innehåll', variant: 'destructive' });
+      return;
+    }
+    try {
+      await createResource.mutateAsync(newResource);
+      toast({ title: 'Resurs skapad!' });
+      setNewResource({ title: '', slug: '', excerpt: '', content: '', category: 'tips', icon: '', sort_order: 0, is_published: true });
+      setResourceDialogOpen(false);
+    } catch (error) {
+      toast({ title: 'Kunde inte skapa resursen', variant: 'destructive' });
+    }
+  };
+
+  const handleUpdateResource = async () => {
+    if (!editingResource) return;
+    try {
+      await updateResource.mutateAsync(editingResource);
+      toast({ title: 'Resurs uppdaterad!' });
+      setEditingResource(null);
+    } catch (error) {
+      toast({ title: 'Kunde inte uppdatera resursen', variant: 'destructive' });
+    }
+  };
+
+  const handleDeleteResource = async (id: string) => {
+    try {
+      await deleteResource.mutateAsync(id);
+      toast({ title: 'Resurs borttagen!' });
+    } catch (error) {
+      toast({ title: 'Kunde inte ta bort resursen', variant: 'destructive' });
+    }
+  };
+
+  const handleToggleResourcePublished = async (resource: any) => {
+    try {
+      await updateResource.mutateAsync({ id: resource.id, is_published: !resource.is_published });
+      toast({ title: resource.is_published ? 'Resurs avpublicerad' : 'Resurs publicerad' });
+    } catch (error) {
+      toast({ title: 'Kunde inte uppdatera resursen', variant: 'destructive' });
+    }
+  };
+
   if (adminLoading) {
     return (
       <AuthenticatedLayout>
@@ -174,16 +242,20 @@ export default function Admin() {
         </div>
 
         <Tabs defaultValue="pending" className="space-y-6">
-          <TabsList className="grid w-full max-w-lg grid-cols-4">
+          <TabsList className="grid w-full max-w-2xl grid-cols-5">
             <TabsTrigger value="pending" className="gap-2">
               <Clock className="h-4 w-4" />
               <span className="hidden sm:inline">Väntande</span> ({pendingApps?.length || 0})
             </TabsTrigger>
             <TabsTrigger value="all">Alla appar</TabsTrigger>
             <TabsTrigger value="categories">Kategorier</TabsTrigger>
+            <TabsTrigger value="resources" className="gap-2">
+              <FileText className="h-4 w-4" />
+              <span className="hidden sm:inline">Resurser</span>
+            </TabsTrigger>
             <TabsTrigger value="settings" className="gap-2">
               <Settings className="h-4 w-4" />
-              <span className="hidden sm:inline">Inställningar</span>
+              <span className="hidden sm:inline">Inst.</span>
             </TabsTrigger>
           </TabsList>
 
@@ -556,6 +628,269 @@ export default function Admin() {
             </Card>
           </TabsContent>
 
+          {/* Resources Tab */}
+          <TabsContent value="resources">
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between">
+                <div>
+                  <CardTitle>Resurser</CardTitle>
+                  <CardDescription>Hantera artiklar för Tips, Lär dig och Inspiration</CardDescription>
+                </div>
+                <Dialog open={resourceDialogOpen} onOpenChange={setResourceDialogOpen}>
+                  <DialogTrigger asChild>
+                    <Button className="gap-2">
+                      <Plus className="h-4 w-4" />
+                      Ny resurs
+                    </Button>
+                  </DialogTrigger>
+                  <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+                    <DialogHeader>
+                      <DialogTitle>Skapa ny resurs</DialogTitle>
+                    </DialogHeader>
+                    <div className="space-y-4 py-4">
+                      <div className="grid grid-cols-2 gap-4">
+                        <div className="space-y-2">
+                          <Label>Titel *</Label>
+                          <Input
+                            value={newResource.title}
+                            onChange={(e) => setNewResource({ ...newResource, title: e.target.value })}
+                            placeholder="t.ex. Så skapar du en app"
+                          />
+                        </div>
+                        <div className="space-y-2">
+                          <Label>Slug *</Label>
+                          <Input
+                            value={newResource.slug}
+                            onChange={(e) => setNewResource({ ...newResource, slug: e.target.value })}
+                            placeholder="t.ex. skapa-en-app"
+                          />
+                        </div>
+                      </div>
+                      <div className="space-y-2">
+                        <Label>Sammanfattning</Label>
+                        <Input
+                          value={newResource.excerpt}
+                          onChange={(e) => setNewResource({ ...newResource, excerpt: e.target.value })}
+                          placeholder="Kort beskrivning..."
+                        />
+                      </div>
+                      <div className="grid grid-cols-3 gap-4">
+                        <div className="space-y-2">
+                          <Label>Kategori</Label>
+                          <Select
+                            value={newResource.category}
+                            onValueChange={(value) => setNewResource({ ...newResource, category: value })}
+                          >
+                            <SelectTrigger>
+                              <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="tips">Tips & tricks</SelectItem>
+                              <SelectItem value="learn">Lär dig vibe-coda</SelectItem>
+                              <SelectItem value="inspiration">Inspiration</SelectItem>
+                            </SelectContent>
+                          </Select>
+                        </div>
+                        <div className="space-y-2">
+                          <Label>Ikon</Label>
+                          <Input
+                            value={newResource.icon}
+                            onChange={(e) => setNewResource({ ...newResource, icon: e.target.value })}
+                            placeholder="t.ex. Lightbulb"
+                          />
+                        </div>
+                        <div className="space-y-2">
+                          <Label>Sortering</Label>
+                          <Input
+                            type="number"
+                            value={newResource.sort_order}
+                            onChange={(e) => setNewResource({ ...newResource, sort_order: parseInt(e.target.value) || 0 })}
+                          />
+                        </div>
+                      </div>
+                      <div className="space-y-2">
+                        <Label>Innehåll (Markdown) *</Label>
+                        <Textarea
+                          value={newResource.content}
+                          onChange={(e) => setNewResource({ ...newResource, content: e.target.value })}
+                          placeholder="# Rubrik&#10;&#10;Skriv ditt innehåll här..."
+                          className="min-h-[200px] font-mono text-sm"
+                        />
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <Switch
+                          checked={newResource.is_published}
+                          onCheckedChange={(checked) => setNewResource({ ...newResource, is_published: checked })}
+                        />
+                        <Label>Publicerad</Label>
+                      </div>
+                    </div>
+                    <DialogFooter>
+                      <Button variant="outline" onClick={() => setResourceDialogOpen(false)}>Avbryt</Button>
+                      <Button onClick={handleCreateResource}>Skapa</Button>
+                    </DialogFooter>
+                  </DialogContent>
+                </Dialog>
+              </CardHeader>
+              <CardContent className="space-y-6">
+                {resourcesLoading ? (
+                  <div className="space-y-4">
+                    {[1, 2, 3].map(i => (
+                      <Skeleton key={i} className="h-16 w-full" />
+                    ))}
+                  </div>
+                ) : (
+                  <>
+                    {/* Tips resources */}
+                    <div>
+                      <h3 className="font-semibold mb-3 text-sm text-muted-foreground uppercase tracking-wide">Tips & tricks</h3>
+                      <div className="grid gap-2">
+                        {resources?.filter(r => r.category === 'tips').map((resource) => (
+                          <ResourceRow
+                            key={resource.id}
+                            resource={resource}
+                            onEdit={() => setEditingResource(resource)}
+                            onDelete={() => handleDeleteResource(resource.id)}
+                            onTogglePublished={() => handleToggleResourcePublished(resource)}
+                          />
+                        ))}
+                        {resources?.filter(r => r.category === 'tips').length === 0 && (
+                          <p className="text-sm text-muted-foreground py-2">Inga resurser</p>
+                        )}
+                      </div>
+                    </div>
+
+                    {/* Learn resources */}
+                    <div>
+                      <h3 className="font-semibold mb-3 text-sm text-muted-foreground uppercase tracking-wide">Lär dig vibe-coda</h3>
+                      <div className="grid gap-2">
+                        {resources?.filter(r => r.category === 'learn').map((resource) => (
+                          <ResourceRow
+                            key={resource.id}
+                            resource={resource}
+                            onEdit={() => setEditingResource(resource)}
+                            onDelete={() => handleDeleteResource(resource.id)}
+                            onTogglePublished={() => handleToggleResourcePublished(resource)}
+                          />
+                        ))}
+                        {resources?.filter(r => r.category === 'learn').length === 0 && (
+                          <p className="text-sm text-muted-foreground py-2">Inga resurser</p>
+                        )}
+                      </div>
+                    </div>
+
+                    {/* Inspiration resources */}
+                    <div>
+                      <h3 className="font-semibold mb-3 text-sm text-muted-foreground uppercase tracking-wide">Inspiration</h3>
+                      <div className="grid gap-2">
+                        {resources?.filter(r => r.category === 'inspiration').map((resource) => (
+                          <ResourceRow
+                            key={resource.id}
+                            resource={resource}
+                            onEdit={() => setEditingResource(resource)}
+                            onDelete={() => handleDeleteResource(resource.id)}
+                            onTogglePublished={() => handleToggleResourcePublished(resource)}
+                          />
+                        ))}
+                        {resources?.filter(r => r.category === 'inspiration').length === 0 && (
+                          <p className="text-sm text-muted-foreground py-2">Inga resurser</p>
+                        )}
+                      </div>
+                    </div>
+                  </>
+                )}
+
+                {/* Edit Resource Dialog */}
+                <Dialog open={!!editingResource} onOpenChange={(open) => !open && setEditingResource(null)}>
+                  <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+                    <DialogHeader>
+                      <DialogTitle>Redigera resurs</DialogTitle>
+                    </DialogHeader>
+                    {editingResource && (
+                      <div className="space-y-4 py-4">
+                        <div className="grid grid-cols-2 gap-4">
+                          <div className="space-y-2">
+                            <Label>Titel</Label>
+                            <Input
+                              value={editingResource.title}
+                              onChange={(e) => setEditingResource({ ...editingResource, title: e.target.value })}
+                            />
+                          </div>
+                          <div className="space-y-2">
+                            <Label>Slug</Label>
+                            <Input
+                              value={editingResource.slug}
+                              onChange={(e) => setEditingResource({ ...editingResource, slug: e.target.value })}
+                            />
+                          </div>
+                        </div>
+                        <div className="space-y-2">
+                          <Label>Sammanfattning</Label>
+                          <Input
+                            value={editingResource.excerpt || ''}
+                            onChange={(e) => setEditingResource({ ...editingResource, excerpt: e.target.value })}
+                          />
+                        </div>
+                        <div className="grid grid-cols-3 gap-4">
+                          <div className="space-y-2">
+                            <Label>Kategori</Label>
+                            <Select
+                              value={editingResource.category}
+                              onValueChange={(value) => setEditingResource({ ...editingResource, category: value })}
+                            >
+                              <SelectTrigger>
+                                <SelectValue />
+                              </SelectTrigger>
+                              <SelectContent>
+                                <SelectItem value="tips">Tips & tricks</SelectItem>
+                                <SelectItem value="learn">Lär dig vibe-coda</SelectItem>
+                                <SelectItem value="inspiration">Inspiration</SelectItem>
+                              </SelectContent>
+                            </Select>
+                          </div>
+                          <div className="space-y-2">
+                            <Label>Ikon</Label>
+                            <Input
+                              value={editingResource.icon || ''}
+                              onChange={(e) => setEditingResource({ ...editingResource, icon: e.target.value })}
+                            />
+                          </div>
+                          <div className="space-y-2">
+                            <Label>Sortering</Label>
+                            <Input
+                              type="number"
+                              value={editingResource.sort_order || 0}
+                              onChange={(e) => setEditingResource({ ...editingResource, sort_order: parseInt(e.target.value) || 0 })}
+                            />
+                          </div>
+                        </div>
+                        <div className="space-y-2">
+                          <Label>Innehåll (Markdown)</Label>
+                          <Textarea
+                            value={editingResource.content}
+                            onChange={(e) => setEditingResource({ ...editingResource, content: e.target.value })}
+                            className="min-h-[200px] font-mono text-sm"
+                          />
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <Switch
+                            checked={editingResource.is_published}
+                            onCheckedChange={(checked) => setEditingResource({ ...editingResource, is_published: checked })}
+                          />
+                          <Label>Publicerad</Label>
+                        </div>
+                      </div>
+                    )}
+                    <DialogFooter>
+                      <Button variant="outline" onClick={() => setEditingResource(null)}>Avbryt</Button>
+                      <Button onClick={handleUpdateResource}>Spara</Button>
+                    </DialogFooter>
+                  </DialogContent>
+                </Dialog>
+              </CardContent>
+            </Card>
+          </TabsContent>
+
           {/* Settings Tab */}
           <TabsContent value="settings">
             <Card>
@@ -629,6 +964,82 @@ function CategoryRow({ category, onEdit, onDelete }: { category: any; onEdit: ()
               <AlertDialogTitle>Ta bort kategori?</AlertDialogTitle>
               <AlertDialogDescription>
                 Är du säker på att du vill ta bort "{category.name}"? Appar med denna kategori kommer förlora kopplingen.
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel>Avbryt</AlertDialogCancel>
+              <AlertDialogAction
+                onClick={onDelete}
+                className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+              >
+                Ta bort
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
+      </div>
+    </div>
+  );
+}
+
+function ResourceRow({ 
+  resource, 
+  onEdit, 
+  onDelete, 
+  onTogglePublished 
+}: { 
+  resource: any; 
+  onEdit: () => void; 
+  onDelete: () => void;
+  onTogglePublished: () => void;
+}) {
+  const categoryLabels: Record<string, string> = {
+    tips: 'Tips',
+    learn: 'Lär dig',
+    inspiration: 'Inspiration'
+  };
+
+  return (
+    <div className="flex items-center justify-between p-3 rounded-lg border hover:bg-muted/50 transition-colors">
+      <div className="flex items-center gap-3 flex-1 min-w-0">
+        <div className="flex-1 min-w-0">
+          <div className="flex items-center gap-2">
+            <p className="font-medium truncate">{resource.title}</p>
+            {!resource.is_published && (
+              <Badge variant="outline" className="text-xs text-muted-foreground">
+                <EyeOff className="h-3 w-3 mr-1" />
+                Utkast
+              </Badge>
+            )}
+          </div>
+          <p className="text-xs text-muted-foreground truncate">{resource.slug}</p>
+        </div>
+      </div>
+      <div className="flex items-center gap-1">
+        <Badge variant="outline" className="text-xs">{categoryLabels[resource.category]}</Badge>
+        <Button 
+          variant="ghost" 
+          size="icon" 
+          className="h-8 w-8" 
+          onClick={onTogglePublished}
+          title={resource.is_published ? 'Avpublicera' : 'Publicera'}
+        >
+          {resource.is_published ? <Eye className="h-4 w-4" /> : <EyeOff className="h-4 w-4" />}
+        </Button>
+        <Button variant="ghost" size="icon" className="h-8 w-8" onClick={onEdit}>
+          <Edit2 className="h-4 w-4" />
+        </Button>
+        <AlertDialog>
+          <AlertDialogTrigger asChild>
+            <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive">
+              <Trash2 className="h-4 w-4" />
+            </Button>
+          </AlertDialogTrigger>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>Ta bort resurs?</AlertDialogTitle>
+              <AlertDialogDescription>
+                Är du säker på att du vill ta bort "{resource.title}"?
               </AlertDialogDescription>
             </AlertDialogHeader>
             <AlertDialogFooter>
