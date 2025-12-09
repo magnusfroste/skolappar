@@ -1,5 +1,4 @@
-import { Link, useNavigate } from 'react-router-dom';
-import { useEffect } from 'react';
+import { Link } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
 import { Button } from '@/components/ui/button';
 import { PublicNav } from '@/components/PublicNav';
@@ -9,14 +8,7 @@ import { RecentAppsSection } from '@/components/RecentAppsSection';
 import { Sparkles, ArrowRight, BookOpen, Rocket, Users, Heart, Code, ExternalLink } from 'lucide-react';
 
 export default function Index() {
-  const { user, loading } = useAuth();
-  const navigate = useNavigate();
-
-  useEffect(() => {
-    if (user && !loading) {
-      navigate('/min-sida');
-    }
-  }, [user, loading, navigate]);
+  const { user } = useAuth();
 
   return (
     <div className="min-h-screen bg-gradient-hero">
