@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom';
-import { Clock, ExternalLink, ArrowRight } from 'lucide-react';
+import { Clock, ArrowRight } from 'lucide-react';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -80,13 +80,9 @@ export function RecentAppsSection() {
                     <p className="text-sm text-muted-foreground line-clamp-2 mt-1">
                       {app.description}
                     </p>
-                    <div className="flex items-center justify-between mt-3 text-xs text-muted-foreground">
+                    <div className="flex items-center mt-3 text-xs text-muted-foreground">
                       <span>
                         {formatDistanceToNow(new Date(app.created_at), { addSuffix: true, locale: sv })}
-                      </span>
-                      <span className="flex items-center gap-1 text-primary font-medium group-hover:underline">
-                        Öppna
-                        <ExternalLink className="w-3 h-3" />
                       </span>
                     </div>
                   </div>

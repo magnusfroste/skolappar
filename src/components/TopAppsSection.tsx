@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom';
-import { TrendingUp, ExternalLink, ArrowRight } from 'lucide-react';
+import { TrendingUp, ArrowRight } from 'lucide-react';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -78,15 +78,11 @@ export function TopAppsSection() {
                     <p className="text-sm text-muted-foreground line-clamp-2 mt-1">
                       {app.description}
                     </p>
-                    <div className="flex items-center justify-between mt-3 text-xs text-muted-foreground">
+                    <div className="flex items-center mt-3 text-xs text-muted-foreground">
                       <span className="flex items-center gap-1">
                         ❤️ {app.upvotes_count || 0}
                         <span className="mx-1">•</span>
-                        👆 {app.clicks_count || 0}
-                      </span>
-                      <span className="flex items-center gap-1 text-primary font-medium group-hover:underline">
-                        Öppna
-                        <ExternalLink className="w-3 h-3" />
+                        👀 {app.clicks_count || 0}
                       </span>
                     </div>
                   </div>
