@@ -42,17 +42,17 @@ export default function ResourceList() {
           </Button>
         </Link>
 
-        <div className="flex items-center gap-3 mb-8">
-          <div className="p-2 rounded-lg bg-primary/10 text-primary">
+        <div className="flex items-center gap-4 mb-10">
+          <div className="p-3 rounded-xl bg-primary/10 text-primary">
             {meta.icon}
           </div>
           <h1 className="text-3xl font-bold text-foreground">{meta.title}</h1>
         </div>
 
         {isLoading ? (
-          <div className="space-y-4">
+          <div className="space-y-6">
             {[1, 2, 3].map(i => (
-              <Skeleton key={i} className="h-32 w-full rounded-xl" />
+              <Skeleton key={i} className="h-28 w-full rounded-xl" />
             ))}
           </div>
         ) : resources?.length === 0 ? (
@@ -60,20 +60,20 @@ export default function ResourceList() {
             Inga artiklar ännu. Kom tillbaka snart!
           </p>
         ) : (
-          <div className="space-y-4">
+          <div className="space-y-5">
             {resources?.map(resource => (
               <Link key={resource.id} to={`/resurser/${categorySlug}/${resource.slug}`}>
-                <Card className="hover:shadow-md transition-shadow cursor-pointer group">
-                  <CardHeader className="flex flex-row items-start gap-4">
-                    <div className="p-2 rounded-lg bg-muted text-muted-foreground mt-1">
+                <Card className="hover:shadow-lg transition-all duration-200 cursor-pointer group border-border/50 hover:border-primary/20">
+                  <CardHeader className="flex flex-row items-start gap-4 py-5">
+                    <div className="p-2.5 rounded-xl bg-muted text-muted-foreground mt-0.5 group-hover:bg-primary/10 group-hover:text-primary transition-colors">
                       {iconMap[resource.icon || ''] || <Lightbulb className="h-5 w-5" />}
                     </div>
-                    <div className="flex-1">
-                      <CardTitle className="text-lg group-hover:text-primary transition-colors">
+                    <div className="flex-1 min-w-0">
+                      <CardTitle className="text-lg group-hover:text-primary transition-colors leading-snug">
                         {resource.title}
                       </CardTitle>
                       {resource.excerpt && (
-                        <CardDescription className="mt-2">
+                        <CardDescription className="mt-1.5 line-clamp-2">
                           {resource.excerpt}
                         </CardDescription>
                       )}
