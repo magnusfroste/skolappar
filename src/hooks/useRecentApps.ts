@@ -16,8 +16,7 @@ export const useRecentApps = (enabled: boolean = true) => {
           clicks_count,
           upvotes_count,
           user_id,
-          created_at,
-          profiles:user_id (display_name, avatar_url)
+          created_at
         `)
         .in("status", ["approved", "featured"])
         .order("created_at", { ascending: false })

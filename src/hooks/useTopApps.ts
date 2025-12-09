@@ -5,10 +5,7 @@ export const useTopAppsThisWeek = (enabled: boolean = true) => {
   return useQuery({
     queryKey: ["top-apps-week"],
     queryFn: async () => {
-      const oneWeekAgo = new Date();
-      oneWeekAgo.setDate(oneWeekAgo.getDate() - 7);
-
-      // Get apps with their upvotes from this week
+      // Get apps
       const { data: apps, error } = await supabase
         .from("apps")
         .select(`
@@ -19,8 +16,7 @@ export const useTopAppsThisWeek = (enabled: boolean = true) => {
           url,
           clicks_count,
           upvotes_count,
-          user_id,
-          profiles:user_id (display_name, avatar_url)
+          user_id
         `)
         .in("status", ["approved", "featured"])
         .order("clicks_count", { ascending: false })
