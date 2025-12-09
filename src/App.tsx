@@ -20,6 +20,7 @@ import ResourceDetail from "./pages/ResourceDetail";
 import NotFound from "./pages/NotFound";
 import StarterDemo from "./pages/StarterDemo";
 import Terms from "./pages/Terms";
+import Privacy from "./pages/Privacy";
 
 const queryClient = new QueryClient();
 
@@ -46,6 +47,7 @@ const App = () => (
             <Route path="/resurser/:category/:slug" element={<ResourceDetail />} />
             <Route path="/startmall" element={<StarterDemo />} />
             <Route path="/villkor" element={<Terms />} />
+            <Route path="/integritet" element={<Privacy />} />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
           </Routes>

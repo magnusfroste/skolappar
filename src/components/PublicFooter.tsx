@@ -38,6 +38,12 @@ export function PublicFooter() {
             >
               Villkor
             </Link>
+            <Link 
+              to="/integritet" 
+              className="text-muted-foreground hover:text-foreground transition-colors"
+            >
+              Integritet
+            </Link>
             <a
               href="https://lovable.dev/invite/YLXOX36"
               target="_blank"
