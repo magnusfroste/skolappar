@@ -68,6 +68,7 @@ export default function Admin() {
   const deleteResource = useDeleteResource();
   
   const { data: showFilters } = useSetting('show_filters');
+  const { data: showTopApps } = useSetting('show_top_apps');
   const updateSetting = useUpdateSetting();
 
   const [newCategory, setNewCategory] = useState({
@@ -911,6 +912,23 @@ export default function Admin() {
                     onCheckedChange={(checked) => {
                       updateSetting.mutate({ key: 'show_filters', value: checked });
                       toast({ title: checked ? 'Filter aktiverade' : 'Filter avaktiverade' });
+                    }}
+                  />
+                </div>
+
+                <div className="flex items-center justify-between p-4 rounded-lg border">
+                  <div className="space-y-1">
+                    <Label htmlFor="show-top-apps" className="text-base font-medium">Visa "Topp appar denna vecka"</Label>
+                    <p className="text-sm text-muted-foreground">
+                      Visar de mest populära apparna på startsidan
+                    </p>
+                  </div>
+                  <Switch
+                    id="show-top-apps"
+                    checked={showTopApps === true}
+                    onCheckedChange={(checked) => {
+                      updateSetting.mutate({ key: 'show_top_apps', value: checked });
+                      toast({ title: checked ? 'Top-appar aktiverade' : 'Top-appar avaktiverade' });
                     }}
                   />
                 </div>

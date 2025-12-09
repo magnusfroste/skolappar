@@ -4,6 +4,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { useIsAdmin } from '@/hooks/useAdmin';
 import { Button } from '@/components/ui/button';
 import { NotificationBell } from '@/components/NotificationBell';
+import { TopAppsSection } from '@/components/TopAppsSection';
 import { Sparkles, ArrowRight, BookOpen, Rocket, Users, Heart, Code, ExternalLink, Shield } from 'lucide-react';
 
 export default function Index() {
@@ -134,6 +135,9 @@ export default function Index() {
           </div>
         </div>
       </section>
+
+      {/* Top Apps Section (conditionally rendered based on admin setting) */}
+      <TopAppsSection />
 
       {/* Features Section */}
       <section className="relative z-10 container mx-auto px-4 py-16">
