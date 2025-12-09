@@ -162,7 +162,7 @@ export default function Index() {
                 </p>
                 <div className="flex flex-wrap gap-3 justify-center md:justify-start">
                   {[
-                    { name: 'Lovable', url: 'https://lovable.dev' },
+                    { name: 'Lovable', url: 'https://lovable.dev/invite/YLXOX36' },
                     { name: 'Cursor', url: 'https://cursor.sh' },
                     { name: 'Replit', url: 'https://replit.com' },
                   ].map((tool) => (
