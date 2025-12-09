@@ -21,6 +21,7 @@ import NotFound from "./pages/NotFound";
 import StarterDemo from "./pages/StarterDemo";
 import Terms from "./pages/Terms";
 import Privacy from "./pages/Privacy";
+import TestYourApp from "./pages/TestYourApp";
 
 const queryClient = new QueryClient();
 
@@ -48,6 +49,7 @@ const App = () => (
             <Route path="/startmall" element={<StarterDemo />} />
             <Route path="/villkor" element={<Terms />} />
             <Route path="/integritet" element={<Privacy />} />
+            <Route path="/testa-din-app" element={<TestYourApp />} />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
           </Routes>
