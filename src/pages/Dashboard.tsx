@@ -1,10 +1,11 @@
 import { Link } from 'react-router-dom';
-import { Plus, ExternalLink, Edit, Trash2, Heart, MessageCircle, TrendingUp, Clock, Star, BarChart3, MousePointerClick } from 'lucide-react';
+import { Plus, ExternalLink, Edit, Trash2, Heart, MessageCircle, TrendingUp, Clock, Star, BarChart3, MousePointerClick, Share2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Progress } from '@/components/ui/progress';
 import { 
   AlertDialog,
   AlertDialogAction,
@@ -19,6 +20,7 @@ import {
 import { AppStatusBadge } from '@/components/AppStatusBadge';
 import { NotificationBell } from '@/components/NotificationBell';
 import { AuthenticatedLayout } from '@/components/AuthenticatedLayout';
+import { MilestoneBadge, getNextMilestone } from '@/components/MilestoneBadge';
 import { useMyApps, useMyStats, useDeleteApp } from '@/hooks/useMyApps';
 import { toast } from '@/hooks/use-toast';
 
@@ -69,7 +71,7 @@ export default function Dashboard() {
           </div>
         </div>
 
-        {/* Stats Cards */}
+        {/* Stats Cards with Milestones */}
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4 mb-8">
           <Card className="bg-card/80 backdrop-blur-sm shadow-playful">
             <CardContent className="pt-4 pb-4">
@@ -90,12 +92,12 @@ export default function Dashboard() {
           </Card>
 
           <Card className="bg-card/80 backdrop-blur-sm shadow-playful">
-            <CardContent className="pt-4 pb-4">
+            <CardContent className="pt-4 pb-4 space-y-2">
               <div className="flex items-center gap-3">
                 <div className="p-2 rounded-xl bg-rose/10">
                   <Heart className="h-5 w-5 text-rose" />
                 </div>
-                <div>
+                <div className="flex-1">
                   {statsLoading ? (
                     <Skeleton className="h-7 w-10" />
                   ) : (
@@ -104,6 +106,9 @@ export default function Dashboard() {
                   <p className="text-xs text-muted-foreground">Röster</p>
                 </div>
               </div>
+              {!statsLoading && stats?.totalUpvotes ? (
+                <MilestoneBadge count={stats.totalUpvotes} type="upvotes" />
+              ) : null}
             </CardContent>
           </Card>
 
@@ -126,20 +131,36 @@ export default function Dashboard() {
           </Card>
 
           <Card className="bg-card/80 backdrop-blur-sm shadow-playful">
-            <CardContent className="pt-4 pb-4">
+            <CardContent className="pt-4 pb-4 space-y-2">
               <div className="flex items-center gap-3">
                 <div className="p-2 rounded-xl bg-accent/10">
                   <MousePointerClick className="h-5 w-5 text-accent" />
                 </div>
-                <div>
+                <div className="flex-1">
                   {statsLoading ? (
                     <Skeleton className="h-7 w-10" />
                   ) : (
                     <p className="text-2xl font-bold">{stats?.totalClicks || 0}</p>
                   )}
-                  <p className="text-xs text-muted-foreground">Klick</p>
+                  <p className="text-xs text-muted-foreground">Öppningar</p>
                 </div>
               </div>
+              {!statsLoading && stats?.totalClicks ? (
+                <>
+                  <MilestoneBadge count={stats.totalClicks} type="clicks" />
+                  {getNextMilestone(stats.totalClicks) && (
+                    <div className="space-y-1">
+                      <Progress 
+                        value={(stats.totalClicks / getNextMilestone(stats.totalClicks)!.threshold) * 100} 
+                        className="h-1.5"
+                      />
+                      <p className="text-[10px] text-muted-foreground">
+                        {getNextMilestone(stats.totalClicks)!.remaining} till nästa nivå
+                      </p>
+                    </div>
+                  )}
+                </>
+              ) : null}
             </CardContent>
           </Card>
         </div>

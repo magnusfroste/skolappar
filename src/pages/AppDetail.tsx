@@ -10,6 +10,8 @@ import { Textarea } from '@/components/ui/textarea';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
+import { ShareButton } from '@/components/ShareButton';
+import { RelatedApps } from '@/components/RelatedApps';
 import { useAppDetails, useAppComments, useAddComment, useDeleteComment } from '@/hooks/useAppDetails';
 import { useToggleUpvote, useUserUpvotes } from '@/hooks/useApps';
 import { useTrackClick } from '@/hooks/useTrackClick';
@@ -204,7 +206,7 @@ export default function AppDetail() {
         </Card>
 
         {/* Actions row */}
-        <div className="flex items-center gap-4">
+        <div className="flex items-center gap-3 flex-wrap">
           <Button
             variant={hasUpvoted ? 'default' : 'secondary'}
             size="sm"
@@ -215,13 +217,14 @@ export default function AppDetail() {
             <span className="font-bold">{app.upvotes_count}</span>
             <span>Gilla</span>
           </Button>
+          <ShareButton appId={app.id} appTitle={app.title} />
           <span className="flex items-center gap-1.5 text-sm text-muted-foreground">
             <MessageCircle className="w-4 h-4" />
-            {app.comments_count} kommentarer
+            {app.comments_count}
           </span>
           <span className="flex items-center gap-1.5 text-sm text-muted-foreground">
             <MousePointerClick className="w-4 h-4" />
-            {app.clicks_count || 0} öppningar
+            {app.clicks_count || 0}
           </span>
         </div>
 
@@ -303,6 +306,12 @@ export default function AppDetail() {
             </p>
           )}
         </section>
+
+        {/* Related Apps */}
+        <RelatedApps 
+          appId={app.id} 
+          categoryIds={app.categories.filter((c: any) => c.type !== 'device').map((c: any) => c.id)} 
+        />
       </div>
     </div>
   );
