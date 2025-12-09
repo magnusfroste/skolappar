@@ -64,7 +64,7 @@ export default function ResourceList() {
             Inga artiklar ännu. Kom tillbaka snart!
           </p>
         ) : (
-          <div className="space-y-5">
+          <div className="space-y-6">
             {resources?.map(resource => (
               <Link key={resource.id} to={`/resurser/${categorySlug}/${resource.slug}`}>
                 <Card className="hover:shadow-lg transition-all duration-200 cursor-pointer group border-border/50 hover:border-primary/20">
