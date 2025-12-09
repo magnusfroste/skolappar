@@ -19,7 +19,7 @@ export function PublicFooter() {
           </div>
 
           {/* Links */}
-          <div className="flex items-center gap-6 text-sm">
+          <div className="flex items-center gap-4 sm:gap-6 text-sm">
             <Link 
               to="/apps" 
               className="text-muted-foreground hover:text-foreground transition-colors"
@@ -31,6 +31,12 @@ export function PublicFooter() {
               className="text-muted-foreground hover:text-foreground transition-colors"
             >
               Resurser
+            </Link>
+            <Link 
+              to="/villkor" 
+              className="text-muted-foreground hover:text-foreground transition-colors"
+            >
+              Villkor
             </Link>
             <a
               href="https://lovable.dev/invite/YLXOX36"

@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import { Loader2, Image, RefreshCw } from 'lucide-react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -30,6 +30,9 @@ const formSchema = z.object({
   long_description: z.string().max(2000, 'Max 2000 tecken').optional(),
   image_url: z.string().optional(),
   categories: z.array(z.string()).min(1, 'Välj minst en kategori'),
+  acceptedTerms: z.literal(true, {
+    errorMap: () => ({ message: 'Du måste godkänna villkoren för att fortsätta' }),
+  }),
 });
 
 type FormValues = z.infer<typeof formSchema>;
@@ -54,6 +57,7 @@ export function AppCreatePanel() {
       long_description: '',
       image_url: '',
       categories: [],
+      acceptedTerms: undefined,
     },
   });
 
@@ -342,6 +346,35 @@ export function AppCreatePanel() {
                     })}
                 </div>
                 <FormMessage />
+              </FormItem>
+            )}
+          />
+
+          {/* Terms acceptance */}
+          <FormField
+            control={form.control}
+            name="acceptedTerms"
+            render={({ field }) => (
+              <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-lg border border-border p-4 bg-muted/30">
+                <FormControl>
+                  <Checkbox
+                    checked={field.value === true}
+                    onCheckedChange={(checked) => field.onChange(checked === true ? true : undefined)}
+                  />
+                </FormControl>
+                <div className="space-y-1 leading-none">
+                  <FormLabel className="text-sm font-normal cursor-pointer">
+                    Jag har läst och godkänner{' '}
+                    <Link 
+                      to="/villkor" 
+                      target="_blank"
+                      className="text-primary hover:underline font-medium"
+                    >
+                      allmänna villkor
+                    </Link>
+                  </FormLabel>
+                  <FormMessage />
+                </div>
               </FormItem>
             )}
           />
