@@ -33,7 +33,7 @@ export function PublicFooter() {
               Resurser
             </Link>
             <a
-              href="https://lovable.dev"
+              href="https://lovable.dev/invite/YLXOX36"
               target="_blank"
               rel="noopener noreferrer"
               className="text-muted-foreground hover:text-foreground transition-colors"
