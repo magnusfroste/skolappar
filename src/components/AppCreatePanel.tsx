@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import { Loader2, Image, RefreshCw } from 'lucide-react';
+import { Loader2, Image, RefreshCw, TestTube2 } from 'lucide-react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
@@ -139,6 +139,24 @@ export function AppCreatePanel() {
           Dela en lärande app med andra föräldrar
         </p>
       </div>
+
+      {/* Test your app tip */}
+      <Link 
+        to="/testa-din-app"
+        className="flex items-center gap-3 p-4 rounded-xl bg-primary/5 border border-primary/20 hover:bg-primary/10 transition-colors group"
+      >
+        <div className="p-2 rounded-lg bg-primary/10 text-primary">
+          <TestTube2 className="h-5 w-5" />
+        </div>
+        <div className="flex-1">
+          <p className="font-medium text-foreground group-hover:text-primary transition-colors">
+            Testa din app först?
+          </p>
+          <p className="text-sm text-muted-foreground">
+            Kontrollera att den fungerar bra på plattor och mobiler
+          </p>
+        </div>
+      </Link>
 
       {/* Form */}
       <Form {...form}>
