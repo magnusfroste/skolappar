@@ -23,13 +23,14 @@ import {
 } from '@/components/ui/select';
 import { Skeleton } from '@/components/ui/skeleton';
 import { AppCardVisual } from '@/components/AppCardVisual';
+import { PublicNav } from '@/components/PublicNav';
 import { useAuth } from '@/hooks/useAuth';
 import { useApps, useCategories, useUserUpvotes, useToggleUpvote } from '@/hooks/useApps';
 import { useSetting } from '@/hooks/useSettings';
 import { useToast } from '@/hooks/use-toast';
 
 export default function Apps() {
-  const { user, signOut, loading: authLoading } = useAuth();
+  const { user } = useAuth();
   const { toast } = useToast();
   const { data: showFilters } = useSetting('show_filters');
   
@@ -151,35 +152,7 @@ export default function Apps() {
   return (
     <div className="min-h-screen bg-gradient-hero">
       {/* Navigation */}
-      <nav className="sticky top-0 z-50 bg-background/80 backdrop-blur-md border-b border-border/50">
-        <div className="container mx-auto px-4 py-4">
-          <div className="flex items-center justify-between">
-            <Link to="/" className="flex items-center gap-2 text-xl font-heading font-bold text-foreground hover:text-primary transition-colors">
-              <span className="text-2xl">📱</span>
-              skolappar.com
-            </Link>
-            
-            <div className="flex items-center gap-3">
-              {authLoading ? (
-                <Skeleton className="w-20 h-9" />
-              ) : user ? (
-                <>
-                  <Button variant="ghost" size="sm" asChild>
-                    <Link to="/min-sida/ny">Skicka in</Link>
-                  </Button>
-                  <Button variant="outline" size="sm" onClick={signOut}>
-                    Logga ut
-                  </Button>
-                </>
-              ) : (
-                <Button size="sm" asChild>
-                  <Link to="/auth">Logga in</Link>
-                </Button>
-              )}
-            </div>
-          </div>
-        </div>
-      </nav>
+      <PublicNav variant="solid" />
 
       <div className="container mx-auto px-4 py-8">
         {/* Header */}

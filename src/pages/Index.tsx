@@ -1,16 +1,14 @@
 import { Link, useNavigate } from 'react-router-dom';
 import { useEffect } from 'react';
 import { useAuth } from '@/hooks/useAuth';
-import { useIsAdmin } from '@/hooks/useAdmin';
 import { Button } from '@/components/ui/button';
-import { NotificationBell } from '@/components/NotificationBell';
+import { PublicNav } from '@/components/PublicNav';
 import { TopAppsSection } from '@/components/TopAppsSection';
 import { RecentAppsSection } from '@/components/RecentAppsSection';
-import { Sparkles, ArrowRight, BookOpen, Rocket, Users, Heart, Code, ExternalLink, Shield } from 'lucide-react';
+import { Sparkles, ArrowRight, BookOpen, Rocket, Users, Heart, Code, ExternalLink } from 'lucide-react';
 
 export default function Index() {
   const { user, loading } = useAuth();
-  const { data: isAdmin } = useIsAdmin();
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -31,51 +29,7 @@ export default function Index() {
       </div>
 
       {/* Navigation */}
-      <nav className="relative z-20 container mx-auto px-4 py-6">
-        <div className="flex items-center justify-between">
-          <Link to="/" className="flex items-center gap-2 text-xl font-heading font-bold text-foreground hover:text-primary transition-colors">
-            <span className="text-2xl">📱</span>
-            skolappar.com
-          </Link>
-          
-          <div className="flex items-center gap-4">
-            <Button variant="ghost" asChild className="hidden sm:inline-flex">
-              <Link to="/apps">Utforska</Link>
-            </Button>
-            {loading ? (
-              <div className="w-8 h-8 rounded-full bg-muted animate-pulse" />
-            ) : user ? (
-              <div className="flex items-center gap-3">
-                {isAdmin && (
-                  <Button variant="ghost" asChild className="gap-1">
-                    <Link to="/admin">
-                      <Shield className="w-4 h-4" />
-                      <span className="hidden sm:inline">Admin</span>
-                    </Link>
-                  </Button>
-                )}
-                <NotificationBell />
-                <Button variant="ghost" asChild>
-                  <Link to="/min-sida">Min sida</Link>
-                </Button>
-                <Button asChild>
-                  <Link to="/min-sida/ny" className="gap-2">
-                    <Sparkles className="w-4 h-4" />
-                    <span className="hidden sm:inline">Lägg till app</span>
-                  </Link>
-                </Button>
-              </div>
-            ) : (
-              <Button asChild>
-                <Link to="/auth" className="gap-2">
-                  Logga in
-                  <ArrowRight className="w-4 h-4" />
-                </Link>
-              </Button>
-            )}
-          </div>
-        </div>
-      </nav>
+      <PublicNav variant="transparent" />
 
       {/* Hero Section */}
       <section className="relative z-10 container mx-auto px-4 pt-16 pb-24 text-center">

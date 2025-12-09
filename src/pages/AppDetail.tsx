@@ -1,5 +1,5 @@
 import { useParams, Link, useNavigate } from 'react-router-dom';
-import { ArrowLeft, ExternalLink, ChevronUp, MessageCircle, Trash2, Send, MousePointerClick, Monitor, Tablet, Smartphone, Layers } from 'lucide-react';
+import { ArrowLeft, ExternalLink, ChevronUp, MessageCircle, Trash2, Send, Eye, Monitor, Tablet, Smartphone, Layers } from 'lucide-react';
 import { useState } from 'react';
 import { format } from 'date-fns';
 import { sv } from 'date-fns/locale';
@@ -12,6 +12,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { ShareButton } from '@/components/ShareButton';
 import { RelatedApps } from '@/components/RelatedApps';
+import { PublicNav } from '@/components/PublicNav';
 import { useAppDetails, useAppComments, useAddComment, useDeleteComment } from '@/hooks/useAppDetails';
 import { useToggleUpvote, useUserUpvotes } from '@/hooks/useApps';
 import { useTrackClick } from '@/hooks/useTrackClick';
@@ -104,6 +105,9 @@ export default function AppDetail() {
 
   return (
     <div className="min-h-screen bg-gradient-hero">
+      {/* Navigation */}
+      <PublicNav variant="solid" />
+
       <div className="container max-w-3xl mx-auto px-4 py-6 space-y-6">
         {/* Back button */}
         <Button variant="ghost" size="sm" onClick={() => navigate(-1)} className="gap-2">
@@ -223,7 +227,7 @@ export default function AppDetail() {
             {app.comments_count}
           </span>
           <span className="flex items-center gap-1.5 text-sm text-muted-foreground">
-            <MousePointerClick className="w-4 h-4" />
+            <Eye className="w-4 h-4" />
             {app.clicks_count || 0}
           </span>
         </div>
