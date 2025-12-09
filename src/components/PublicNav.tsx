@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { Sparkles, ArrowRight, Shield, Menu, X, Compass, User, BookOpen, LogOut } from 'lucide-react';
+import { Sparkles, ArrowRight, Shield, Menu, X, Compass, User, BookOpen, LogOut, TestTube2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
@@ -43,6 +43,9 @@ export function PublicNav({ variant = 'transparent' }: PublicNavProps) {
             </Button>
             <Button variant="ghost" size="sm" asChild>
               <Link to="/resurser">Resurser</Link>
+            </Button>
+            <Button variant="ghost" size="sm" asChild>
+              <Link to="/testa-din-app">Testa app</Link>
             </Button>
 
             {loading ? (
@@ -118,6 +121,15 @@ export function PublicNav({ variant = 'transparent' }: PublicNavProps) {
                   >
                     <BookOpen className="w-5 h-5 text-secondary" />
                     <span className="font-medium">Resurser</span>
+                  </Link>
+
+                  <Link 
+                    to="/testa-din-app" 
+                    onClick={closeMobileMenu}
+                    className="flex items-center gap-3 px-3 py-3 rounded-xl text-foreground hover:bg-muted transition-colors"
+                  >
+                    <TestTube2 className="w-5 h-5 text-accent" />
+                    <span className="font-medium">Testa app</span>
                   </Link>
 
                   <div className="my-2 border-t border-border" />
