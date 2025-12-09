@@ -3,6 +3,7 @@ import { useEffect } from 'react';
 import { useAuth } from '@/hooks/useAuth';
 import { Button } from '@/components/ui/button';
 import { PublicNav } from '@/components/PublicNav';
+import { PublicFooter } from '@/components/PublicFooter';
 import { TopAppsSection } from '@/components/TopAppsSection';
 import { RecentAppsSection } from '@/components/RecentAppsSection';
 import { Sparkles, ArrowRight, BookOpen, Rocket, Users, Heart, Code, ExternalLink } from 'lucide-react';
@@ -210,26 +211,7 @@ export default function Index() {
       </section>
 
       {/* Footer */}
-      <footer className="relative z-10 border-t border-border/50 bg-card/50 backdrop-blur-sm">
-        <div className="container mx-auto px-4 py-8">
-          <div className="flex flex-col md:flex-row items-center justify-between gap-4">
-            <div className="flex items-center gap-2 text-sm text-muted-foreground">
-              <span className="text-lg">📱</span>
-              <span>© 2024 skolappar.com · Skapad med ❤️ av vibe-codande föräldrar</span>
-            </div>
-            <div className="flex items-center gap-4">
-              <a
-                href="https://github.com"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="text-muted-foreground hover:text-foreground transition-colors"
-              >
-                GitHub
-              </a>
-            </div>
-          </div>
-        </div>
-      </footer>
+      <PublicFooter />
     </div>
   );
 }
