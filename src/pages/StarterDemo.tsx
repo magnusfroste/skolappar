@@ -6,6 +6,9 @@ import { QuizCard } from "@/components/edu/QuizCard";
 import { FlashCard } from "@/components/edu/FlashCard";
 import { ProgressBar } from "@/components/edu/ProgressBar";
 import { Timer } from "@/components/edu/Timer";
+import { MemoryGame } from "@/components/edu/MemoryGame";
+import { WordSearch } from "@/components/edu/WordSearch";
+import { DragDropMatch } from "@/components/edu/DragDropMatch";
 import { SuccessAnimation } from "@/components/feedback/SuccessAnimation";
 import { ScoreDisplay } from "@/components/feedback/ScoreDisplay";
 import { RewardBadge } from "@/components/feedback/RewardBadge";
@@ -13,10 +16,12 @@ import { StreakCounter } from "@/components/feedback/StreakCounter";
 import { useScore } from "@/hooks/useScore";
 import { mathQuestions } from "@/data/mathQuestions";
 import { swedishWords } from "@/data/swedishWords";
+import { memoryPairs, wordSearchWords, dragDropItems, dragDropZones } from "@/data/gameData";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { ArrowRight, BookOpen, Calculator, Trophy } from "lucide-react";
+import { ArrowRight, BookOpen, Calculator, Trophy, Grid3X3, Search, Move } from "lucide-react";
+import { toast } from "sonner";
 
 export default function StarterDemo() {
   const [currentQuestion, setCurrentQuestion] = useState(0);
@@ -73,18 +78,30 @@ export default function StarterDemo() {
           </div>
 
           <Tabs defaultValue="quiz" className="w-full">
-            <TabsList className="grid w-full grid-cols-3">
-              <TabsTrigger value="quiz" className="gap-2">
+            <TabsList className="grid w-full grid-cols-3 sm:grid-cols-6 h-auto gap-1">
+              <TabsTrigger value="quiz" className="gap-1 text-xs sm:text-sm">
                 <Calculator className="w-4 h-4" />
-                Quiz
+                <span className="hidden sm:inline">Quiz</span>
               </TabsTrigger>
-              <TabsTrigger value="flashcards" className="gap-2">
+              <TabsTrigger value="flashcards" className="gap-1 text-xs sm:text-sm">
                 <BookOpen className="w-4 h-4" />
-                Glosor
+                <span className="hidden sm:inline">Glosor</span>
               </TabsTrigger>
-              <TabsTrigger value="components" className="gap-2">
+              <TabsTrigger value="memory" className="gap-1 text-xs sm:text-sm">
+                <Grid3X3 className="w-4 h-4" />
+                <span className="hidden sm:inline">Memory</span>
+              </TabsTrigger>
+              <TabsTrigger value="wordsearch" className="gap-1 text-xs sm:text-sm">
+                <Search className="w-4 h-4" />
+                <span className="hidden sm:inline">Ordjakt</span>
+              </TabsTrigger>
+              <TabsTrigger value="dragdrop" className="gap-1 text-xs sm:text-sm">
+                <Move className="w-4 h-4" />
+                <span className="hidden sm:inline">Matcha</span>
+              </TabsTrigger>
+              <TabsTrigger value="components" className="gap-1 text-xs sm:text-sm">
                 <Trophy className="w-4 h-4" />
-                Komponenter
+                <span className="hidden sm:inline">Övrigt</span>
               </TabsTrigger>
             </TabsList>
 
@@ -144,6 +161,75 @@ export default function StarterDemo() {
                   Nästa
                 </Button>
               </div>
+            </TabsContent>
+
+            {/* Memory Tab */}
+            <TabsContent value="memory" className="space-y-6 pt-6">
+              <Card>
+                <CardHeader>
+                  <CardTitle className="text-xl">Memory-spel</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <MemoryGame 
+                    pairs={memoryPairs} 
+                    onComplete={(moves) => {
+                      toast.success(`Grattis! Du klarade det på ${moves} drag! 🎉`);
+                      addPoints(50);
+                      setShowSuccess(true);
+                      setTimeout(() => setShowSuccess(false), 1500);
+                    }}
+                  />
+                </CardContent>
+              </Card>
+            </TabsContent>
+
+            {/* Word Search Tab */}
+            <TabsContent value="wordsearch" className="space-y-6 pt-6">
+              <Card>
+                <CardHeader>
+                  <CardTitle className="text-xl">Ordjakt</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <WordSearch 
+                    words={wordSearchWords}
+                    gridSize={8}
+                    onWordFound={(word) => {
+                      toast.success(`Du hittade "${word}"! 🎯`);
+                      addPoints(10);
+                    }}
+                    onComplete={() => {
+                      toast.success("Alla ord hittade! 🏆");
+                      setShowSuccess(true);
+                      setTimeout(() => setShowSuccess(false), 1500);
+                    }}
+                  />
+                </CardContent>
+              </Card>
+            </TabsContent>
+
+            {/* Drag & Drop Tab */}
+            <TabsContent value="dragdrop" className="space-y-6 pt-6">
+              <Card>
+                <CardHeader>
+                  <CardTitle className="text-xl">Matcha rätt</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <DragDropMatch 
+                    items={dragDropItems}
+                    zones={dragDropZones}
+                    onComplete={(correct, total) => {
+                      if (correct === total) {
+                        toast.success("Perfekt! Alla rätt! 🌟");
+                        addPoints(40);
+                        setShowSuccess(true);
+                        setTimeout(() => setShowSuccess(false), 1500);
+                      } else {
+                        toast.info(`${correct} av ${total} rätt. Försök igen!`);
+                      }
+                    }}
+                  />
+                </CardContent>
+              </Card>
             </TabsContent>
 
             {/* Components Showcase */}
