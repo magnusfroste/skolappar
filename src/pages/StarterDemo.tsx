@@ -13,7 +13,7 @@ import { SuccessAnimation } from "@/components/feedback/SuccessAnimation";
 import { ScoreDisplay } from "@/components/feedback/ScoreDisplay";
 import { RewardBadge } from "@/components/feedback/RewardBadge";
 import { StreakCounter } from "@/components/feedback/StreakCounter";
-import { SkolkodenTab } from "@/components/SkolkodenTab";
+import { SkolpromptenTab } from "@/components/SkolpromptenTab";
 import { useScore } from "@/hooks/useScore";
 import { mathQuestions } from "@/data/mathQuestions";
 import { swedishWords } from "@/data/swedishWords";
@@ -104,9 +104,9 @@ export default function StarterDemo() {
                 <Trophy className="w-4 h-4" />
                 <span className="hidden sm:inline">Övrigt</span>
               </TabsTrigger>
-              <TabsTrigger value="skolkoden" className="gap-1 text-xs sm:text-sm bg-primary/10">
+              <TabsTrigger value="skolprompten" className="gap-1 text-xs sm:text-sm bg-primary/10">
                 <Code className="w-4 h-4" />
-                <span className="hidden sm:inline">Skolkoden</span>
+                <span className="hidden sm:inline">Skolprompten</span>
               </TabsTrigger>
             </TabsList>
 
@@ -295,9 +295,9 @@ export default function StarterDemo() {
               </Card>
             </TabsContent>
 
-            {/* Skolkoden Tab */}
-            <TabsContent value="skolkoden">
-              <SkolkodenTab />
+            {/* Skolprompten Tab */}
+            <TabsContent value="skolprompten">
+              <SkolpromptenTab />
             </TabsContent>
           </Tabs>
 
