@@ -1,10 +1,11 @@
 import { useState } from 'react';
-import { Share2, Copy, Check, QrCode } from 'lucide-react';
+import { Share2, Copy, Check, QrCode, Facebook, Twitter, Linkedin } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
+  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { toast } from 'sonner';
@@ -20,6 +21,7 @@ export function ShareButton({ appId, appTitle }: ShareButtonProps) {
   const [qrOpen, setQrOpen] = useState(false);
   
   const shareUrl = `${window.location.origin}/app/${appId}`;
+  const shareText = `Kolla in "${appTitle}" på Skolappar!`;
   
   const handleCopyLink = async () => {
     try {
@@ -37,15 +39,30 @@ export function ShareButton({ appId, appTitle }: ShareButtonProps) {
       try {
         await navigator.share({
           title: appTitle,
-          text: `Kolla in "${appTitle}" på Skolappar!`,
+          text: shareText,
           url: shareUrl,
         });
-      } catch (err) {
+      } catch {
         // User cancelled or share failed silently
       }
     } else {
       handleCopyLink();
     }
+  };
+
+  const handleFacebookShare = () => {
+    const url = `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(shareUrl)}`;
+    window.open(url, '_blank', 'width=600,height=400');
+  };
+
+  const handleTwitterShare = () => {
+    const url = `https://twitter.com/intent/tweet?text=${encodeURIComponent(shareText)}&url=${encodeURIComponent(shareUrl)}`;
+    window.open(url, '_blank', 'width=600,height=400');
+  };
+
+  const handleLinkedInShare = () => {
+    const url = `https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(shareUrl)}`;
+    window.open(url, '_blank', 'width=600,height=400');
   };
 
   // Use native share on mobile if available
@@ -83,6 +100,19 @@ export function ShareButton({ appId, appTitle }: ShareButtonProps) {
           <DropdownMenuItem onClick={() => setQrOpen(true)} className="gap-2 cursor-pointer">
             <QrCode className="w-4 h-4" />
             Visa QR-kod
+          </DropdownMenuItem>
+          <DropdownMenuSeparator />
+          <DropdownMenuItem onClick={handleFacebookShare} className="gap-2 cursor-pointer">
+            <Facebook className="w-4 h-4" />
+            Facebook
+          </DropdownMenuItem>
+          <DropdownMenuItem onClick={handleTwitterShare} className="gap-2 cursor-pointer">
+            <Twitter className="w-4 h-4" />
+            X (Twitter)
+          </DropdownMenuItem>
+          <DropdownMenuItem onClick={handleLinkedInShare} className="gap-2 cursor-pointer">
+            <Linkedin className="w-4 h-4" />
+            LinkedIn
           </DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>
