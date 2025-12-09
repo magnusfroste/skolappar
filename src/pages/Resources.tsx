@@ -1,9 +1,10 @@
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { useResources, ResourceCategory } from "@/hooks/useResources";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Lightbulb, Rocket, Sparkles, ArrowRight, Puzzle } from "lucide-react";
+import { Lightbulb, Rocket, Sparkles, ArrowRight, Puzzle, ArrowLeft } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
+import { useAuth } from "@/hooks/useAuth";
 
 const categoryConfig: Record<ResourceCategory, { title: string; description: string; icon: React.ReactNode; path: string }> = {
   tips: {
@@ -28,6 +29,8 @@ const categoryConfig: Record<ResourceCategory, { title: string; description: str
 
 export default function Resources() {
   const { data: resources, isLoading } = useResources();
+  const { user } = useAuth();
+  const navigate = useNavigate();
 
   const getResourceCount = (category: ResourceCategory) => {
     return resources?.filter(r => r.category === category).length || 0;
@@ -36,6 +39,12 @@ export default function Resources() {
   return (
     <div className="min-h-screen bg-background">
       <div className="container max-w-4xl py-12 px-4">
+        {user && (
+          <Button variant="ghost" size="sm" className="mb-6" onClick={() => navigate('/min-sida')}>
+            <ArrowLeft className="h-4 w-4 mr-2" />
+            Tillbaka till dashboard
+          </Button>
+        )}
         <div className="text-center mb-12">
           <h1 className="text-4xl font-bold text-foreground mb-4">Resurser</h1>
           <p className="text-lg text-muted-foreground">
