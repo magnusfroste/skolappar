@@ -24,6 +24,7 @@ import {
 import { Skeleton } from '@/components/ui/skeleton';
 import { AppCardVisual } from '@/components/AppCardVisual';
 import { PublicNav } from '@/components/PublicNav';
+import { PublicFooter } from '@/components/PublicFooter';
 import { useAuth } from '@/hooks/useAuth';
 import { useApps, useCategories, useUserUpvotes, useToggleUpvote } from '@/hooks/useApps';
 import { useSetting } from '@/hooks/useSettings';
@@ -340,6 +341,9 @@ export default function Apps() {
           </main>
         </div>
       </div>
+
+      {/* Footer */}
+      <PublicFooter />
     </div>
   );
 }

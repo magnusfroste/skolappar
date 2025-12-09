@@ -13,6 +13,7 @@ import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip
 import { ShareButton } from '@/components/ShareButton';
 import { RelatedApps } from '@/components/RelatedApps';
 import { PublicNav } from '@/components/PublicNav';
+import { PublicFooter } from '@/components/PublicFooter';
 import { useAppDetails, useAppComments, useAddComment, useDeleteComment } from '@/hooks/useAppDetails';
 import { useToggleUpvote, useUserUpvotes } from '@/hooks/useApps';
 import { useTrackClick } from '@/hooks/useTrackClick';
@@ -317,6 +318,9 @@ export default function AppDetail() {
           categoryIds={app.categories.filter((c: any) => c.type !== 'device').map((c: any) => c.id)} 
         />
       </div>
+
+      {/* Footer */}
+      <PublicFooter />
     </div>
   );
 }
