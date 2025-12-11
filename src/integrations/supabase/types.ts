@@ -169,6 +169,129 @@ export type Database = {
           },
         ]
       }
+      idea_comments: {
+        Row: {
+          content: string
+          created_at: string | null
+          id: string
+          idea_id: string
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          content: string
+          created_at?: string | null
+          id?: string
+          idea_id: string
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          content?: string
+          created_at?: string | null
+          id?: string
+          idea_id?: string
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "idea_comments_idea_id_fkey"
+            columns: ["idea_id"]
+            isOneToOne: false
+            referencedRelation: "ideas"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      idea_upvotes: {
+        Row: {
+          created_at: string | null
+          id: string
+          idea_id: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          idea_id: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          idea_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "idea_upvotes_idea_id_fkey"
+            columns: ["idea_id"]
+            isOneToOne: false
+            referencedRelation: "ideas"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      ideas: {
+        Row: {
+          built_app_id: string | null
+          claimed_at: string | null
+          claimed_by: string | null
+          comments_count: number | null
+          created_at: string | null
+          description: string
+          id: string
+          status: string
+          target_age: string | null
+          target_subject: string | null
+          title: string
+          updated_at: string | null
+          upvotes_count: number | null
+          user_id: string
+        }
+        Insert: {
+          built_app_id?: string | null
+          claimed_at?: string | null
+          claimed_by?: string | null
+          comments_count?: number | null
+          created_at?: string | null
+          description: string
+          id?: string
+          status?: string
+          target_age?: string | null
+          target_subject?: string | null
+          title: string
+          updated_at?: string | null
+          upvotes_count?: number | null
+          user_id: string
+        }
+        Update: {
+          built_app_id?: string | null
+          claimed_at?: string | null
+          claimed_by?: string | null
+          comments_count?: number | null
+          created_at?: string | null
+          description?: string
+          id?: string
+          status?: string
+          target_age?: string | null
+          target_subject?: string | null
+          title?: string
+          updated_at?: string | null
+          upvotes_count?: number | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ideas_built_app_id_fkey"
+            columns: ["built_app_id"]
+            isOneToOne: false
+            referencedRelation: "apps"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       notifications: {
         Row: {
           app_id: string | null
