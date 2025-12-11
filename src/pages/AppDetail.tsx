@@ -14,6 +14,7 @@ import { ShareButton } from '@/components/ShareButton';
 import { RelatedApps } from '@/components/RelatedApps';
 import { PublicNav } from '@/components/PublicNav';
 import { PublicFooter } from '@/components/PublicFooter';
+import { SEO, createAppSchema } from '@/components/SEO';
 import { useAppDetails, useAppComments, useAddComment, useDeleteComment } from '@/hooks/useAppDetails';
 import { useToggleUpvote, useUserUpvotes } from '@/hooks/useApps';
 import { useTrackClick } from '@/hooks/useTrackClick';
@@ -104,8 +105,26 @@ export default function AppDetail() {
     );
   }
 
+  const appSchema = createAppSchema({
+    title: app.title,
+    description: app.long_description || app.description,
+    url: app.url,
+    image: app.image_url || undefined,
+    creator: app.profile?.display_name,
+    datePublished: app.created_at,
+  });
+
   return (
     <div className="min-h-screen bg-gradient-hero">
+      <SEO 
+        title={app.title}
+        description={app.long_description || app.description}
+        image={app.image_url || undefined}
+        url={`/app/${app.id}`}
+        type="product"
+        jsonLd={appSchema}
+      />
+      
       {/* Navigation */}
       <PublicNav variant="solid" />
 

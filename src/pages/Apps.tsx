@@ -25,6 +25,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { AppCardVisual } from '@/components/AppCardVisual';
 import { PublicNav } from '@/components/PublicNav';
 import { PublicFooter } from '@/components/PublicFooter';
+import { SEO } from '@/components/SEO';
 import { useAuth } from '@/hooks/useAuth';
 import { useApps, useCategories, useUserUpvotes, useToggleUpvote } from '@/hooks/useApps';
 import { useSetting } from '@/hooks/useSettings';
@@ -152,6 +153,12 @@ export default function Apps() {
 
   return (
     <div className="min-h-screen bg-gradient-hero">
+      <SEO 
+        title="Utforska pedagogiska appar"
+        description="Upptäck och utforska pedagogiska appar skapade av engagerade föräldrar. Hitta appar för matematik, svenska, engelska och mer."
+        url="/appar"
+      />
+      
       {/* Navigation */}
       <PublicNav variant="solid" />
 

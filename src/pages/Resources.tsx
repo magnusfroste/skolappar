@@ -6,6 +6,7 @@ import { Lightbulb, Rocket, Sparkles, ArrowRight, Puzzle, ArrowLeft, Search, X }
 import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { SEO } from "@/components/SEO";
 import { useAuth } from "@/hooks/useAuth";
 
 const categoryConfig: Record<ResourceCategory, { title: string; description: string; icon: React.ReactNode; path: string }> = {
@@ -64,6 +65,12 @@ export default function Resources() {
 
   return (
     <div className="min-h-screen bg-background">
+      <SEO 
+        title="Resurser för vibe-coders"
+        description="Allt du behöver för att skapa fantastiska pedagogiska appar. Tips, guider och inspiration för föräldrar som vill bygga skolappar."
+        url="/resurser"
+      />
+      
       <div className="container max-w-4xl py-12 px-4">
         {user && (
           <Button variant="ghost" size="sm" className="mb-6" onClick={() => navigate('/min-sida')}>

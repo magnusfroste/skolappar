@@ -5,13 +5,21 @@ import { PublicNav } from '@/components/PublicNav';
 import { PublicFooter } from '@/components/PublicFooter';
 import { TopAppsSection } from '@/components/TopAppsSection';
 import { RecentAppsSection } from '@/components/RecentAppsSection';
+import { SEO, websiteSchema, organizationSchema } from '@/components/SEO';
 import { Sparkles, ArrowRight, BookOpen, Rocket, Users, Heart, Code, ExternalLink } from 'lucide-react';
+
+const combinedSchema = [websiteSchema, organizationSchema];
 
 export default function Index() {
   const { user } = useAuth();
 
   return (
     <div className="min-h-screen bg-gradient-hero">
+      <SEO 
+        url="/"
+        jsonLd={combinedSchema}
+      />
+      
       {/* Decorative background elements */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
         <div className="absolute top-20 left-[5%] text-7xl animate-float opacity-10">📚</div>
