@@ -1,7 +1,8 @@
 import { Link, useLocation } from 'react-router-dom';
-import { Home, Compass, Plus, Lightbulb, BookOpen, Sparkles, LogOut, Settings, ChevronLeft, ChevronRight, Shield } from 'lucide-react';
+import { Home, Compass, Plus, Lightbulb, BookOpen, Sparkles, LogOut, Settings, ChevronLeft, ChevronRight, Shield, MessageSquarePlus } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 import { useMyApps } from '@/hooks/useMyApps';
+import { useMyCreatedIdeas, useMyClaimedIdeas } from '@/hooks/useMyIdeas';
 import { useIsAdmin } from '@/hooks/useAdmin';
 import {
   Sidebar,
@@ -24,6 +25,7 @@ import { useMyProfile } from '@/hooks/useProfile';
 const navigation = [
   { title: 'Hem', url: '/', icon: Home },
   { title: 'Utforska appar', url: '/apps', icon: Compass },
+  { title: 'App-idéer', url: '/ideer', icon: Lightbulb },
 ];
 
 const resources = [
@@ -38,8 +40,13 @@ export function AppSidebar() {
   const location = useLocation();
   const { user, signOut } = useAuth();
   const { data: apps, isLoading: appsLoading } = useMyApps();
+  const { data: createdIdeas, isLoading: createdIdeasLoading } = useMyCreatedIdeas();
+  const { data: claimedIdeas, isLoading: claimedIdeasLoading } = useMyClaimedIdeas();
   const { data: profile } = useMyProfile();
   const { data: isAdmin } = useIsAdmin();
+  
+  const myIdeas = [...(createdIdeas || []), ...(claimedIdeas || [])];
+  const ideasLoading = createdIdeasLoading || claimedIdeasLoading;
 
   const isActive = (path: string) => location.pathname === path;
 
@@ -193,6 +200,83 @@ export function AppSidebar() {
                   <SidebarMenuButton asChild>
                     <Link to="/min-sida" className="text-muted-foreground">
                       <span>Visa alla ({apps.length})</span>
+                    </Link>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+              )}
+            </SidebarMenu>
+          </SidebarGroupContent>
+        </SidebarGroup>
+
+        {/* My Ideas */}
+        <SidebarGroup>
+          <SidebarGroupLabel className="flex items-center justify-between">
+            <span>Mina idéer</span>
+            {!collapsed && (
+              <Link to="/min-sida/ideer/ny">
+                <Button variant="ghost" size="icon" className="h-5 w-5">
+                  <Plus className="h-3 w-3" />
+                </Button>
+              </Link>
+            )}
+          </SidebarGroupLabel>
+          <SidebarGroupContent>
+            <SidebarMenu>
+              {collapsed && (
+                <SidebarMenuItem>
+                  <SidebarMenuButton asChild tooltip="Föreslå idé">
+                    <Link to="/min-sida/ideer/ny">
+                      <MessageSquarePlus className="h-4 w-4" />
+                      <span>Föreslå idé</span>
+                    </Link>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+              )}
+              {ideasLoading ? (
+                <div className="space-y-2 px-2">
+                  {[1, 2].map((i) => (
+                    <Skeleton key={i} className="h-8 w-full" />
+                  ))}
+                </div>
+              ) : myIdeas.length === 0 ? (
+                <div className="px-2 py-4 text-center">
+                  <p className="text-xs text-muted-foreground mb-2">
+                    {collapsed ? '' : 'Inga idéer än'}
+                  </p>
+                  {!collapsed && (
+                    <Link to="/min-sida/ideer/ny">
+                      <Button size="sm" variant="outline" className="w-full gap-2">
+                        <MessageSquarePlus className="h-3 w-3" />
+                        Föreslå idé
+                      </Button>
+                    </Link>
+                  )}
+                </div>
+              ) : (
+                myIdeas.slice(0, 5).map((idea) => (
+                  <SidebarMenuItem key={idea.id}>
+                    <SidebarMenuButton
+                      asChild
+                      isActive={location.pathname === `/ideer/${idea.id}`}
+                      tooltip={idea.title}
+                    >
+                      <Link to={`/ideer/${idea.id}`}>
+                        <span className={`h-2 w-2 rounded-full ${
+                          idea.status === 'open' ? 'bg-green-500' :
+                          idea.status === 'claimed' ? 'bg-yellow-500' :
+                          'bg-cyan-500'
+                        }`} />
+                        <span className="truncate">{idea.title}</span>
+                      </Link>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                ))
+              )}
+              {myIdeas.length > 5 && !collapsed && (
+                <SidebarMenuItem>
+                  <SidebarMenuButton asChild>
+                    <Link to="/ideer" className="text-muted-foreground">
+                      <span>Visa alla ({myIdeas.length})</span>
                     </Link>
                   </SidebarMenuButton>
                 </SidebarMenuItem>

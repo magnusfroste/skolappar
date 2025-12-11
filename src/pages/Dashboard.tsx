@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom';
-import { Plus, ExternalLink, Edit, Trash2, Heart, MessageCircle, TrendingUp, Clock, Star, BarChart3, MousePointerClick, Share2 } from 'lucide-react';
+import { Plus, ExternalLink, Edit, Trash2, Heart, MessageCircle, TrendingUp, Clock, Star, BarChart3, MousePointerClick, Share2, Lightbulb, MessageSquarePlus } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -21,13 +21,18 @@ import { AppStatusBadge } from '@/components/AppStatusBadge';
 import { NotificationBell } from '@/components/NotificationBell';
 import { AuthenticatedLayout } from '@/components/AuthenticatedLayout';
 import { MilestoneBadge, getNextMilestone } from '@/components/MilestoneBadge';
+import { IdeaStatusBadge } from '@/components/IdeaStatusBadge';
 import { useMyApps, useMyStats, useDeleteApp } from '@/hooks/useMyApps';
+import { useMyCreatedIdeas, useMyClaimedIdeas, useDeleteIdea } from '@/hooks/useMyIdeas';
 import { toast } from '@/hooks/use-toast';
 
 export default function Dashboard() {
   const { data: apps, isLoading: appsLoading } = useMyApps();
   const { data: stats, isLoading: statsLoading } = useMyStats();
+  const { data: createdIdeas, isLoading: createdIdeasLoading } = useMyCreatedIdeas();
+  const { data: claimedIdeas, isLoading: claimedIdeasLoading } = useMyClaimedIdeas();
   const deleteMutation = useDeleteApp();
+  const deleteIdeaMutation = useDeleteIdea();
 
   const handleDelete = async (appId: string, appTitle: string) => {
     try {
@@ -39,6 +44,22 @@ export default function Dashboard() {
     } catch (error) {
       toast({
         title: 'Kunde inte ta bort appen',
+        description: 'Något gick fel, försök igen',
+        variant: 'destructive'
+      });
+    }
+  };
+
+  const handleDeleteIdea = async (ideaId: string, ideaTitle: string) => {
+    try {
+      await deleteIdeaMutation.mutateAsync(ideaId);
+      toast({
+        title: 'Idé borttagen',
+        description: `"${ideaTitle}" har tagits bort`
+      });
+    } catch (error) {
+      toast({
+        title: 'Kunde inte ta bort idén',
         description: 'Något gick fel, försök igen',
         variant: 'destructive'
       });
@@ -167,10 +188,14 @@ export default function Dashboard() {
 
         {/* Tabs */}
         <Tabs defaultValue="apps" className="space-y-6">
-          <TabsList className="bg-card/80 backdrop-blur-sm">
+          <TabsList className="bg-card/80 backdrop-blur-sm flex-wrap h-auto gap-1">
             <TabsTrigger value="apps" className="gap-2">
               <TrendingUp className="h-4 w-4" />
               Mina appar
+            </TabsTrigger>
+            <TabsTrigger value="ideas" className="gap-2">
+              <Lightbulb className="h-4 w-4" />
+              Mina idéer
             </TabsTrigger>
             <TabsTrigger value="favorites" className="gap-2">
               <Star className="h-4 w-4" />
@@ -309,6 +334,141 @@ export default function Dashboard() {
                     </CardContent>
                   </Card>
                 ))}
+              </div>
+            )}
+          </TabsContent>
+
+          <TabsContent value="ideas">
+            {createdIdeasLoading || claimedIdeasLoading ? (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                {[1, 2, 3].map((i) => (
+                  <Card key={i} className="overflow-hidden">
+                    <CardContent className="p-4 space-y-3">
+                      <Skeleton className="h-5 w-3/4" />
+                      <Skeleton className="h-4 w-full" />
+                      <Skeleton className="h-4 w-1/2" />
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+            ) : (createdIdeas?.length === 0 && claimedIdeas?.length === 0) ? (
+              <Card className="bg-card/80 backdrop-blur-sm">
+                <CardContent className="py-16 text-center">
+                  <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-amber-400/20 to-orange-500/20 flex items-center justify-center mx-auto mb-4">
+                    <Lightbulb className="h-8 w-8 text-amber-500" />
+                  </div>
+                  <h3 className="font-heading font-semibold text-lg mb-2">
+                    Inga idéer än
+                  </h3>
+                  <p className="text-muted-foreground text-sm mb-6 max-w-sm mx-auto">
+                    Föreslå en app-idé som andra föräldrar kan bygga!
+                  </p>
+                  <Link to="/min-sida/ideer/ny">
+                    <Button className="gap-2 shadow-playful">
+                      <MessageSquarePlus className="h-4 w-4" />
+                      Föreslå din första idé
+                    </Button>
+                  </Link>
+                </CardContent>
+              </Card>
+            ) : (
+              <div className="space-y-6">
+                {/* Created Ideas */}
+                {createdIdeas && createdIdeas.length > 0 && (
+                  <div>
+                    <h3 className="font-heading font-semibold mb-4">Idéer jag föreslagit</h3>
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                      {createdIdeas.map((idea) => (
+                        <Card key={idea.id} className="bg-card/80 backdrop-blur-sm shadow-playful">
+                          <CardContent className="p-4">
+                            <div className="flex items-start justify-between gap-2 mb-2">
+                              <Link to={`/ideer/${idea.id}`}>
+                                <h4 className="font-heading font-semibold hover:text-primary transition-colors">
+                                  {idea.title}
+                                </h4>
+                              </Link>
+                              <IdeaStatusBadge status={idea.status as 'open' | 'claimed' | 'built'} />
+                            </div>
+                            <p className="text-sm text-muted-foreground line-clamp-2 mb-3">
+                              {idea.description}
+                            </p>
+                            <div className="flex items-center gap-3 text-xs text-muted-foreground mb-3">
+                              <span className="flex items-center gap-1">
+                                <Heart className="h-3 w-3" /> {idea.upvotes_count}
+                              </span>
+                              <span className="flex items-center gap-1">
+                                <MessageCircle className="h-3 w-3" /> {idea.comments_count}
+                              </span>
+                            </div>
+                            <div className="flex items-center gap-2">
+                              <Button variant="outline" size="sm" asChild className="flex-1">
+                                <Link to={`/ideer/${idea.id}`}>Visa</Link>
+                              </Button>
+                              <AlertDialog>
+                                <AlertDialogTrigger asChild>
+                                  <Button variant="outline" size="sm" className="text-destructive hover:text-destructive">
+                                    <Trash2 className="h-3 w-3" />
+                                  </Button>
+                                </AlertDialogTrigger>
+                                <AlertDialogContent>
+                                  <AlertDialogHeader>
+                                    <AlertDialogTitle>Ta bort idé?</AlertDialogTitle>
+                                    <AlertDialogDescription>
+                                      Är du säker på att du vill ta bort "{idea.title}"? Detta går inte att ångra.
+                                    </AlertDialogDescription>
+                                  </AlertDialogHeader>
+                                  <AlertDialogFooter>
+                                    <AlertDialogCancel>Avbryt</AlertDialogCancel>
+                                    <AlertDialogAction
+                                      onClick={() => handleDeleteIdea(idea.id, idea.title)}
+                                      className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                                    >
+                                      Ta bort
+                                    </AlertDialogAction>
+                                  </AlertDialogFooter>
+                                </AlertDialogContent>
+                              </AlertDialog>
+                            </div>
+                          </CardContent>
+                        </Card>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* Claimed Ideas */}
+                {claimedIdeas && claimedIdeas.length > 0 && (
+                  <div>
+                    <h3 className="font-heading font-semibold mb-4">Idéer jag bygger på</h3>
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                      {claimedIdeas.map((idea) => (
+                        <Card key={idea.id} className="bg-card/80 backdrop-blur-sm shadow-playful border-l-4 border-l-amber-500">
+                          <CardContent className="p-4">
+                            <div className="flex items-start justify-between gap-2 mb-2">
+                              <Link to={`/ideer/${idea.id}`}>
+                                <h4 className="font-heading font-semibold hover:text-primary transition-colors">
+                                  {idea.title}
+                                </h4>
+                              </Link>
+                              <IdeaStatusBadge status={idea.status as 'open' | 'claimed' | 'built'} />
+                            </div>
+                            <p className="text-sm text-muted-foreground line-clamp-2 mb-3">
+                              {idea.description}
+                            </p>
+                            {idea.profiles && (
+                              <p className="text-xs text-muted-foreground mb-3">
+                                Idé av {idea.profiles.display_name || 'Anonym'}
+                              </p>
+                            )}
+                            <Button variant="outline" size="sm" asChild className="w-full">
+                              <Link to={`/ideer/${idea.id}`}>Visa detaljer</Link>
+                            </Button>
+                          </CardContent>
+                        </Card>
+                      ))}
+                    </div>
+                  </div>
+                )}
               </div>
             )}
           </TabsContent>

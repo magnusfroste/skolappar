@@ -10,6 +10,9 @@ import Apps from "./pages/Apps";
 import Dashboard from "./pages/Dashboard";
 import DashboardEdit from "./pages/DashboardEdit";
 import DashboardCreate from "./pages/DashboardCreate";
+import DashboardCreateIdea from "./pages/DashboardCreateIdea";
+import Ideas from "./pages/Ideas";
+import IdeaDetail from "./pages/IdeaDetail";
 import Admin from "./pages/Admin";
 import Profile from "./pages/Profile";
 import EditProfile from "./pages/EditProfile";
@@ -39,6 +42,9 @@ const App = () => (
             <Route path="/min-sida" element={<Dashboard />} />
             <Route path="/min-sida/app/:id" element={<DashboardEdit />} />
             <Route path="/min-sida/ny" element={<DashboardCreate />} />
+            <Route path="/min-sida/ideer/ny" element={<DashboardCreateIdea />} />
+            <Route path="/ideer" element={<Ideas />} />
+            <Route path="/ideer/:id" element={<IdeaDetail />} />
             <Route path="/admin" element={<Admin />} />
             <Route path="/profil/:id" element={<Profile />} />
             <Route path="/profil/redigera" element={<EditProfile />} />
