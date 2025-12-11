@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { ArrowLeft } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { MarkdownRenderer } from "@/components/MarkdownRenderer";
+import { SEO, createArticleSchema } from "@/components/SEO";
 
 export default function ResourceDetail() {
   const { category, slug } = useParams<{ category: string; slug: string }>();
@@ -36,8 +37,28 @@ export default function ResourceDetail() {
     );
   }
 
+  const articleSchema = createArticleSchema({
+    title: resource.title,
+    description: resource.excerpt || resource.title,
+    url: `/resurser/${category}/${slug}`,
+    datePublished: resource.created_at,
+    dateModified: resource.updated_at,
+  });
+
   return (
     <div className="min-h-screen bg-background">
+      <SEO 
+        title={resource.title}
+        description={resource.excerpt || resource.title}
+        url={`/resurser/${category}/${slug}`}
+        type="article"
+        article={{
+          publishedTime: resource.created_at,
+          modifiedTime: resource.updated_at,
+        }}
+        jsonLd={articleSchema}
+      />
+      
       <div className="container max-w-3xl py-12 px-4">
         <Link to={`/resurser/${category}`}>
           <Button variant="ghost" size="sm" className="mb-6">
