@@ -5,6 +5,7 @@ import { PublicNav } from '@/components/PublicNav';
 import { PublicFooter } from '@/components/PublicFooter';
 import { TopAppsSection } from '@/components/TopAppsSection';
 import { RecentAppsSection } from '@/components/RecentAppsSection';
+import { TopIdeasSection } from '@/components/TopIdeasSection';
 import { SEO, websiteSchema, organizationSchema } from '@/components/SEO';
 import { Sparkles, ArrowRight, BookOpen, Rocket, Users, Heart, Code, ExternalLink } from 'lucide-react';
 
@@ -94,6 +95,9 @@ export default function Index() {
 
       {/* Top Apps Section (conditionally rendered based on admin setting) */}
       <TopAppsSection />
+
+      {/* Top Ideas Section */}
+      <TopIdeasSection />
 
       {/* Recent Apps Section (conditionally rendered based on admin setting) */}
       <RecentAppsSection />
