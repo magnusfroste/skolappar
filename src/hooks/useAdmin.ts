@@ -315,3 +315,107 @@ export function useDeleteResource() {
     }
   });
 }
+
+// Idea management for admin
+export function useAdminIdeas() {
+  return useQuery({
+    queryKey: ['admin-ideas'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('ideas')
+        .select('*')
+        .order('created_at', { ascending: false });
+
+      if (error) throw error;
+
+      const userIds = [...new Set(data.flatMap(idea => [idea.user_id, idea.claimed_by].filter(Boolean)))];
+      const { data: profiles } = await supabase
+        .from('profiles')
+        .select('id, display_name, avatar_url')
+        .in('id', userIds);
+
+      const profileMap = new Map(profiles?.map(p => [p.id, p]) || []);
+
+      return data.map(idea => ({
+        ...idea,
+        profile: profileMap.get(idea.user_id) || null,
+        claimer_profile: idea.claimed_by ? profileMap.get(idea.claimed_by) || null : null
+      }));
+    }
+  });
+}
+
+export function useAdminIdeasStats() {
+  return useQuery({
+    queryKey: ['admin-ideas-stats'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('ideas')
+        .select('status, upvotes_count, comments_count');
+
+      if (error) throw error;
+
+      const stats = {
+        total: data.length,
+        open: data.filter(i => i.status === 'open').length,
+        claimed: data.filter(i => i.status === 'claimed').length,
+        built: data.filter(i => i.status === 'built').length,
+        totalUpvotes: data.reduce((sum, i) => sum + (i.upvotes_count || 0), 0),
+        totalComments: data.reduce((sum, i) => sum + (i.comments_count || 0), 0),
+        conversionRate: data.length > 0 
+          ? Math.round((data.filter(i => i.status === 'built').length / data.length) * 100) 
+          : 0
+      };
+
+      return stats;
+    }
+  });
+}
+
+export function useUpdateIdeaStatus() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({ ideaId, status }: { ideaId: string; status: 'open' | 'claimed' | 'built' }) => {
+      const updates: any = { status };
+      
+      // Reset claim info if setting back to open
+      if (status === 'open') {
+        updates.claimed_by = null;
+        updates.claimed_at = null;
+      }
+
+      const { error } = await supabase
+        .from('ideas')
+        .update(updates)
+        .eq('id', ideaId);
+
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['admin-ideas'] });
+      queryClient.invalidateQueries({ queryKey: ['admin-ideas-stats'] });
+      queryClient.invalidateQueries({ queryKey: ['ideas'] });
+    }
+  });
+}
+
+export function useDeleteIdeaAdmin() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (ideaId: string) => {
+      const { error } = await supabase
+        .from('ideas')
+        .delete()
+        .eq('id', ideaId);
+
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['admin-ideas'] });
+      queryClient.invalidateQueries({ queryKey: ['admin-ideas-stats'] });
+      queryClient.invalidateQueries({ queryKey: ['ideas'] });
+    }
+  });
+}

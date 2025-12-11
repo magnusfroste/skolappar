@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { Check, X, Star, Clock, ExternalLink, Trash2, Plus, Edit2, Shield, Settings, FileText, Eye, EyeOff } from 'lucide-react';
+import { Check, X, Star, Clock, ExternalLink, Trash2, Plus, Edit2, Shield, Settings, FileText, Eye, EyeOff, Lightbulb, MessageSquare, ThumbsUp, TrendingUp } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -46,8 +46,13 @@ import {
   useAdminResources,
   useCreateResource,
   useUpdateResource,
-  useDeleteResource
+  useDeleteResource,
+  useAdminIdeas,
+  useAdminIdeasStats,
+  useUpdateIdeaStatus,
+  useDeleteIdeaAdmin
 } from '@/hooks/useAdmin';
+import { IdeaStatusBadge } from '@/components/IdeaStatusBadge';
 import { useSetting, useUpdateSetting } from '@/hooks/useSettings';
 import { toast } from '@/hooks/use-toast';
 
@@ -57,6 +62,8 @@ export default function Admin() {
   const { data: allApps, isLoading: allAppsLoading } = useAllApps();
   const { data: categories, isLoading: categoriesLoading } = useAdminCategories();
   const { data: resources, isLoading: resourcesLoading } = useAdminResources();
+  const { data: ideas, isLoading: ideasLoading } = useAdminIdeas();
+  const { data: ideasStats } = useAdminIdeasStats();
 
   const updateStatus = useUpdateAppStatus();
   const deleteApp = useDeleteAppAdmin();
@@ -66,6 +73,8 @@ export default function Admin() {
   const createResource = useCreateResource();
   const updateResource = useUpdateResource();
   const deleteResource = useDeleteResource();
+  const updateIdeaStatus = useUpdateIdeaStatus();
+  const deleteIdea = useDeleteIdeaAdmin();
   
   const { data: showFilters } = useSetting('show_filters');
   const { data: showTopApps } = useSetting('show_top_apps');
@@ -200,6 +209,27 @@ export default function Admin() {
     }
   };
 
+  const handleIdeaStatusChange = async (ideaId: string, status: 'open' | 'claimed' | 'built') => {
+    try {
+      await updateIdeaStatus.mutateAsync({ ideaId, status });
+      toast({
+        title: 'Status uppdaterad',
+        description: `Idén har markerats som ${status === 'open' ? 'öppen' : status === 'claimed' ? 'claimed' : 'byggd'}`
+      });
+    } catch (error) {
+      toast({ title: 'Kunde inte uppdatera status', variant: 'destructive' });
+    }
+  };
+
+  const handleDeleteIdea = async (ideaId: string) => {
+    try {
+      await deleteIdea.mutateAsync(ideaId);
+      toast({ title: 'Idé borttagen' });
+    } catch (error) {
+      toast({ title: 'Kunde inte ta bort idén', variant: 'destructive' });
+    }
+  };
+
   if (adminLoading) {
     return (
       <AuthenticatedLayout>
@@ -244,12 +274,16 @@ export default function Admin() {
         </div>
 
         <Tabs defaultValue="pending" className="space-y-6">
-          <TabsList className="grid w-full max-w-2xl grid-cols-5">
+          <TabsList className="grid w-full max-w-3xl grid-cols-6">
             <TabsTrigger value="pending" className="gap-2">
               <Clock className="h-4 w-4" />
               <span className="hidden sm:inline">Väntande</span> ({pendingApps?.length || 0})
             </TabsTrigger>
             <TabsTrigger value="all">Alla appar</TabsTrigger>
+            <TabsTrigger value="ideas" className="gap-2">
+              <Lightbulb className="h-4 w-4" />
+              <span className="hidden sm:inline">Idéer</span>
+            </TabsTrigger>
             <TabsTrigger value="categories">Kategorier</TabsTrigger>
             <TabsTrigger value="resources" className="gap-2">
               <FileText className="h-4 w-4" />
@@ -431,6 +465,184 @@ export default function Admin() {
                 )}
               </CardContent>
             </Card>
+          </TabsContent>
+
+          {/* Ideas Tab */}
+          <TabsContent value="ideas">
+            <div className="space-y-6">
+              {/* Ideas Stats */}
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                <Card>
+                  <CardContent className="pt-6">
+                    <div className="flex items-center gap-3">
+                      <div className="h-10 w-10 rounded-lg bg-primary/10 flex items-center justify-center">
+                        <Lightbulb className="h-5 w-5 text-primary" />
+                      </div>
+                      <div>
+                        <p className="text-2xl font-bold">{ideasStats?.total || 0}</p>
+                        <p className="text-xs text-muted-foreground">Totalt idéer</p>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+                <Card>
+                  <CardContent className="pt-6">
+                    <div className="flex items-center gap-3">
+                      <div className="h-10 w-10 rounded-lg bg-green-500/10 flex items-center justify-center">
+                        <ThumbsUp className="h-5 w-5 text-green-500" />
+                      </div>
+                      <div>
+                        <p className="text-2xl font-bold">{ideasStats?.totalUpvotes || 0}</p>
+                        <p className="text-xs text-muted-foreground">Totalt röster</p>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+                <Card>
+                  <CardContent className="pt-6">
+                    <div className="flex items-center gap-3">
+                      <div className="h-10 w-10 rounded-lg bg-blue-500/10 flex items-center justify-center">
+                        <MessageSquare className="h-5 w-5 text-blue-500" />
+                      </div>
+                      <div>
+                        <p className="text-2xl font-bold">{ideasStats?.totalComments || 0}</p>
+                        <p className="text-xs text-muted-foreground">Kommentarer</p>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+                <Card>
+                  <CardContent className="pt-6">
+                    <div className="flex items-center gap-3">
+                      <div className="h-10 w-10 rounded-lg bg-secondary/10 flex items-center justify-center">
+                        <TrendingUp className="h-5 w-5 text-secondary" />
+                      </div>
+                      <div>
+                        <p className="text-2xl font-bold">{ideasStats?.conversionRate || 0}%</p>
+                        <p className="text-xs text-muted-foreground">Byggda</p>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              </div>
+
+              {/* Status Overview */}
+              <Card>
+                <CardHeader>
+                  <CardTitle>Statusöversikt</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="flex gap-4 flex-wrap">
+                    <div className="flex items-center gap-2">
+                      <span className="h-3 w-3 rounded-full bg-green-500"></span>
+                      <span className="text-sm">Öppna: {ideasStats?.open || 0}</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <span className="h-3 w-3 rounded-full bg-yellow-500"></span>
+                      <span className="text-sm">Claimed: {ideasStats?.claimed || 0}</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <span className="h-3 w-3 rounded-full bg-cyan-500"></span>
+                      <span className="text-sm">Byggda: {ideasStats?.built || 0}</span>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* Ideas List */}
+              <Card>
+                <CardHeader>
+                  <CardTitle>Alla idéer</CardTitle>
+                  <CardDescription>Hantera och moderera app-önskemål</CardDescription>
+                </CardHeader>
+                <CardContent>
+                  {ideasLoading ? (
+                    <div className="space-y-4">
+                      {[1, 2, 3].map(i => (
+                        <Skeleton key={i} className="h-20 w-full" />
+                      ))}
+                    </div>
+                  ) : ideas?.length === 0 ? (
+                    <div className="text-center py-12 text-muted-foreground">
+                      <Lightbulb className="h-12 w-12 mx-auto mb-4 opacity-50" />
+                      <p>Inga idéer ännu</p>
+                    </div>
+                  ) : (
+                    <div className="space-y-2">
+                      {ideas?.map((idea: any) => (
+                        <div key={idea.id} className="flex items-center gap-4 p-3 rounded-lg border hover:bg-muted/50 transition-colors">
+                          <div className="flex-1 min-w-0">
+                            <div className="flex items-center gap-2 flex-wrap">
+                              <Link to={`/ideer/${idea.id}`} className="font-medium truncate hover:underline">
+                                {idea.title}
+                              </Link>
+                              <IdeaStatusBadge status={idea.status} />
+                            </div>
+                            <div className="flex items-center gap-3 mt-1 text-xs text-muted-foreground">
+                              <span>Av: {idea.profile?.display_name || 'Okänd'}</span>
+                              {idea.claimer_profile && (
+                                <>
+                                  <span>•</span>
+                                  <span>Claimed av: {idea.claimer_profile.display_name}</span>
+                                </>
+                              )}
+                              <span>•</span>
+                              <span className="flex items-center gap-1">
+                                <ThumbsUp className="h-3 w-3" />
+                                {idea.upvotes_count || 0}
+                              </span>
+                              <span className="flex items-center gap-1">
+                                <MessageSquare className="h-3 w-3" />
+                                {idea.comments_count || 0}
+                              </span>
+                            </div>
+                          </div>
+                          <div className="flex items-center gap-1">
+                            <Select
+                              value={idea.status}
+                              onValueChange={(value) => handleIdeaStatusChange(idea.id, value as any)}
+                            >
+                              <SelectTrigger className="w-28 h-8 text-xs">
+                                <SelectValue />
+                              </SelectTrigger>
+                              <SelectContent>
+                                <SelectItem value="open">Öppen</SelectItem>
+                                <SelectItem value="claimed">Claimed</SelectItem>
+                                <SelectItem value="built">Byggd</SelectItem>
+                              </SelectContent>
+                            </Select>
+                            <AlertDialog>
+                              <AlertDialogTrigger asChild>
+                                <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive">
+                                  <Trash2 className="h-4 w-4" />
+                                </Button>
+                              </AlertDialogTrigger>
+                              <AlertDialogContent>
+                                <AlertDialogHeader>
+                                  <AlertDialogTitle>Ta bort idé?</AlertDialogTitle>
+                                  <AlertDialogDescription>
+                                    Är du säker på att du vill ta bort "{idea.title}"? Detta går inte att ångra.
+                                  </AlertDialogDescription>
+                                </AlertDialogHeader>
+                                <AlertDialogFooter>
+                                  <AlertDialogCancel>Avbryt</AlertDialogCancel>
+                                  <AlertDialogAction
+                                    onClick={() => handleDeleteIdea(idea.id)}
+                                    className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                                  >
+                                    Ta bort
+                                  </AlertDialogAction>
+                                </AlertDialogFooter>
+                              </AlertDialogContent>
+                            </AlertDialog>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+            </div>
           </TabsContent>
 
           {/* Categories Tab */}
