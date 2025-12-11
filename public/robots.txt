@@ -2,8 +2,8 @@
 User-agent: *
 Allow: /
 
-# Sitemap
-Sitemap: https://skolappar.com/sitemap.xml
+# Sitemap (dynamisk)
+Sitemap: https://eruyrrjgdzmeugwubppw.supabase.co/functions/v1/sitemap
 
 # Crawl-delay for polite crawling
 Crawl-delay: 1
