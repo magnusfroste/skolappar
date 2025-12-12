@@ -2,7 +2,7 @@ import { useState, useMemo } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useResources, ResourceCategory } from "@/hooks/useResources";
 import { Card, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Lightbulb, Rocket, Sparkles, ArrowRight, Puzzle, ArrowLeft, Search, X } from "lucide-react";
+import { Lightbulb, Rocket, Sparkles, ArrowRight, Puzzle, ArrowLeft, Search, X, Cpu } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -10,6 +10,12 @@ import { SEO } from "@/components/SEO";
 import { useAuth } from "@/hooks/useAuth";
 
 const categoryConfig: Record<ResourceCategory, { title: string; description: string; icon: React.ReactNode; path: string }> = {
+  platforms: {
+    title: "Populära Vibe-plattformar",
+    description: "Guider till de bästa AI-kodningsverktygen för att bygga pedagogiska appar",
+    icon: <Cpu className="h-8 w-8" />,
+    path: "/resurser/plattformar"
+  },
   tips: {
     title: "Tips & tricks",
     description: "Praktiska råd för att skapa engagerande pedagogiska appar",
@@ -31,6 +37,7 @@ const categoryConfig: Record<ResourceCategory, { title: string; description: str
 };
 
 const categorySlugMap: Record<ResourceCategory, string> = {
+  platforms: "plattformar",
   tips: "tips",
   learn: "lara",
   inspiration: "inspiration"

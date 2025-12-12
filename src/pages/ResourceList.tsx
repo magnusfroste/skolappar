@@ -6,6 +6,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
 
 const categoryMeta: Record<string, { category: ResourceCategory; title: string; icon: React.ReactNode }> = {
+  plattformar: { category: 'platforms', title: "Populära Vibe-plattformar", icon: <Cpu className="h-6 w-6" /> },
   tips: { category: 'tips', title: "Tips & tricks", icon: <Lightbulb className="h-6 w-6" /> },
   lara: { category: 'learn', title: "Lär dig vibe-coda", icon: <Rocket className="h-6 w-6" /> },
   inspiration: { category: 'inspiration', title: "Inspiration", icon: <Sparkles className="h-6 w-6" /> }
