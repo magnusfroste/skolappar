@@ -1,7 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 
-export type ResourceCategory = 'tips' | 'learn' | 'inspiration';
+export type ResourceCategory = 'tips' | 'learn' | 'inspiration' | 'platforms';
 
 export interface Resource {
   id: string;

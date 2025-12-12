@@ -187,7 +187,7 @@ export default function Index() {
                   ].map((tool) => (
                     <Link
                       key={tool.name}
-                      to={`/resurser/tips/${tool.slug}`}
+                      to={`/resurser/plattformar/${tool.slug}`}
                       className="inline-flex items-center gap-1 px-3 py-1.5 rounded-full bg-card text-sm font-medium hover:bg-primary hover:text-primary-foreground transition-colors"
                     >
                       {tool.name}
