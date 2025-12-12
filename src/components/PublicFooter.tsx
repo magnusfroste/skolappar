@@ -1,5 +1,5 @@
-import { Link } from 'react-router-dom';
-import { Heart } from 'lucide-react';
+import { Link } from "react-router-dom";
+import { Heart } from "lucide-react";
 
 export function PublicFooter() {
   const currentYear = new Date().getFullYear();
@@ -20,33 +20,19 @@ export function PublicFooter() {
 
           {/* Links */}
           <div className="flex items-center gap-4 sm:gap-6 text-sm">
-            <Link 
-              to="/apps" 
-              className="text-muted-foreground hover:text-foreground transition-colors"
-            >
+            <Link to="/apps" className="text-muted-foreground hover:text-foreground transition-colors">
               Appar
             </Link>
-            <Link 
-              to="/resurser" 
-              className="text-muted-foreground hover:text-foreground transition-colors"
-            >
+            <Link to="/resurser" className="text-muted-foreground hover:text-foreground transition-colors">
               Resurser
             </Link>
-            <Link 
-              to="/villkor" 
-              className="text-muted-foreground hover:text-foreground transition-colors"
-            >
+            <Link to="/villkor" className="text-muted-foreground hover:text-foreground transition-colors">
               Villkor
             </Link>
-            <Link 
-              to="/integritet" 
-              className="text-muted-foreground hover:text-foreground transition-colors"
-            >
+            <Link to="/integritet" className="text-muted-foreground hover:text-foreground transition-colors">
               Integritet
             </Link>
-            <span className="text-muted-foreground">
-              Ansvarig: Magnus Froste
-            </span>
+            <span className="text-muted-foreground"># Magnus Froste</span>
           </div>
         </div>
       </div>
