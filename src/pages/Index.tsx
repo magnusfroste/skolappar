@@ -180,6 +180,8 @@ export default function Index() {
                     { name: 'V0', url: 'https://v0.dev' },
                     { name: 'Cursor', url: 'https://cursor.sh' },
                     { name: 'Windsurf', url: 'https://codeium.com/windsurf' },
+                    { name: 'VS Code + Cline', url: 'https://github.com/cline/cline' },
+                    { name: 'VS Code + Roo', url: 'https://github.com/RooVetGit/Roo-Code' },
                     { name: 'Replit', url: 'https://replit.com' },
                   ].map((tool) => (
                     <a
