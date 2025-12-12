@@ -8,6 +8,7 @@ import { PublicFooter } from '@/components/PublicFooter';
 import { IdeaStatusBadge } from '@/components/IdeaStatusBadge';
 import { IdeaUpvoteButton } from '@/components/IdeaUpvoteButton';
 import { ClaimIdeaButton } from '@/components/ClaimIdeaButton';
+import { MarkIdeaAsBuiltButton } from '@/components/MarkIdeaAsBuiltButton';
 import { IdeaCommentSection } from '@/components/IdeaCommentSection';
 import { SEO } from '@/components/SEO';
 import { useIdeaDetails, useUserIdeaUpvotes, useToggleIdeaUpvote } from '@/hooks/useIdeas';
@@ -183,8 +184,13 @@ export default function IdeaDetail() {
               </div>
             )}
 
-            {/* Action button */}
-            <div className="flex justify-end mb-6">
+            {/* Action buttons */}
+            <div className="flex justify-end gap-2 mb-6">
+              <MarkIdeaAsBuiltButton
+                ideaId={idea.id}
+                status={idea.status}
+                claimedBy={idea.claimed_by}
+              />
               <ClaimIdeaButton
                 ideaId={idea.id}
                 status={idea.status}
