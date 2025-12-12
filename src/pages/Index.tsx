@@ -1,13 +1,13 @@
-import { Link } from 'react-router-dom';
-import { useAuth } from '@/hooks/useAuth';
-import { Button } from '@/components/ui/button';
-import { PublicNav } from '@/components/PublicNav';
-import { PublicFooter } from '@/components/PublicFooter';
-import { TopAppsSection } from '@/components/TopAppsSection';
-import { RecentAppsSection } from '@/components/RecentAppsSection';
-import { TopIdeasSection } from '@/components/TopIdeasSection';
-import { SEO, websiteSchema, organizationSchema } from '@/components/SEO';
-import { Sparkles, ArrowRight, BookOpen, Rocket, Users, Heart, Code, ChevronRight } from 'lucide-react';
+import { Link } from "react-router-dom";
+import { useAuth } from "@/hooks/useAuth";
+import { Button } from "@/components/ui/button";
+import { PublicNav } from "@/components/PublicNav";
+import { PublicFooter } from "@/components/PublicFooter";
+import { TopAppsSection } from "@/components/TopAppsSection";
+import { RecentAppsSection } from "@/components/RecentAppsSection";
+import { TopIdeasSection } from "@/components/TopIdeasSection";
+import { SEO, websiteSchema, organizationSchema } from "@/components/SEO";
+import { Sparkles, ArrowRight, BookOpen, Rocket, Users, Heart, Code, ChevronRight } from "lucide-react";
 
 const combinedSchema = [websiteSchema, organizationSchema];
 
@@ -16,18 +16,35 @@ export default function Index() {
 
   return (
     <div className="min-h-screen bg-gradient-hero">
-      <SEO 
-        url="/"
-        jsonLd={combinedSchema}
-      />
-      
+      <SEO url="/" jsonLd={combinedSchema} />
+
       {/* Decorative background elements */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
         <div className="absolute top-20 left-[5%] text-7xl animate-float opacity-10">📚</div>
-        <div className="absolute top-[30%] right-[8%] text-6xl animate-bounce-gentle opacity-10" style={{ animationDelay: '0.5s' }}>🎮</div>
-        <div className="absolute top-[60%] left-[10%] text-5xl animate-float opacity-10" style={{ animationDelay: '1s' }}>⭐</div>
-        <div className="absolute bottom-[20%] right-[15%] text-6xl animate-bounce-gentle opacity-10" style={{ animationDelay: '1.5s' }}>🚀</div>
-        <div className="absolute top-[45%] left-[50%] text-5xl animate-float opacity-10" style={{ animationDelay: '2s' }}>🎨</div>
+        <div
+          className="absolute top-[30%] right-[8%] text-6xl animate-bounce-gentle opacity-10"
+          style={{ animationDelay: "0.5s" }}
+        >
+          🎮
+        </div>
+        <div
+          className="absolute top-[60%] left-[10%] text-5xl animate-float opacity-10"
+          style={{ animationDelay: "1s" }}
+        >
+          ⭐
+        </div>
+        <div
+          className="absolute bottom-[20%] right-[15%] text-6xl animate-bounce-gentle opacity-10"
+          style={{ animationDelay: "1.5s" }}
+        >
+          🚀
+        </div>
+        <div
+          className="absolute top-[45%] left-[50%] text-5xl animate-float opacity-10"
+          style={{ animationDelay: "2s" }}
+        >
+          🎨
+        </div>
       </div>
 
       {/* Navigation */}
@@ -40,16 +57,14 @@ export default function Index() {
             <Sparkles className="w-4 h-4" />
             Vibe coding för alla föräldrar
           </div>
-          
+
           <h1 className="text-5xl md:text-6xl lg:text-7xl font-heading font-black leading-tight">
-            Appar gjorda av{' '}
-            <span className="text-gradient">föräldrar</span>
-            {' '}för{' '}
+            Appar gjorda av <span className="text-gradient">föräldrar</span> för{" "}
             <span className="text-gradient">barn</span>
           </h1>
-          
+
           <p className="text-xl md:text-2xl text-muted-foreground max-w-2xl mx-auto leading-relaxed">
-            En community där engagerade föräldrar delar sina hemmagjorda skolappar. 
+            En community där engagerade föräldrar delar sina hemmagjorda skolappar.
             <span className="font-semibold text-foreground"> Delad glädje är dubbel glädje!</span>
           </p>
 
@@ -61,9 +76,7 @@ export default function Index() {
               </Link>
             </Button>
             <Button size="lg" variant="outline" className="h-14 px-8 text-lg font-semibold" asChild>
-              <Link to={user ? "/min-sida/ny" : "/auth"}>
-                Dela din app
-              </Link>
+              <Link to={user ? "/min-sida/ny" : "/auth"}>Dela din app</Link>
             </Button>
           </div>
         </div>
@@ -74,10 +87,10 @@ export default function Index() {
         <div className="max-w-4xl mx-auto">
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
             {[
-              { icon: '📱', label: 'Appar', value: '50+' },
-              { icon: '👨‍👩‍👧‍👦', label: 'Föräldrar', value: '30+' },
-              { icon: '📚', label: 'Ämnen', value: '9' },
-              { icon: '❤️', label: 'Upvotes', value: '500+' },
+              { icon: "📱", label: "Appar", value: "50+" },
+              { icon: "👨‍👩‍👧‍👦", label: "Föräldrar", value: "30+" },
+              { icon: "📚", label: "Ämnen", value: "9" },
+              { icon: "❤️", label: "Upvotes", value: "500+" },
             ].map((stat, i) => (
               <div
                 key={i}
@@ -106,9 +119,7 @@ export default function Index() {
       <section className="relative z-10 container mx-auto px-4 py-16">
         <div className="max-w-5xl mx-auto">
           <div className="text-center mb-12">
-            <h2 className="text-3xl md:text-4xl font-heading font-bold mb-4">
-              Varför skolappar?
-            </h2>
+            <h2 className="text-3xl md:text-4xl font-heading font-bold mb-4">Varför skolappar?</h2>
             <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
               Ett alternativ till TikTok och Roblox – appar som gör lärande kul!
             </p>
@@ -118,32 +129,36 @@ export default function Index() {
             {[
               {
                 icon: BookOpen,
-                title: 'Lärande som funkar',
-                description: 'Appar testade på riktiga barn. Om det fungerar för ett barn, fungerar det för många!',
-                color: 'primary',
+                title: "Lärande som funkar",
+                description: "Appar testade på riktiga barn. Om det fungerar för ett barn, fungerar det för många!",
+                color: "primary",
               },
               {
                 icon: Users,
-                title: 'Community-driven',
-                description: 'Föräldrar som delar med sig av sina bästa idéer. Tillsammans gör vi skillnad.',
-                color: 'secondary',
+                title: "Community-driven",
+                description: "Föräldrar som delar med sig av sina bästa idéer. Tillsammans gör vi skillnad.",
+                color: "secondary",
               },
               {
                 icon: Heart,
-                title: 'Helt gratis',
-                description: 'Att dela kostar inget. Vi tror på öppen innovation och demokratiserat lärande.',
-                color: 'accent',
+                title: "Helt gratis",
+                description: "Att dela kostar inget. Vi tror på öppen innovation och demokratiserat lärande.",
+                color: "accent",
               },
             ].map((feature, i) => (
               <div
                 key={i}
                 className="p-6 rounded-2xl bg-card/80 backdrop-blur-sm shadow-playful hover:shadow-playful-lg transition-all duration-300 hover:-translate-y-1"
               >
-                <div className={`inline-flex p-3 rounded-xl mb-4 ${
-                  feature.color === 'primary' ? 'bg-primary/10 text-primary' :
-                  feature.color === 'secondary' ? 'bg-secondary/10 text-secondary' :
-                  'bg-accent/20 text-accent-foreground'
-                }`}>
+                <div
+                  className={`inline-flex p-3 rounded-xl mb-4 ${
+                    feature.color === "primary"
+                      ? "bg-primary/10 text-primary"
+                      : feature.color === "secondary"
+                        ? "bg-secondary/10 text-secondary"
+                        : "bg-accent/20 text-accent-foreground"
+                  }`}
+                >
                   <feature.icon className="w-6 h-6" />
                 </div>
                 <h3 className="text-xl font-heading font-bold mb-2">{feature.title}</h3>
@@ -165,25 +180,23 @@ export default function Index() {
                 </div>
               </div>
               <div className="text-center md:text-left space-y-4">
-                <h2 className="text-2xl md:text-3xl font-heading font-bold">
-                  AI-revolutionen är här! 🚀
-                </h2>
+                <h2 className="text-2xl md:text-3xl font-heading font-bold">AI-revolutionen är här! 🚀</h2>
                 <p className="text-muted-foreground">
-                  Med vibe coding behöver du inte kunna programmera. Berätta bara vilket problem ditt barn har, 
-                  så hjälper AI:n dig att skapa en app. Det har aldrig varit enklare!
+                  Med vibe coding behöver du inte kunna programmera. Berätta bara vilket intresse eller utmaning ditt
+                  barn har, så hjälper AI:n dig att skapa en app. Det har aldrig varit enklare!
                 </p>
                 <div className="flex flex-wrap gap-3 justify-center md:justify-start">
                   {[
-                    { name: 'Lovable', slug: 'lovable' },
-                    { name: 'Google AI Studio', slug: 'google-ai-studio' },
-                    { name: 'Base44', slug: 'base44' },
-                    { name: 'Bolt.new', slug: 'bolt-new' },
-                    { name: 'V0', slug: 'v0-dev' },
-                    { name: 'Cursor', slug: 'cursor' },
-                    { name: 'Windsurf', slug: 'windsurf' },
-                    { name: 'VS Code + Cline', slug: 'vscode-cline' },
-                    { name: 'VS Code + Roo', slug: 'vscode-roo' },
-                    { name: 'Replit', slug: 'replit' },
+                    { name: "Lovable", slug: "lovable" },
+                    { name: "Google AI Studio", slug: "google-ai-studio" },
+                    { name: "Base44", slug: "base44" },
+                    { name: "Bolt.new", slug: "bolt-new" },
+                    { name: "V0", slug: "v0-dev" },
+                    { name: "Cursor", slug: "cursor" },
+                    { name: "Windsurf", slug: "windsurf" },
+                    { name: "VS Code + Cline", slug: "vscode-cline" },
+                    { name: "VS Code + Roo", slug: "vscode-roo" },
+                    { name: "Replit", slug: "replit" },
                   ].map((tool) => (
                     <Link
                       key={tool.name}
@@ -204,11 +217,10 @@ export default function Index() {
       {/* CTA Section */}
       <section className="relative z-10 container mx-auto px-4 py-16 pb-24">
         <div className="max-w-3xl mx-auto text-center space-y-6">
-          <h2 className="text-3xl md:text-4xl font-heading font-bold">
-            Redo att börja vibe-coda?
-          </h2>
+          <h2 className="text-3xl md:text-4xl font-heading font-bold">Redo att börja vibe-coda?</h2>
           <p className="text-lg text-muted-foreground">
-            Gör det tillsammans med dina barn. <span className="font-semibold text-foreground">De är bara barn ett tag!</span>
+            Gör det tillsammans med dina barn.{" "}
+            <span className="font-semibold text-foreground">De är bara barn ett tag!</span>
           </p>
           <Button size="lg" className="h-14 px-8 text-lg font-semibold gap-2 shadow-playful-lg" asChild>
             <Link to={user ? "/min-sida/ny" : "/auth"}>
