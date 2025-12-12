@@ -3,16 +3,21 @@ import { Button } from '@/components/ui/button';
 import { IdeaCard } from './IdeaCard';
 import { useTopIdeas, useUserIdeaUpvotes, useToggleIdeaUpvote } from '@/hooks/useIdeas';
 import { useAuth } from '@/hooks/useAuth';
+import { useSetting } from '@/hooks/useSettings';
 import { Lightbulb, ArrowRight } from 'lucide-react';
 import { toast } from 'sonner';
 import { useNavigate } from 'react-router-dom';
 
 export function TopIdeasSection() {
+  const { data: showTopIdeas } = useSetting('show_top_ideas');
   const { data: ideas, isLoading } = useTopIdeas(3);
   const { data: userUpvotes } = useUserIdeaUpvotes();
   const toggleUpvote = useToggleIdeaUpvote();
   const { user } = useAuth();
   const navigate = useNavigate();
+
+  // Don't render if disabled
+  if (showTopIdeas !== true) return null;
 
   const handleUpvote = (ideaId: string) => {
     if (!user) {
