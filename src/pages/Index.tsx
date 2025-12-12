@@ -176,7 +176,10 @@ export default function Index() {
                   {[
                     { name: 'Lovable', url: 'https://lovable.dev/invite/YLXOX36' },
                     { name: 'Google AI Studio', url: 'https://aistudio.google.com' },
+                    { name: 'Bolt.new', url: 'https://bolt.new' },
+                    { name: 'V0', url: 'https://v0.dev' },
                     { name: 'Cursor', url: 'https://cursor.sh' },
+                    { name: 'Windsurf', url: 'https://codeium.com/windsurf' },
                     { name: 'Replit', url: 'https://replit.com' },
                   ].map((tool) => (
                     <a
