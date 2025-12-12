@@ -44,9 +44,9 @@ export function PublicFooter() {
             >
               Integritet
             </Link>
-            
+            <span className="text-muted-foreground">
               Ansvarig: Magnus Froste
-            </a>
+            </span>
           </div>
         </div>
       </div>
