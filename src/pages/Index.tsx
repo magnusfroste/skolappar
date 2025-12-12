@@ -7,7 +7,7 @@ import { TopAppsSection } from '@/components/TopAppsSection';
 import { RecentAppsSection } from '@/components/RecentAppsSection';
 import { TopIdeasSection } from '@/components/TopIdeasSection';
 import { SEO, websiteSchema, organizationSchema } from '@/components/SEO';
-import { Sparkles, ArrowRight, BookOpen, Rocket, Users, Heart, Code, ExternalLink } from 'lucide-react';
+import { Sparkles, ArrowRight, BookOpen, Rocket, Users, Heart, Code, ChevronRight } from 'lucide-react';
 
 const combinedSchema = [websiteSchema, organizationSchema];
 
@@ -174,26 +174,25 @@ export default function Index() {
                 </p>
                 <div className="flex flex-wrap gap-3 justify-center md:justify-start">
                   {[
-                    { name: 'Lovable', url: 'https://lovable.dev/invite/YLXOX36' },
-                    { name: 'Google AI Studio', url: 'https://aistudio.google.com' },
-                    { name: 'Bolt.new', url: 'https://bolt.new' },
-                    { name: 'V0', url: 'https://v0.dev' },
-                    { name: 'Cursor', url: 'https://cursor.sh' },
-                    { name: 'Windsurf', url: 'https://codeium.com/windsurf' },
-                    { name: 'VS Code + Cline', url: 'https://github.com/cline/cline' },
-                    { name: 'VS Code + Roo', url: 'https://github.com/RooVetGit/Roo-Code' },
-                    { name: 'Replit', url: 'https://replit.com' },
+                    { name: 'Lovable', slug: 'lovable' },
+                    { name: 'Google AI Studio', slug: 'google-ai-studio' },
+                    { name: 'Base44', slug: 'base44' },
+                    { name: 'Bolt.new', slug: 'bolt-new' },
+                    { name: 'V0', slug: 'v0-dev' },
+                    { name: 'Cursor', slug: 'cursor' },
+                    { name: 'Windsurf', slug: 'windsurf' },
+                    { name: 'VS Code + Cline', slug: 'vscode-cline' },
+                    { name: 'VS Code + Roo', slug: 'vscode-roo' },
+                    { name: 'Replit', slug: 'replit' },
                   ].map((tool) => (
-                    <a
+                    <Link
                       key={tool.name}
-                      href={tool.url}
-                      target="_blank"
-                      rel="noopener noreferrer"
+                      to={`/resurser/tips/${tool.slug}`}
                       className="inline-flex items-center gap-1 px-3 py-1.5 rounded-full bg-card text-sm font-medium hover:bg-primary hover:text-primary-foreground transition-colors"
                     >
                       {tool.name}
-                      <ExternalLink className="w-3 h-3" />
-                    </a>
+                      <ChevronRight className="w-3 h-3" />
+                    </Link>
                   ))}
                 </div>
               </div>
