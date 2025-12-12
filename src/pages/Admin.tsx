@@ -79,6 +79,7 @@ export default function Admin() {
   const { data: showFilters } = useSetting('show_filters');
   const { data: showTopApps } = useSetting('show_top_apps');
   const { data: showRecentApps } = useSetting('show_recent_apps');
+  const { data: showTopIdeas } = useSetting('show_top_ideas');
   const updateSetting = useUpdateSetting();
 
   const [newCategory, setNewCategory] = useState({
@@ -1159,6 +1160,23 @@ export default function Admin() {
                     onCheckedChange={(checked) => {
                       updateSetting.mutate({ key: 'show_recent_apps', value: checked });
                       toast({ title: checked ? 'Nyligen tillagda aktiverade' : 'Nyligen tillagda avaktiverade' });
+                    }}
+                  />
+                </div>
+
+                <div className="flex items-center justify-between p-4 rounded-lg border">
+                  <div className="space-y-1">
+                    <Label htmlFor="show-top-ideas" className="text-base font-medium">Visa "Populära app-idéer"</Label>
+                    <p className="text-sm text-muted-foreground">
+                      Visar de mest efterfrågade idéerna på startsidan
+                    </p>
+                  </div>
+                  <Switch
+                    id="show-top-ideas"
+                    checked={showTopIdeas === true}
+                    onCheckedChange={(checked) => {
+                      updateSetting.mutate({ key: 'show_top_ideas', value: checked });
+                      toast({ title: checked ? 'Top-idéer aktiverade' : 'Top-idéer avaktiverade' });
                     }}
                   />
                 </div>
