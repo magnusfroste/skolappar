@@ -1,7 +1,7 @@
 import { useParams, Link } from "react-router-dom";
 import { useResources, ResourceCategory } from "@/hooks/useResources";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Lightbulb, Rocket, Sparkles, Monitor, Trophy, ArrowLeft, Shield, TestTube2, Cpu, BookOpen } from "lucide-react";
+import { Lightbulb, Rocket, Sparkles, Monitor, Trophy, ArrowLeft, Shield, TestTube2, Cpu, BookOpen, Brain, Users } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
 
@@ -22,6 +22,8 @@ const iconMap: Record<string, React.ReactNode> = {
   TestTube2: <TestTube2 className="h-5 w-5" />,
   Cpu: <Cpu className="h-5 w-5" />,
   BookOpen: <BookOpen className="h-5 w-5" />,
+  Brain: <Brain className="h-5 w-5" />,
+  Users: <Users className="h-5 w-5" />,
 };
 
 export default function ResourceList() {
