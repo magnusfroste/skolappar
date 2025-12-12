@@ -39,7 +39,6 @@ export function ShareButton({ appId, appTitle }: ShareButtonProps) {
       try {
         await navigator.share({
           title: appTitle,
-          text: shareText,
           url: shareUrl,
         });
       } catch {
