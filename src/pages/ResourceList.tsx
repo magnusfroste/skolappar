@@ -67,9 +67,9 @@ export default function ResourceList() {
             Inga artiklar ännu. Kom tillbaka snart!
           </p>
         ) : (
-          <div className="space-y-6">
+          <div className="space-y-4">
             {resources?.map(resource => (
-              <Link key={resource.id} to={`/resurser/${categorySlug}/${resource.slug}`}>
+              <Link key={resource.id} to={`/resurser/${categorySlug}/${resource.slug}`} className="block">
                 <Card className="hover:shadow-lg transition-all duration-200 cursor-pointer group border-border/50 hover:border-primary/20">
                   <CardHeader className="flex flex-row items-start gap-4 py-5">
                     <div className="p-2.5 rounded-xl bg-muted text-muted-foreground mt-0.5 group-hover:bg-primary/10 group-hover:text-primary transition-colors">
