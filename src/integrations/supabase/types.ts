@@ -482,6 +482,7 @@ export type Database = {
         }
         Returns: boolean
       }
+      increment_clicks: { Args: { app_id: string }; Returns: undefined }
     }
     Enums: {
       app_role: "admin" | "moderator" | "user"

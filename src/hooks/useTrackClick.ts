@@ -6,20 +6,7 @@ export function useTrackClick() {
 
   return useMutation({
     mutationFn: async (appId: string) => {
-      // Get current count and increment
-      const { data: currentApp } = await supabase
-        .from('apps')
-        .select('clicks_count')
-        .eq('id', appId)
-        .single();
-
-      const newCount = (currentApp?.clicks_count || 0) + 1;
-      
-      const { error } = await supabase
-        .from('apps')
-        .update({ clicks_count: newCount })
-        .eq('id', appId);
-
+      const { error } = await supabase.rpc('increment_clicks', { app_id: appId });
       if (error) throw error;
     },
     onSuccess: () => {
