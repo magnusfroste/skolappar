@@ -175,6 +175,7 @@ export default function Index() {
                 <div className="flex flex-wrap gap-3 justify-center md:justify-start">
                   {[
                     { name: 'Lovable', url: 'https://lovable.dev/invite/YLXOX36' },
+                    { name: 'Google AI Studio', url: 'https://aistudio.google.com' },
                     { name: 'Cursor', url: 'https://cursor.sh' },
                     { name: 'Replit', url: 'https://replit.com' },
                   ].map((tool) => (
