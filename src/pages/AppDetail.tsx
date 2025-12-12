@@ -160,17 +160,16 @@ export default function AppDetail() {
               <span>{format(new Date(app.created_at), 'd MMM yyyy', { locale: sv })}</span>
             </div>
           </div>
-          <a 
-            href={app.url} 
-            target="_blank" 
-            rel="noopener noreferrer"
-            onClick={() => trackClick.mutate(app.id)}
+          <Button 
+            className="gap-2"
+            onClick={() => {
+              trackClick.mutate(app.id);
+              window.open(app.url, '_blank', 'noopener,noreferrer');
+            }}
           >
-            <Button className="gap-2">
-              Öppna
-              <ExternalLink className="w-4 h-4" />
-            </Button>
-          </a>
+            Öppna
+            <ExternalLink className="w-4 h-4" />
+          </Button>
         </div>
 
         {/* Categories & Device support */}
