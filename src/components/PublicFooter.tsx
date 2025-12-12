@@ -44,13 +44,8 @@ export function PublicFooter() {
             >
               Integritet
             </Link>
-            <a
-              href="https://lovable.dev/invite/YLXOX36"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="text-muted-foreground hover:text-foreground transition-colors"
-            >
-              Byggd med Lovable
+            
+              Ansvarig: Magnus Froste
             </a>
           </div>
         </div>
