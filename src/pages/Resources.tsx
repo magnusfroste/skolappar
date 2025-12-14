@@ -1,13 +1,14 @@
 import { useState, useMemo } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link } from "react-router-dom";
 import { useResources, ResourceCategory } from "@/hooks/useResources";
 import { Card, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Lightbulb, Rocket, Sparkles, ArrowRight, Puzzle, ArrowLeft, Search, X, Cpu } from "lucide-react";
+import { Lightbulb, Rocket, Sparkles, ArrowRight, Puzzle, Search, X, Cpu } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { SEO } from "@/components/SEO";
-import { useAuth } from "@/hooks/useAuth";
+import { PublicNav } from "@/components/PublicNav";
+import { PublicFooter } from "@/components/PublicFooter";
 
 const categoryConfig: Record<ResourceCategory, { title: string; description: string; icon: React.ReactNode; path: string }> = {
   platforms: {
@@ -51,8 +52,6 @@ const iconMap: Record<string, React.ReactNode> = {
 
 export default function Resources() {
   const { data: resources, isLoading } = useResources();
-  const { user } = useAuth();
-  const navigate = useNavigate();
   const [searchQuery, setSearchQuery] = useState("");
 
   const getResourceCount = (category: ResourceCategory) => {
@@ -78,13 +77,9 @@ export default function Resources() {
         url="/resurser"
       />
       
+      <PublicNav variant="solid" />
+      
       <div className="container max-w-4xl py-12 px-4">
-        {user && (
-          <Button variant="ghost" size="sm" className="mb-6" onClick={() => navigate('/min-sida')}>
-            <ArrowLeft className="h-4 w-4 mr-2" />
-            Tillbaka till dashboard
-          </Button>
-        )}
         <div className="text-center mb-8">
           <h1 className="text-4xl font-bold text-foreground mb-4">Resurser</h1>
           <p className="text-lg text-muted-foreground">
@@ -221,6 +216,8 @@ export default function Resources() {
           </>
         )}
       </div>
+      
+      <PublicFooter />
     </div>
   );
 }
