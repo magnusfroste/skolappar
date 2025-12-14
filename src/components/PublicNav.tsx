@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
 import { Sparkles, ArrowRight, Shield, Menu, X, Compass, User, BookOpen, LogOut, TestTube2, Lightbulb, Home } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -7,6 +7,7 @@ import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/co
 import { NotificationBell } from '@/components/NotificationBell';
 import { useAuth } from '@/hooks/useAuth';
 import { useIsAdmin } from '@/hooks/useAdmin';
+import { cn } from '@/lib/utils';
 
 interface PublicNavProps {
   variant?: 'transparent' | 'solid';
@@ -16,6 +17,12 @@ export function PublicNav({ variant = 'transparent' }: PublicNavProps) {
   const { user, signOut, loading } = useAuth();
   const { data: isAdmin } = useIsAdmin();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const location = useLocation();
+
+  const isActive = (path: string) => {
+    if (path === '/') return location.pathname === '/';
+    return location.pathname.startsWith(path);
+  };
 
   const navClasses = variant === 'solid' 
     ? 'sticky top-0 z-50 bg-background/80 backdrop-blur-md border-b border-border/50'
@@ -38,25 +45,25 @@ export function PublicNav({ variant = 'transparent' }: PublicNavProps) {
           
           {/* Desktop Navigation */}
           <div className="hidden sm:flex items-center gap-3">
-            <Button variant="ghost" size="sm" asChild className="gap-1.5">
+            <Button variant="ghost" size="sm" asChild className={cn("gap-1.5", isActive('/') && "bg-muted text-foreground")}>
               <Link to="/">
                 <Home className="w-4 h-4" />
                 Hem
               </Link>
             </Button>
-            <Button variant="ghost" size="sm" asChild>
+            <Button variant="ghost" size="sm" asChild className={cn(isActive('/apps') && "bg-muted text-foreground")}>
               <Link to="/apps">Utforska</Link>
             </Button>
-            <Button variant="ghost" size="sm" asChild className="gap-1.5">
+            <Button variant="ghost" size="sm" asChild className={cn("gap-1.5", isActive('/ideer') && "bg-muted text-foreground")}>
               <Link to="/ideer">
                 <Lightbulb className="w-4 h-4" />
                 App-idéer
               </Link>
             </Button>
-            <Button variant="ghost" size="sm" asChild>
+            <Button variant="ghost" size="sm" asChild className={cn(isActive('/resurser') && "bg-muted text-foreground")}>
               <Link to="/resurser">Resurser</Link>
             </Button>
-            <Button variant="ghost" size="sm" asChild>
+            <Button variant="ghost" size="sm" asChild className={cn(isActive('/testa-din-app') && "bg-muted text-foreground")}>
               <Link to="/testa-din-app">Testa app</Link>
             </Button>
 
@@ -120,45 +127,60 @@ export function PublicNav({ variant = 'transparent' }: PublicNavProps) {
                   <Link 
                     to="/" 
                     onClick={closeMobileMenu}
-                    className="flex items-center gap-3 px-3 py-3 rounded-xl text-foreground hover:bg-muted transition-colors"
+                    className={cn(
+                      "flex items-center gap-3 px-3 py-3 rounded-xl transition-colors",
+                      isActive('/') ? "bg-primary/10 text-primary" : "text-foreground hover:bg-muted"
+                    )}
                   >
-                    <Home className="w-5 h-5 text-primary" />
+                    <Home className="w-5 h-5" />
                     <span className="font-medium">Startsida</span>
                   </Link>
 
                   <Link 
                     to="/apps" 
                     onClick={closeMobileMenu}
-                    className="flex items-center gap-3 px-3 py-3 rounded-xl text-foreground hover:bg-muted transition-colors"
+                    className={cn(
+                      "flex items-center gap-3 px-3 py-3 rounded-xl transition-colors",
+                      isActive('/apps') ? "bg-primary/10 text-primary" : "text-foreground hover:bg-muted"
+                    )}
                   >
-                    <Compass className="w-5 h-5 text-secondary" />
+                    <Compass className="w-5 h-5" />
                     <span className="font-medium">Utforska appar</span>
                   </Link>
 
                   <Link 
                     to="/ideer" 
                     onClick={closeMobileMenu}
-                    className="flex items-center gap-3 px-3 py-3 rounded-xl text-foreground hover:bg-muted transition-colors"
+                    className={cn(
+                      "flex items-center gap-3 px-3 py-3 rounded-xl transition-colors",
+                      isActive('/ideer') ? "bg-primary/10 text-primary" : "text-foreground hover:bg-muted"
+                    )}
                   >
-                    <Lightbulb className="w-5 h-5 text-amber-500" />
+                    <Lightbulb className="w-5 h-5" />
                     <span className="font-medium">App-idéer</span>
                   </Link>
                   
                   <Link 
                     to="/resurser" 
                     onClick={closeMobileMenu}
-                    className="flex items-center gap-3 px-3 py-3 rounded-xl text-foreground hover:bg-muted transition-colors"
+                    className={cn(
+                      "flex items-center gap-3 px-3 py-3 rounded-xl transition-colors",
+                      isActive('/resurser') ? "bg-primary/10 text-primary" : "text-foreground hover:bg-muted"
+                    )}
                   >
-                    <BookOpen className="w-5 h-5 text-secondary" />
+                    <BookOpen className="w-5 h-5" />
                     <span className="font-medium">Resurser</span>
                   </Link>
 
                   <Link 
                     to="/testa-din-app" 
                     onClick={closeMobileMenu}
-                    className="flex items-center gap-3 px-3 py-3 rounded-xl text-foreground hover:bg-muted transition-colors"
+                    className={cn(
+                      "flex items-center gap-3 px-3 py-3 rounded-xl transition-colors",
+                      isActive('/testa-din-app') ? "bg-primary/10 text-primary" : "text-foreground hover:bg-muted"
+                    )}
                   >
-                    <TestTube2 className="w-5 h-5 text-accent" />
+                    <TestTube2 className="w-5 h-5" />
                     <span className="font-medium">Testa app</span>
                   </Link>
 
