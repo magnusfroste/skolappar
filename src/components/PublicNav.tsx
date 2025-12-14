@@ -38,6 +38,12 @@ export function PublicNav({ variant = 'transparent' }: PublicNavProps) {
           
           {/* Desktop Navigation */}
           <div className="hidden sm:flex items-center gap-3">
+            <Button variant="ghost" size="sm" asChild className="gap-1.5">
+              <Link to="/">
+                <Home className="w-4 h-4" />
+                Hem
+              </Link>
+            </Button>
             <Button variant="ghost" size="sm" asChild>
               <Link to="/apps">Utforska</Link>
             </Button>
