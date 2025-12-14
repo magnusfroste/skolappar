@@ -1,8 +1,8 @@
 import { Badge } from '@/components/ui/badge';
-import { Clock, Check, Star, X } from 'lucide-react';
+import { Clock, Check, Star, X, EyeOff } from 'lucide-react';
 
 interface AppStatusBadgeProps {
-  status: 'pending' | 'approved' | 'rejected' | 'featured';
+  status: 'pending' | 'approved' | 'rejected' | 'featured' | 'delisted';
 }
 
 const statusConfig = {
@@ -25,6 +25,11 @@ const statusConfig = {
     label: 'Ej godkänd',
     icon: X,
     className: 'bg-destructive/10 text-destructive border-destructive/20 hover:bg-destructive/20'
+  },
+  delisted: {
+    label: 'Avlistad',
+    icon: EyeOff,
+    className: 'bg-slate-500/10 text-slate-600 border-slate-500/20 hover:bg-slate-500/20'
   }
 };
 
