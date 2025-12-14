@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { Search, Filter, X, ArrowRight, Sparkles } from 'lucide-react';
+import { Search, Filter, X, ArrowRight, Sparkles, Heart } from 'lucide-react';
+import { useLocalStorage } from '@/hooks/useLocalStorage';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
@@ -23,6 +24,7 @@ import {
 } from '@/components/ui/select';
 import { Skeleton } from '@/components/ui/skeleton';
 import { AppCardVisual } from '@/components/AppCardVisual';
+import { CompactAppCard } from '@/components/CompactAppCard';
 import { PublicNav } from '@/components/PublicNav';
 import { PublicFooter } from '@/components/PublicFooter';
 import { SEO } from '@/components/SEO';
@@ -42,6 +44,7 @@ export default function Apps() {
   const [selectedTypes, setSelectedTypes] = useState<string[]>([]);
   const [sort, setSort] = useState<'newest' | 'popular' | 'comments'>('popular');
   const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false);
+  const [showFavoritesOnly, setShowFavoritesOnly] = useLocalStorage('apps-favorites-mode', false);
 
   const { data: categories, isLoading: categoriesLoading } = useCategories();
   const { data: apps, isLoading: appsLoading } = useApps({
@@ -59,6 +62,11 @@ export default function Apps() {
   const typeCategories = categories?.filter(c => c.type === 'app_type') || [];
 
   const activeFiltersCount = selectedSubjects.length + selectedAges.length + selectedTypes.length;
+
+  // Filter apps to show only favorites when toggle is on
+  const displayedApps = showFavoritesOnly 
+    ? apps?.filter(app => userUpvotes.includes(app.id))
+    : apps;
 
   const handleUpvote = (appId: string) => {
     if (!user) {
@@ -189,6 +197,20 @@ export default function Apps() {
             />
           </div>
           
+          {/* Favorites toggle */}
+          <Button
+            variant={showFavoritesOnly ? "default" : "outline"}
+            className={`h-11 gap-2 transition-all ${
+              showFavoritesOnly 
+                ? 'bg-primary text-primary-foreground' 
+                : ''
+            }`}
+            onClick={() => setShowFavoritesOnly(!showFavoritesOnly)}
+          >
+            <Heart className={`w-4 h-4 ${showFavoritesOnly ? 'fill-current' : ''}`} />
+            <span className="hidden sm:inline">Bara gillade</span>
+          </Button>
+
           {showFilters && (
             <div className="flex gap-2">
               {/* Mobile filter button */}
@@ -283,41 +305,73 @@ export default function Apps() {
           {/* App Grid */}
           <main className="flex-1">
             {appsLoading ? (
-              <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-5">
+              <div className={`grid gap-4 ${
+                showFavoritesOnly 
+                  ? 'grid-cols-2 sm:grid-cols-3 lg:grid-cols-4' 
+                  : 'grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-5'
+              }`}>
                 {[1, 2, 3, 4, 5, 6].map(i => (
                   <div key={i} className="rounded-2xl bg-card/80 overflow-hidden">
-                    <Skeleton className="aspect-video w-full" />
-                    <div className="p-4 space-y-3">
-                      <Skeleton className="h-5 w-3/4" />
-                      <Skeleton className="h-4 w-full" />
-                      <div className="flex gap-2">
-                        <Skeleton className="h-5 w-16" />
-                        <Skeleton className="h-5 w-16" />
+                    <Skeleton className={showFavoritesOnly ? "aspect-square w-full" : "aspect-video w-full"} />
+                    {!showFavoritesOnly && (
+                      <div className="p-4 space-y-3">
+                        <Skeleton className="h-5 w-3/4" />
+                        <Skeleton className="h-4 w-full" />
+                        <div className="flex gap-2">
+                          <Skeleton className="h-5 w-16" />
+                          <Skeleton className="h-5 w-16" />
+                        </div>
                       </div>
-                    </div>
+                    )}
                   </div>
                 ))}
               </div>
-            ) : apps && apps.length > 0 ? (
-              <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-5">
-                {apps.map(app => (
-                  <AppCardVisual
-                    key={app.id}
-                    id={app.id}
-                    title={app.title}
-                    description={app.description}
-                    url={app.url}
-                    imageUrl={app.image_url || undefined}
-                    upvotesCount={app.upvotes_count}
-                    commentsCount={app.comments_count}
-                    clicksCount={app.clicks_count}
-                    creatorId={app.user_id}
-                    creatorName={app.profile?.display_name || undefined}
-                    categories={app.categories}
-                    hasUpvoted={userUpvotes.includes(app.id)}
-                    onUpvote={() => handleUpvote(app.id)}
-                  />
-                ))}
+            ) : displayedApps && displayedApps.length > 0 ? (
+              <div className={`grid gap-4 ${
+                showFavoritesOnly 
+                  ? 'grid-cols-2 sm:grid-cols-3 lg:grid-cols-4' 
+                  : 'grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-5'
+              }`}>
+                {displayedApps.map(app => 
+                  showFavoritesOnly ? (
+                    <CompactAppCard
+                      key={app.id}
+                      id={app.id}
+                      title={app.title}
+                      imageUrl={app.image_url || undefined}
+                    />
+                  ) : (
+                    <AppCardVisual
+                      key={app.id}
+                      id={app.id}
+                      title={app.title}
+                      description={app.description}
+                      url={app.url}
+                      imageUrl={app.image_url || undefined}
+                      upvotesCount={app.upvotes_count}
+                      commentsCount={app.comments_count}
+                      clicksCount={app.clicks_count}
+                      creatorId={app.user_id}
+                      creatorName={app.profile?.display_name || undefined}
+                      categories={app.categories}
+                      hasUpvoted={userUpvotes.includes(app.id)}
+                      onUpvote={() => handleUpvote(app.id)}
+                    />
+                  )
+                )}
+              </div>
+            ) : showFavoritesOnly ? (
+              <div className="text-center py-16">
+                <div className="text-6xl mb-4">❤️</div>
+                <h3 className="text-xl font-heading font-bold mb-2">
+                  Inga gillade appar ännu
+                </h3>
+                <p className="text-muted-foreground mb-6">
+                  Utforska appar och tryck på hjärtat för att spara
+                </p>
+                <Button variant="outline" onClick={() => setShowFavoritesOnly(false)}>
+                  Visa alla appar
+                </Button>
               </div>
             ) : (
               <div className="text-center py-16">
