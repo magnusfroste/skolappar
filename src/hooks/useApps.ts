@@ -9,7 +9,7 @@ export interface App {
   long_description?: string;
   url: string;
   image_url?: string;
-  status: 'pending' | 'approved' | 'rejected' | 'featured';
+  status: 'pending' | 'approved' | 'rejected' | 'featured' | 'delisted';
   is_featured: boolean;
   upvotes_count: number;
   comments_count: number;

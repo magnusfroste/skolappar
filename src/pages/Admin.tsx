@@ -433,6 +433,7 @@ export default function Admin() {
                               <SelectItem value="approved">Godkänd</SelectItem>
                               <SelectItem value="featured">Utvald</SelectItem>
                               <SelectItem value="rejected">Avvisad</SelectItem>
+                              <SelectItem value="delisted">Avlistad</SelectItem>
                             </SelectContent>
                           </Select>
                           <AlertDialog>
