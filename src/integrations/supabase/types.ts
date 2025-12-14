@@ -52,6 +52,7 @@ export type Database = {
           clicks_count: number | null
           comments_count: number | null
           created_at: string
+          delist_reason: string | null
           description: string
           id: string
           image_url: string | null
@@ -68,6 +69,7 @@ export type Database = {
           clicks_count?: number | null
           comments_count?: number | null
           created_at?: string
+          delist_reason?: string | null
           description: string
           id?: string
           image_url?: string | null
@@ -84,6 +86,7 @@ export type Database = {
           clicks_count?: number | null
           comments_count?: number | null
           created_at?: string
+          delist_reason?: string | null
           description?: string
           id?: string
           image_url?: string | null

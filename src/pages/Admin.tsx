@@ -106,12 +106,32 @@ export default function Admin() {
   const [editingResource, setEditingResource] = useState<any>(null);
   const [resourceDialogOpen, setResourceDialogOpen] = useState(false);
 
-  const handleStatusChange = async (appId: string, status: 'approved' | 'rejected' | 'featured' | 'pending') => {
+  // Delist dialog state
+  const [delistDialogOpen, setDelistDialogOpen] = useState(false);
+  const [delistingAppId, setDelistingAppId] = useState<string | null>(null);
+  const [delistReason, setDelistReason] = useState('');
+
+  const handleStatusChange = async (appId: string, status: 'approved' | 'rejected' | 'featured' | 'pending' | 'delisted', reason?: string) => {
+    // If changing to delisted, open dialog first
+    if (status === 'delisted' && !reason) {
+      setDelistingAppId(appId);
+      setDelistReason('');
+      setDelistDialogOpen(true);
+      return;
+    }
+
     try {
-      await updateStatus.mutateAsync({ appId, status });
+      await updateStatus.mutateAsync({ appId, status, delistReason: reason });
+      const statusLabels: Record<string, string> = {
+        approved: 'godkänd',
+        rejected: 'avvisad', 
+        featured: 'utvald',
+        pending: 'väntande',
+        delisted: 'avlistad'
+      };
       toast({
         title: 'Status uppdaterad',
-        description: `Appen har markerats som ${status === 'approved' ? 'godkänd' : status === 'rejected' ? 'avvisad' : status === 'featured' ? 'utvald' : 'väntande'}`
+        description: `Appen har markerats som ${statusLabels[status]}`
       });
     } catch (error) {
       toast({
@@ -119,6 +139,14 @@ export default function Admin() {
         variant: 'destructive'
       });
     }
+  };
+
+  const handleConfirmDelist = async () => {
+    if (!delistingAppId) return;
+    await handleStatusChange(delistingAppId, 'delisted', delistReason);
+    setDelistDialogOpen(false);
+    setDelistingAppId(null);
+    setDelistReason('');
   };
 
   const handleDeleteApp = async (appId: string) => {
@@ -419,6 +447,9 @@ export default function Admin() {
                             <AppStatusBadge status={app.status} />
                           </div>
                           <p className="text-xs text-muted-foreground">{app.profile?.display_name || 'Okänd'}</p>
+                          {app.status === 'delisted' && app.delist_reason && (
+                            <p className="text-xs text-slate-500 mt-1 italic">📝 {app.delist_reason}</p>
+                          )}
                         </div>
                         <div className="flex items-center gap-1">
                           <Select
@@ -1199,6 +1230,37 @@ export default function Admin() {
             </Card>
           </TabsContent>
         </Tabs>
+
+        {/* Delist Reason Dialog */}
+        <Dialog open={delistDialogOpen} onOpenChange={setDelistDialogOpen}>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Avlista app</DialogTitle>
+              <DialogDescription>
+                Ange en anledning till varför appen avlistas. Detta syns för admin och kan användas för uppföljning.
+              </DialogDescription>
+            </DialogHeader>
+            <div className="space-y-4 py-4">
+              <div className="space-y-2">
+                <Label htmlFor="delist-reason">Anledning</Label>
+                <Input
+                  id="delist-reason"
+                  placeholder="T.ex. Appen fungerar inte längre..."
+                  value={delistReason}
+                  onChange={(e) => setDelistReason(e.target.value)}
+                />
+              </div>
+            </div>
+            <DialogFooter>
+              <Button variant="outline" onClick={() => setDelistDialogOpen(false)}>
+                Avbryt
+              </Button>
+              <Button onClick={handleConfirmDelist}>
+                Avlista
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
       </div>
     </AuthenticatedLayout>
   );
