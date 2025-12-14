@@ -1,9 +1,11 @@
 import { useParams, Link } from "react-router-dom";
 import { useResources, ResourceCategory } from "@/hooks/useResources";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Lightbulb, Rocket, Sparkles, Monitor, Trophy, ArrowLeft, Shield, TestTube2, Cpu, BookOpen, Brain, Users } from "lucide-react";
+import { Card, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Lightbulb, Rocket, Sparkles, Monitor, Trophy, Shield, TestTube2, Cpu, BookOpen, Brain, Users } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Button } from "@/components/ui/button";
+import { PublicNav } from "@/components/PublicNav";
+import { PublicFooter } from "@/components/PublicFooter";
+import { SEO } from "@/components/SEO";
 
 const categoryMeta: Record<string, { category: ResourceCategory; title: string; icon: React.ReactNode }> = {
   plattformar: { category: 'platforms', title: "Populära Vibe-plattformar", icon: <Cpu className="h-6 w-6" /> },
@@ -33,22 +35,27 @@ export default function ResourceList() {
 
   if (!meta) {
     return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
-        <p className="text-muted-foreground">Kategorin hittades inte</p>
+      <div className="min-h-screen bg-background">
+        <PublicNav variant="solid" />
+        <div className="flex items-center justify-center py-20">
+          <p className="text-muted-foreground">Kategorin hittades inte</p>
+        </div>
+        <PublicFooter />
       </div>
     );
   }
 
   return (
     <div className="min-h-screen bg-background">
+      <SEO 
+        title={meta.title}
+        description={`${meta.title} - Resurser för att skapa pedagogiska appar`}
+        url={`/resurser/${categorySlug}`}
+      />
+      
+      <PublicNav variant="solid" />
+      
       <div className="container max-w-3xl py-12 px-4">
-        <Link to="/resurser">
-          <Button variant="ghost" size="sm" className="mb-6">
-            <ArrowLeft className="h-4 w-4 mr-2" />
-            Alla resurser
-          </Button>
-        </Link>
-
         <div className="flex items-center gap-4 mb-10">
           <div className="p-3 rounded-xl bg-primary/10 text-primary">
             {meta.icon}
@@ -92,6 +99,8 @@ export default function ResourceList() {
           </div>
         )}
       </div>
+      
+      <PublicFooter />
     </div>
   );
 }
