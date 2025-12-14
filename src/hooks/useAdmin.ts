@@ -92,10 +92,22 @@ export function useUpdateAppStatus() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async ({ appId, status }: { appId: string; status: 'approved' | 'rejected' | 'featured' | 'pending' }) => {
+    mutationFn: async ({ appId, status, delistReason }: { appId: string; status: 'approved' | 'rejected' | 'featured' | 'pending' | 'delisted'; delistReason?: string }) => {
+      const updates: { 
+        status: 'approved' | 'rejected' | 'featured' | 'pending' | 'delisted'; 
+        delist_reason?: string | null 
+      } = { status };
+      
+      // Set or clear delist_reason based on status
+      if (status === 'delisted' && delistReason) {
+        updates.delist_reason = delistReason;
+      } else if (status !== 'delisted') {
+        updates.delist_reason = null;
+      }
+
       const { error } = await supabase
         .from('apps')
-        .update({ status })
+        .update(updates)
         .eq('id', appId);
 
       if (error) throw error;
