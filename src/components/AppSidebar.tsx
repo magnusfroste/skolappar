@@ -21,6 +21,7 @@ import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useMyProfile } from '@/hooks/useProfile';
+import logoImage from '@/assets/logo.png';
 
 const navigation = [
   { title: 'Hem', url: '/', icon: Home },
@@ -68,9 +69,7 @@ export function AppSidebar() {
           ) : (
             <>
               <Link to="/" className="flex items-center gap-3">
-                <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-primary to-secondary flex items-center justify-center text-primary-foreground font-bold text-sm">
-                  S
-                </div>
+                <img src={logoImage} alt="Skolappar" className="w-8 h-8" />
                 <span className="font-heading font-bold text-lg bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
                   skolappar
                 </span>
