@@ -8,6 +8,7 @@ import { NotificationBell } from '@/components/NotificationBell';
 import { useAuth } from '@/hooks/useAuth';
 import { useIsAdmin } from '@/hooks/useAdmin';
 import { cn } from '@/lib/utils';
+import logoImage from '@/assets/logo.png';
 
 interface PublicNavProps {
   variant?: 'transparent' | 'solid';
@@ -39,7 +40,7 @@ export function PublicNav({ variant = 'transparent' }: PublicNavProps) {
             to="/" 
             className="flex items-center gap-2 text-xl font-heading font-bold text-foreground hover:text-primary transition-colors"
           >
-            <span className="text-2xl">📱</span>
+            <img src={logoImage} alt="Skolappar" className="w-8 h-8" />
             <span className="hidden xs:inline">skolappar.com</span>
           </Link>
           
@@ -117,7 +118,7 @@ export function PublicNav({ variant = 'transparent' }: PublicNavProps) {
               <SheetContent side="right" className="w-72">
                 <SheetHeader>
                   <SheetTitle className="flex items-center gap-2 text-left">
-                    <span className="text-xl">📱</span>
+                    <img src={logoImage} alt="Skolappar" className="w-6 h-6" />
                     skolappar.com
                   </SheetTitle>
                 </SheetHeader>
