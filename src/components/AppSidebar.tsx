@@ -69,7 +69,7 @@ export function AppSidebar() {
           ) : (
             <>
               <Link to="/" className="flex items-center gap-3">
-                <img src={logoImage} alt="Skolappar" className="w-8 h-8" />
+                <img src={logoImage} alt="Skolappar" className="w-8 h-8 transition-transform duration-200 hover:scale-110" />
                 <span className="font-heading font-bold text-lg bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
                   skolappar
                 </span>

@@ -40,7 +40,7 @@ export function PublicNav({ variant = 'transparent' }: PublicNavProps) {
             to="/" 
             className="flex items-center gap-2 text-xl font-heading font-bold text-foreground hover:text-primary transition-colors"
           >
-            <img src={logoImage} alt="Skolappar" className="w-8 h-8" />
+            <img src={logoImage} alt="Skolappar" className="w-8 h-8 transition-transform duration-200 hover:scale-110" />
             <span className="hidden xs:inline">skolappar.com</span>
           </Link>
           
@@ -118,7 +118,7 @@ export function PublicNav({ variant = 'transparent' }: PublicNavProps) {
               <SheetContent side="right" className="w-72">
                 <SheetHeader>
                   <SheetTitle className="flex items-center gap-2 text-left">
-                    <img src={logoImage} alt="Skolappar" className="w-6 h-6" />
+                    <img src={logoImage} alt="Skolappar" className="w-6 h-6 transition-transform duration-200 hover:scale-110" />
                     skolappar.com
                   </SheetTitle>
                 </SheetHeader>
