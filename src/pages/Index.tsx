@@ -6,10 +6,10 @@ import { PublicFooter } from "@/components/PublicFooter";
 import { TopAppsSection } from "@/components/TopAppsSection";
 import { RecentAppsSection } from "@/components/RecentAppsSection";
 import { TopIdeasSection } from "@/components/TopIdeasSection";
-import { SEO, websiteSchema, organizationSchema } from "@/components/SEO";
+import { SEO, websiteSchema, organizationSchema, faqSchema } from "@/components/SEO";
 import { Sparkles, ArrowRight, BookOpen, Rocket, Users, Heart, Code, ChevronRight } from "lucide-react";
 
-const combinedSchema = [websiteSchema, organizationSchema];
+const combinedSchema = [websiteSchema, organizationSchema, faqSchema];
 
 export default function Index() {
   const { user } = useAuth();

@@ -148,3 +148,66 @@ export function createArticleSchema(article: {
     publisher: organizationSchema,
   };
 }
+
+// FAQ Schema for AEO (Answer Engine Optimization)
+export const faqSchema = {
+  '@context': 'https://schema.org',
+  '@type': 'FAQPage',
+  mainEntity: [
+    {
+      '@type': 'Question',
+      name: 'Vad är Skolappar?',
+      acceptedAnswer: {
+        '@type': 'Answer',
+        text: 'Skolappar är en community där engagerade föräldrar delar sina hemmagjorda pedagogiska appar för barn. Alla appar är gratis och skapade med kärlek för att hjälpa barn lära sig.',
+      },
+    },
+    {
+      '@type': 'Question',
+      name: 'Hur kan jag dela min egen skolapp?',
+      acceptedAnswer: {
+        '@type': 'Answer',
+        text: 'Skapa ett konto på Skolappar.com, klicka på "Lägg till app" i din dashboard och fyll i information om din app. Efter granskning blir den synlig för alla.',
+      },
+    },
+    {
+      '@type': 'Question',
+      name: 'Är apparna på Skolappar gratis?',
+      acceptedAnswer: {
+        '@type': 'Answer',
+        text: 'Ja, alla appar som delas på Skolappar är helt gratis att använda. Skaparna delar med sig av sina appar för att hjälpa andra barn.',
+      },
+    },
+    {
+      '@type': 'Question',
+      name: 'Vilka ämnen finns det appar för?',
+      acceptedAnswer: {
+        '@type': 'Answer',
+        text: 'Det finns appar för många ämnen inklusive matematik, svenska, engelska, NO, SO och kreativa ämnen. Apparna är anpassade för olika åldersgrupper från förskola till högstadiet.',
+      },
+    },
+    {
+      '@type': 'Question',
+      name: 'Hur föreslår jag en idé för en ny app?',
+      acceptedAnswer: {
+        '@type': 'Answer',
+        text: 'Gå till "Idéer" i menyn och klicka på "Ny idé". Beskriv din idé och andra i communityn kan rösta på den eller välja att bygga appen.',
+      },
+    },
+  ],
+};
+
+export function createFaqSchema(faqs: Array<{ question: string; answer: string }>) {
+  return {
+    '@context': 'https://schema.org',
+    '@type': 'FAQPage',
+    mainEntity: faqs.map((faq) => ({
+      '@type': 'Question',
+      name: faq.question,
+      acceptedAnswer: {
+        '@type': 'Answer',
+        text: faq.answer,
+      },
+    })),
+  };
+}
