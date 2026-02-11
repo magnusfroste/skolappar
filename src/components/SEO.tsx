@@ -1,4 +1,5 @@
 import { Helmet } from 'react-helmet';
+import { useSiteConfig, type SiteConfig } from '@/hooks/useSiteConfig';
 
 interface SEOProps {
   title?: string;
@@ -14,48 +15,44 @@ interface SEOProps {
   jsonLd?: object;
 }
 
-const DEFAULT_TITLE = 'Skolappar - Pedagogiska appar av föräldrar för barn';
-const DEFAULT_DESCRIPTION = 'En community där engagerade föräldrar delar sina hemmagjorda skolappar. Utforska pedagogiska appar för barn i alla åldrar. Delad glädje är dubbel glädje!';
-const DEFAULT_IMAGE = 'https://storage.googleapis.com/gpt-engineer-file-uploads/Otwc5k988dRBXnycfCqkhVYDdj42/social-images/social-1764953240841-Screenshot 2025-12-05 at 17.46.45.png';
-const SITE_URL = 'https://skolappar.com';
-
 export function SEO({
   title,
-  description = DEFAULT_DESCRIPTION,
-  image = DEFAULT_IMAGE,
+  description,
+  image,
   url,
   type = 'website',
   article,
   jsonLd,
 }: SEOProps) {
-  const fullTitle = title ? `${title} | Skolappar` : DEFAULT_TITLE;
-  const canonicalUrl = url ? `${SITE_URL}${url}` : SITE_URL;
+  const config = useSiteConfig();
+  const fullTitle = title ? `${title} | ${config.site_name}` : `${config.site_name} - ${config.site_description.slice(0, 50)}`;
+  const canonicalUrl = url ? `${config.site_url}${url}` : config.site_url;
+  const metaDescription = description || config.site_description;
+  const metaImage = image || config.site_image;
 
   return (
     <Helmet>
-      {/* Primary Meta Tags */}
+      <html lang={config.site_language} />
       <title>{fullTitle}</title>
       <meta name="title" content={fullTitle} />
-      <meta name="description" content={description} />
+      <meta name="description" content={metaDescription} />
+      <meta name="keywords" content={config.site_keywords} />
       <link rel="canonical" href={canonicalUrl} />
 
-      {/* Open Graph / Facebook */}
       <meta property="og:type" content={type} />
       <meta property="og:url" content={canonicalUrl} />
       <meta property="og:title" content={fullTitle} />
-      <meta property="og:description" content={description} />
-      <meta property="og:image" content={image} />
-      <meta property="og:locale" content="sv_SE" />
-      <meta property="og:site_name" content="Skolappar" />
+      <meta property="og:description" content={metaDescription} />
+      {metaImage && <meta property="og:image" content={metaImage} />}
+      <meta property="og:locale" content={config.site_locale} />
+      <meta property="og:site_name" content={config.site_name} />
 
-      {/* Twitter */}
       <meta name="twitter:card" content="summary_large_image" />
       <meta name="twitter:url" content={canonicalUrl} />
       <meta name="twitter:title" content={fullTitle} />
-      <meta name="twitter:description" content={description} />
-      <meta name="twitter:image" content={image} />
+      <meta name="twitter:description" content={metaDescription} />
+      {metaImage && <meta name="twitter:image" content={metaImage} />}
 
-      {/* Article specific */}
       {article?.publishedTime && (
         <meta property="article:published_time" content={article.publishedTime} />
       )}
@@ -66,7 +63,6 @@ export function SEO({
         <meta property="article:author" content={article.author} />
       )}
 
-      {/* JSON-LD Structured Data */}
       {jsonLd && (
         <script type="application/ld+json">
           {JSON.stringify(jsonLd)}
@@ -76,29 +72,50 @@ export function SEO({
   );
 }
 
-// Pre-built JSON-LD schemas
-export const websiteSchema = {
-  '@context': 'https://schema.org',
-  '@type': 'WebSite',
-  name: 'Skolappar',
-  url: SITE_URL,
-  description: DEFAULT_DESCRIPTION,
-  potentialAction: {
-    '@type': 'SearchAction',
-    target: `${SITE_URL}/appar?search={search_term_string}`,
-    'query-input': 'required name=search_term_string',
-  },
-};
+// Dynamic schema builders that use config
+export function buildWebsiteSchema(config: SiteConfig) {
+  return {
+    '@context': 'https://schema.org',
+    '@type': 'WebSite',
+    name: config.site_name,
+    url: config.site_url,
+    description: config.site_description,
+    inLanguage: config.site_language,
+    potentialAction: {
+      '@type': 'SearchAction',
+      target: `${config.site_url}/appar?search={search_term_string}`,
+      'query-input': 'required name=search_term_string',
+    },
+  };
+}
 
-export const organizationSchema = {
-  '@context': 'https://schema.org',
-  '@type': 'Organization',
-  name: 'Skolappar',
-  url: SITE_URL,
-  logo: `${SITE_URL}/favicon.png`,
-  description: 'En community där engagerade föräldrar delar sina hemmagjorda skolappar.',
-  sameAs: [],
-};
+export function buildOrganizationSchema(config: SiteConfig) {
+  return {
+    '@context': 'https://schema.org',
+    '@type': 'Organization',
+    name: config.organization_name || config.site_name,
+    url: config.site_url,
+    logo: config.site_logo || `${config.site_url}/favicon.png`,
+    description: config.site_description,
+    sameAs: [],
+  };
+}
+
+export function buildFaqSchema(config: SiteConfig) {
+  if (!config.faq_items || config.faq_items.length === 0) return null;
+  return {
+    '@context': 'https://schema.org',
+    '@type': 'FAQPage',
+    mainEntity: config.faq_items.map((faq) => ({
+      '@type': 'Question',
+      name: faq.question,
+      acceptedAnswer: {
+        '@type': 'Answer',
+        text: faq.answer,
+      },
+    })),
+  };
+}
 
 export function createAppSchema(app: {
   title: string;
@@ -107,7 +124,7 @@ export function createAppSchema(app: {
   image?: string;
   creator?: string;
   datePublished?: string;
-}) {
+}, config: SiteConfig) {
   return {
     '@context': 'https://schema.org',
     '@type': 'SoftwareApplication',
@@ -117,15 +134,13 @@ export function createAppSchema(app: {
     image: app.image,
     applicationCategory: 'EducationalApplication',
     operatingSystem: 'Web',
-    author: app.creator ? {
-      '@type': 'Person',
-      name: app.creator,
-    } : undefined,
+    inLanguage: config.site_language,
+    author: app.creator ? { '@type': 'Person', name: app.creator } : undefined,
     datePublished: app.datePublished,
     offers: {
       '@type': 'Offer',
       price: '0',
-      priceCurrency: 'SEK',
+      priceCurrency: config.site_currency,
     },
   };
 }
@@ -136,66 +151,19 @@ export function createArticleSchema(article: {
   url: string;
   datePublished?: string;
   dateModified?: string;
-}) {
+}, config: SiteConfig) {
   return {
     '@context': 'https://schema.org',
     '@type': 'Article',
     headline: article.title,
     description: article.description,
-    url: `${SITE_URL}${article.url}`,
+    url: `${config.site_url}${article.url}`,
+    inLanguage: config.site_language,
     datePublished: article.datePublished,
     dateModified: article.dateModified,
-    publisher: organizationSchema,
+    publisher: buildOrganizationSchema(config),
   };
 }
-
-// FAQ Schema for AEO (Answer Engine Optimization)
-export const faqSchema = {
-  '@context': 'https://schema.org',
-  '@type': 'FAQPage',
-  mainEntity: [
-    {
-      '@type': 'Question',
-      name: 'Vad är Skolappar?',
-      acceptedAnswer: {
-        '@type': 'Answer',
-        text: 'Skolappar är en community där engagerade föräldrar delar sina hemmagjorda pedagogiska appar för barn. Alla appar är gratis och skapade med kärlek för att hjälpa barn lära sig.',
-      },
-    },
-    {
-      '@type': 'Question',
-      name: 'Hur kan jag dela min egen skolapp?',
-      acceptedAnswer: {
-        '@type': 'Answer',
-        text: 'Skapa ett konto på Skolappar.com, klicka på "Lägg till app" i din dashboard och fyll i information om din app. Efter granskning blir den synlig för alla.',
-      },
-    },
-    {
-      '@type': 'Question',
-      name: 'Är apparna på Skolappar gratis?',
-      acceptedAnswer: {
-        '@type': 'Answer',
-        text: 'Ja, alla appar som delas på Skolappar är helt gratis att använda. Skaparna delar med sig av sina appar för att hjälpa andra barn.',
-      },
-    },
-    {
-      '@type': 'Question',
-      name: 'Vilka ämnen finns det appar för?',
-      acceptedAnswer: {
-        '@type': 'Answer',
-        text: 'Det finns appar för många ämnen inklusive matematik, svenska, engelska, NO, SO och kreativa ämnen. Apparna är anpassade för olika åldersgrupper från förskola till högstadiet.',
-      },
-    },
-    {
-      '@type': 'Question',
-      name: 'Hur föreslår jag en idé för en ny app?',
-      acceptedAnswer: {
-        '@type': 'Answer',
-        text: 'Gå till "Idéer" i menyn och klicka på "Ny idé". Beskriv din idé och andra i communityn kan rösta på den eller välja att bygga appen.',
-      },
-    },
-  ],
-};
 
 export function createFaqSchema(faqs: Array<{ question: string; answer: string }>) {
   return {
