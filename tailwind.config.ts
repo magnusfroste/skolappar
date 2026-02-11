@@ -14,8 +14,8 @@ export default {
     },
     extend: {
       fontFamily: {
-        heading: ["Nunito", "system-ui", "sans-serif"],
-        body: ["Quicksand", "system-ui", "sans-serif"],
+        heading: ["var(--font-heading)", "Nunito", "system-ui", "sans-serif"],
+        body: ["var(--font-body)", "Quicksand", "system-ui", "sans-serif"],
       },
       colors: {
         border: "hsl(var(--border))",
