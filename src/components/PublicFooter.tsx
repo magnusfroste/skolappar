@@ -1,8 +1,10 @@
 import { Link } from "react-router-dom";
 import { Heart } from "lucide-react";
+import { useBranding } from '@/hooks/useBranding';
 
 export function PublicFooter() {
   const currentYear = new Date().getFullYear();
+  const branding = useBranding();
 
   return (
     <footer className="relative z-10 border-t border-border/50 bg-card/50 backdrop-blur-sm">
@@ -10,8 +12,8 @@ export function PublicFooter() {
         <div className="flex flex-col md:flex-row items-center justify-between gap-4">
           {/* Logo & Copyright */}
           <div className="flex items-center gap-2 text-sm text-muted-foreground">
-            <span className="text-lg">📱</span>
-            <span>© {currentYear} skolappar.com</span>
+            <span className="text-lg">{branding.brand_primary_emoji}</span>
+            <span>© {currentYear} {branding.brand_domain}</span>
             <span className="hidden sm:inline">·</span>
             <span className="hidden sm:inline-flex items-center gap-1">
               Skapad med <Heart className="w-3 h-3 text-primary fill-primary" /> av vibe-codande föräldrar
