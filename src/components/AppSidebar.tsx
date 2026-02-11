@@ -21,7 +21,8 @@ import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useMyProfile } from '@/hooks/useProfile';
-import logoImage from '@/assets/logo.png';
+import { useBranding } from '@/hooks/useBranding';
+import logoFallback from '@/assets/logo.png';
 
 const navigation = [
   { title: 'Hem', url: '/', icon: Home },
@@ -45,7 +46,8 @@ export function AppSidebar() {
   const { data: claimedIdeas, isLoading: claimedIdeasLoading } = useMyClaimedIdeas();
   const { data: profile } = useMyProfile();
   const { data: isAdmin } = useIsAdmin();
-  
+  const branding = useBranding();
+  const logoImage = branding.brand_logo_url || logoFallback;
   const myIdeas = [...(createdIdeas || []), ...(claimedIdeas || [])];
   const ideasLoading = createdIdeasLoading || claimedIdeasLoading;
 
@@ -69,9 +71,9 @@ export function AppSidebar() {
           ) : (
             <>
               <Link to="/" className="flex items-center gap-3">
-                <img src={logoImage} alt="Skolappar" className="w-8 h-8 transition-transform duration-200 hover:scale-110" />
+                <img src={logoImage} alt={branding.brand_name} className="w-8 h-8 transition-transform duration-200 hover:scale-110" />
                 <span className="font-heading font-bold text-lg bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
-                  skolappar
+                  {branding.brand_name}
                 </span>
               </Link>
               <Button

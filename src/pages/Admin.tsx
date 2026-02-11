@@ -55,6 +55,7 @@ import {
 import { IdeaStatusBadge } from '@/components/IdeaStatusBadge';
 import { useSetting, useUpdateSetting } from '@/hooks/useSettings';
 import { SeoSettingsPanel } from '@/components/SeoSettingsPanel';
+import { BrandingSettingsPanel } from '@/components/BrandingSettingsPanel';
 import { toast } from '@/hooks/use-toast';
 
 export default function Admin() {
@@ -1146,7 +1147,10 @@ export default function Admin() {
 
           {/* SEO/AEO Tab */}
           <TabsContent value="seo">
-            <SeoSettingsPanel />
+            <div className="space-y-6">
+              <BrandingSettingsPanel />
+              <SeoSettingsPanel />
+            </div>
           </TabsContent>
 
           {/* Settings Tab */}
