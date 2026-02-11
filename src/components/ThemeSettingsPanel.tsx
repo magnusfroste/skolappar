@@ -3,7 +3,9 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
-import { Paintbrush, RotateCcw } from 'lucide-react';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Switch } from '@/components/ui/switch';
+import { Paintbrush, RotateCcw, Sun, Moon } from 'lucide-react';
 import { useSetting, useUpdateSetting } from '@/hooks/useSettings';
 import { toast } from '@/hooks/use-toast';
 
@@ -17,10 +19,16 @@ interface ThemeColors {
   muted: string;
   destructive: string;
   border: string;
-  radius: string;
 }
 
-const DEFAULTS: ThemeColors = {
+interface ThemeData {
+  light: ThemeColors;
+  dark: ThemeColors;
+  radius: string;
+  darkModeEnabled: boolean;
+}
+
+const LIGHT_DEFAULTS: ThemeColors = {
   primary: '#e85d2a',
   secondary: '#1db8a0',
   accent: '#f0c433',
@@ -30,10 +38,23 @@ const DEFAULTS: ThemeColors = {
   muted: '#f0ece0',
   destructive: '#e53e3e',
   border: '#e5dfc8',
-  radius: '1rem',
 };
 
-function hexToHsl(hex: string): string {
+const DARK_DEFAULTS: ThemeColors = {
+  primary: '#e85d2a',
+  secondary: '#1db8a0',
+  accent: '#f0c433',
+  background: '#1a1a2e',
+  foreground: '#f0ece0',
+  card: '#24243b',
+  muted: '#2a2a45',
+  destructive: '#c53030',
+  border: '#353555',
+};
+
+const DEFAULT_RADIUS = '1rem';
+
+export function hexToHsl(hex: string): string {
   const r = parseInt(hex.slice(1, 3), 16) / 255;
   const g = parseInt(hex.slice(3, 5), 16) / 255;
   const b = parseInt(hex.slice(5, 7), 16) / 255;
@@ -56,7 +77,7 @@ function hexToHsl(hex: string): string {
   return `${Math.round(h * 360)} ${Math.round(s * 100)}% ${Math.round(l * 100)}%`;
 }
 
-function hslToHex(hsl: string): string {
+export function hslToHex(hsl: string): string {
   const parts = hsl.match(/[\d.]+/g);
   if (!parts || parts.length < 3) return '#000000';
 
@@ -114,60 +135,121 @@ function ColorInput({ label, value, onChange }: { label: string; value: string; 
   );
 }
 
+function ColorGrid({ colors, onChange }: { colors: ThemeColors; onChange: (key: keyof ThemeColors, val: string) => void }) {
+  return (
+    <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
+      <ColorInput label="Primärfärg" value={colors.primary} onChange={v => onChange('primary', v)} />
+      <ColorInput label="Sekundärfärg" value={colors.secondary} onChange={v => onChange('secondary', v)} />
+      <ColorInput label="Accentfärg" value={colors.accent} onChange={v => onChange('accent', v)} />
+      <ColorInput label="Bakgrund" value={colors.background} onChange={v => onChange('background', v)} />
+      <ColorInput label="Text" value={colors.foreground} onChange={v => onChange('foreground', v)} />
+      <ColorInput label="Kort" value={colors.card} onChange={v => onChange('card', v)} />
+      <ColorInput label="Muted" value={colors.muted} onChange={v => onChange('muted', v)} />
+      <ColorInput label="Destructive" value={colors.destructive} onChange={v => onChange('destructive', v)} />
+      <ColorInput label="Ramar" value={colors.border} onChange={v => onChange('border', v)} />
+    </div>
+  );
+}
+
+function ColorStrip({ colors }: { colors: ThemeColors }) {
+  return (
+    <div className="flex gap-1 rounded-xl overflow-hidden h-8">
+      {[colors.primary, colors.secondary, colors.accent, colors.background, colors.foreground, colors.muted, colors.destructive].map((c, i) => (
+        <div key={i} className="flex-1" style={{ backgroundColor: c }} />
+      ))}
+    </div>
+  );
+}
+
+function parseThemeData(saved: unknown): ThemeData | null {
+  if (!saved || typeof saved !== 'object') return null;
+  const s = saved as Record<string, unknown>;
+  
+  // Support legacy flat format (migrate to new format)
+  if (typeof s.primary === 'string') {
+    const legacy = s as Record<string, string>;
+    const light: ThemeColors = {
+      primary: legacy.primary || LIGHT_DEFAULTS.primary,
+      secondary: legacy.secondary || LIGHT_DEFAULTS.secondary,
+      accent: legacy.accent || LIGHT_DEFAULTS.accent,
+      background: legacy.background || LIGHT_DEFAULTS.background,
+      foreground: legacy.foreground || LIGHT_DEFAULTS.foreground,
+      card: legacy.card || LIGHT_DEFAULTS.card,
+      muted: legacy.muted || LIGHT_DEFAULTS.muted,
+      destructive: legacy.destructive || LIGHT_DEFAULTS.destructive,
+      border: legacy.border || LIGHT_DEFAULTS.border,
+    };
+    return { light, dark: DARK_DEFAULTS, radius: legacy.radius || DEFAULT_RADIUS, darkModeEnabled: false };
+  }
+
+  const light = (s.light as ThemeColors) || LIGHT_DEFAULTS;
+  const dark = (s.dark as ThemeColors) || DARK_DEFAULTS;
+  return {
+    light: { ...LIGHT_DEFAULTS, ...light },
+    dark: { ...DARK_DEFAULTS, ...dark },
+    radius: (s.radius as string) || DEFAULT_RADIUS,
+    darkModeEnabled: (s.darkModeEnabled as boolean) ?? false,
+  };
+}
+
 export function ThemeSettingsPanel() {
   const updateSetting = useUpdateSetting();
   const { data: savedTheme } = useSetting('theme_colors');
 
-  const [colors, setColors] = useState<ThemeColors>(DEFAULTS);
-  const [radius, setRadius] = useState(DEFAULTS.radius);
+  const [light, setLight] = useState<ThemeColors>(LIGHT_DEFAULTS);
+  const [dark, setDark] = useState<ThemeColors>(DARK_DEFAULTS);
+  const [radius, setRadius] = useState(DEFAULT_RADIUS);
+  const [darkModeEnabled, setDarkModeEnabled] = useState(false);
 
   useEffect(() => {
-    if (savedTheme && typeof savedTheme === 'object') {
-      const theme = savedTheme as Record<string, string>;
-      setColors({
-        primary: theme.primary || DEFAULTS.primary,
-        secondary: theme.secondary || DEFAULTS.secondary,
-        accent: theme.accent || DEFAULTS.accent,
-        background: theme.background || DEFAULTS.background,
-        foreground: theme.foreground || DEFAULTS.foreground,
-        card: theme.card || DEFAULTS.card,
-        muted: theme.muted || DEFAULTS.muted,
-        destructive: theme.destructive || DEFAULTS.destructive,
-        border: theme.border || DEFAULTS.border,
-        radius: theme.radius || DEFAULTS.radius,
-      });
-      setRadius(theme.radius || DEFAULTS.radius);
+    const parsed = parseThemeData(savedTheme);
+    if (parsed) {
+      setLight(parsed.light);
+      setDark(parsed.dark);
+      setRadius(parsed.radius);
+      setDarkModeEnabled(parsed.darkModeEnabled);
     }
   }, [savedTheme]);
 
-  const updateColor = (key: keyof ThemeColors, value: string) => {
-    setColors(prev => ({ ...prev, [key]: value }));
+  const updateLightColor = (key: keyof ThemeColors, value: string) => {
+    setLight(prev => ({ ...prev, [key]: value }));
+  };
+
+  const updateDarkColor = (key: keyof ThemeColors, value: string) => {
+    setDark(prev => ({ ...prev, [key]: value }));
   };
 
   const applyPreview = useCallback(() => {
     const root = document.documentElement;
-    root.style.setProperty('--primary', hexToHsl(colors.primary));
-    root.style.setProperty('--secondary', hexToHsl(colors.secondary));
-    root.style.setProperty('--accent', hexToHsl(colors.accent));
-    root.style.setProperty('--background', hexToHsl(colors.background));
-    root.style.setProperty('--foreground', hexToHsl(colors.foreground));
-    root.style.setProperty('--card', hexToHsl(colors.card));
-    root.style.setProperty('--muted', hexToHsl(colors.muted));
-    root.style.setProperty('--destructive', hexToHsl(colors.destructive));
-    root.style.setProperty('--border', hexToHsl(colors.border));
-    root.style.setProperty('--input', hexToHsl(colors.border));
-    root.style.setProperty('--ring', hexToHsl(colors.primary));
+    const applyColors = (colors: ThemeColors, prefix: string) => {
+      const map: Record<string, string[]> = {
+        primary: [`${prefix}--primary`, `${prefix}--ring`, `${prefix}--sidebar-primary`, `${prefix}--sidebar-ring`, `${prefix}--coral`],
+        secondary: [`${prefix}--secondary`],
+        accent: [`${prefix}--accent`],
+        background: [`${prefix}--background`, `${prefix}--sidebar-background`],
+        foreground: [`${prefix}--foreground`, `${prefix}--card-foreground`, `${prefix}--popover-foreground`, `${prefix}--sidebar-foreground`],
+        card: [`${prefix}--card`, `${prefix}--popover`],
+        muted: [`${prefix}--muted`, `${prefix}--sidebar-accent`],
+        destructive: [`${prefix}--destructive`],
+        border: [`${prefix}--border`, `${prefix}--input`, `${prefix}--sidebar-border`],
+      };
+      Object.entries(map).forEach(([key, vars]) => {
+        const hex = colors[key as keyof ThemeColors];
+        if (hex?.startsWith('#')) {
+          const hsl = hexToHsl(hex);
+          vars.forEach(v => root.style.setProperty(v, hsl));
+        }
+      });
+    };
+    // Apply light to root
+    applyColors(light, '');
     root.style.setProperty('--radius', radius);
-    // Sidebar
-    root.style.setProperty('--sidebar-background', hexToHsl(colors.background));
-    root.style.setProperty('--sidebar-primary', hexToHsl(colors.primary));
-    root.style.setProperty('--sidebar-border', hexToHsl(colors.border));
-    root.style.setProperty('--sidebar-accent', hexToHsl(colors.muted));
-  }, [colors, radius]);
+    toast({ title: 'Förhandsvisning aktiverad' });
+  }, [light, radius]);
 
   const handleSave = async () => {
     try {
-      const themeData = { ...colors, radius };
+      const themeData: ThemeData = { light, dark, radius, darkModeEnabled };
       await updateSetting.mutateAsync({ key: 'theme_colors', value: themeData });
       applyPreview();
       toast({ title: 'Tema sparat!' });
@@ -177,11 +259,12 @@ export function ThemeSettingsPanel() {
   };
 
   const handleReset = () => {
-    setColors(DEFAULTS);
-    setRadius(DEFAULTS.radius);
-    // Remove inline styles to revert to CSS defaults
+    setLight(LIGHT_DEFAULTS);
+    setDark(DARK_DEFAULTS);
+    setRadius(DEFAULT_RADIUS);
+    setDarkModeEnabled(false);
     const root = document.documentElement;
-    const props = ['--primary', '--secondary', '--accent', '--background', '--foreground', '--card', '--muted', '--destructive', '--border', '--input', '--ring', '--radius', '--sidebar-background', '--sidebar-primary', '--sidebar-border', '--sidebar-accent'];
+    const props = ['--primary', '--secondary', '--accent', '--background', '--foreground', '--card', '--muted', '--destructive', '--border', '--input', '--ring', '--radius', '--sidebar-background', '--sidebar-primary', '--sidebar-border', '--sidebar-accent', '--sidebar-ring', '--coral', '--card-foreground', '--popover', '--popover-foreground', '--sidebar-foreground'];
     props.forEach(p => root.style.removeProperty(p));
     toast({ title: 'Tema återställt till standard' });
   };
@@ -194,28 +277,42 @@ export function ThemeSettingsPanel() {
           Tema & färger
         </CardTitle>
         <CardDescription>
-          Anpassa appens färgschema. Förhandsgranska innan du sparar.
+          Anpassa färgschema för ljust och mörkt läge.
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-6">
-        {/* Preview strip */}
-        <div className="flex gap-1 rounded-xl overflow-hidden h-8">
-          {[colors.primary, colors.secondary, colors.accent, colors.background, colors.foreground, colors.muted, colors.destructive].map((c, i) => (
-            <div key={i} className="flex-1" style={{ backgroundColor: c }} />
-          ))}
+        {/* Dark mode enable toggle */}
+        <div className="flex items-center justify-between p-3 rounded-lg border bg-muted/30">
+          <div className="flex items-center gap-2">
+            <Moon className="h-4 w-4 text-muted-foreground" />
+            <div>
+              <p className="text-sm font-medium">Aktivera dark mode</p>
+              <p className="text-xs text-muted-foreground">Låt besökare växla mellan ljust och mörkt</p>
+            </div>
+          </div>
+          <Switch checked={darkModeEnabled} onCheckedChange={setDarkModeEnabled} />
         </div>
 
-        <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
-          <ColorInput label="Primärfärg" value={colors.primary} onChange={v => updateColor('primary', v)} />
-          <ColorInput label="Sekundärfärg" value={colors.secondary} onChange={v => updateColor('secondary', v)} />
-          <ColorInput label="Accentfärg" value={colors.accent} onChange={v => updateColor('accent', v)} />
-          <ColorInput label="Bakgrund" value={colors.background} onChange={v => updateColor('background', v)} />
-          <ColorInput label="Text" value={colors.foreground} onChange={v => updateColor('foreground', v)} />
-          <ColorInput label="Kort" value={colors.card} onChange={v => updateColor('card', v)} />
-          <ColorInput label="Muted" value={colors.muted} onChange={v => updateColor('muted', v)} />
-          <ColorInput label="Destructive" value={colors.destructive} onChange={v => updateColor('destructive', v)} />
-          <ColorInput label="Ramar" value={colors.border} onChange={v => updateColor('border', v)} />
-        </div>
+        <Tabs defaultValue="light">
+          <TabsList className="grid w-full max-w-xs grid-cols-2">
+            <TabsTrigger value="light" className="gap-1.5">
+              <Sun className="h-4 w-4" /> Ljust
+            </TabsTrigger>
+            <TabsTrigger value="dark" className="gap-1.5" disabled={!darkModeEnabled}>
+              <Moon className="h-4 w-4" /> Mörkt
+            </TabsTrigger>
+          </TabsList>
+
+          <TabsContent value="light" className="space-y-4 mt-4">
+            <ColorStrip colors={light} />
+            <ColorGrid colors={light} onChange={updateLightColor} />
+          </TabsContent>
+
+          <TabsContent value="dark" className="space-y-4 mt-4">
+            <ColorStrip colors={dark} />
+            <ColorGrid colors={dark} onChange={updateDarkColor} />
+          </TabsContent>
+        </Tabs>
 
         <div className="space-y-2 max-w-xs">
           <Label>Border radius</Label>
@@ -239,6 +336,3 @@ export function ThemeSettingsPanel() {
     </Card>
   );
 }
-
-// Export conversion utils for DynamicTheme
-export { hexToHsl, hslToHex };

@@ -6,6 +6,7 @@ import { AppSidebar } from '@/components/AppSidebar';
 import { useAuth } from '@/hooks/useAuth';
 
 import { NotificationBell } from '@/components/NotificationBell';
+import { DarkModeToggle } from '@/components/DarkModeToggle';
 
 interface AuthenticatedLayoutProps {
   children: React.ReactNode;
@@ -42,6 +43,7 @@ export function AuthenticatedLayout({ children }: AuthenticatedLayoutProps) {
             <span className="font-heading font-bold text-lg bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
               skolappar
             </span>
+            <DarkModeToggle />
             <NotificationBell />
           </header>
           

@@ -9,6 +9,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { useIsAdmin } from '@/hooks/useAdmin';
 import { cn } from '@/lib/utils';
 import { useBranding } from '@/hooks/useBranding';
+import { DarkModeToggle } from '@/components/DarkModeToggle';
 import logoFallback from '@/assets/logo.png';
 
 interface PublicNavProps {
@@ -105,10 +106,12 @@ export function PublicNav({ variant = 'transparent' }: PublicNavProps) {
                 </Link>
               </Button>
             )}
+            <DarkModeToggle />
           </div>
 
           {/* Mobile Navigation */}
           <div className="flex sm:hidden items-center gap-2">
+            <DarkModeToggle />
             {user && <NotificationBell />}
             
             <Sheet open={mobileMenuOpen} onOpenChange={setMobileMenuOpen}>
