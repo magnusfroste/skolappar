@@ -80,7 +80,9 @@ export default function Admin() {
   const { data: showTopApps } = useSetting('show_top_apps');
   const { data: showRecentApps } = useSetting('show_recent_apps');
   const { data: showTopIdeas } = useSetting('show_top_ideas');
+  const { data: gaId } = useSetting('google_analytics_id');
   const updateSetting = useUpdateSetting();
+  const [gaInput, setGaInput] = useState('');
 
   const [newCategory, setNewCategory] = useState({
     name: '',
@@ -1211,6 +1213,32 @@ export default function Admin() {
                       toast({ title: checked ? 'Top-idéer aktiverade' : 'Top-idéer avaktiverade' });
                     }}
                   />
+                </div>
+
+                <div className="p-4 rounded-lg border space-y-3">
+                  <div className="space-y-1">
+                    <Label htmlFor="ga-id" className="text-base font-medium">Google Analytics ID</Label>
+                    <p className="text-sm text-muted-foreground">
+                      Ange ditt GA4 mät-ID (t.ex. G-XXXXXXXXXX)
+                    </p>
+                  </div>
+                  <div className="flex gap-2">
+                    <Input
+                      id="ga-id"
+                      placeholder="G-XXXXXXXXXX"
+                      value={gaInput || (gaId as string) || ''}
+                      onChange={(e) => setGaInput(e.target.value)}
+                    />
+                    <Button
+                      size="sm"
+                      onClick={() => {
+                        updateSetting.mutate({ key: 'google_analytics_id', value: gaInput });
+                        toast({ title: gaInput ? 'Google Analytics aktiverat' : 'Google Analytics borttaget' });
+                      }}
+                    >
+                      Spara
+                    </Button>
+                  </div>
                 </div>
 
                 <div className="flex items-center justify-between p-4 rounded-lg border opacity-60">
