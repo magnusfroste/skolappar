@@ -6,13 +6,15 @@ import { PublicFooter } from "@/components/PublicFooter";
 import { TopAppsSection } from "@/components/TopAppsSection";
 import { RecentAppsSection } from "@/components/RecentAppsSection";
 import { TopIdeasSection } from "@/components/TopIdeasSection";
-import { SEO, websiteSchema, organizationSchema, faqSchema } from "@/components/SEO";
+import { SEO, buildWebsiteSchema, buildOrganizationSchema, buildFaqSchema } from "@/components/SEO";
+import { useSiteConfig } from "@/hooks/useSiteConfig";
 import { Sparkles, ArrowRight, BookOpen, Rocket, Users, Heart, Code, ChevronRight } from "lucide-react";
 
-const combinedSchema = [websiteSchema, organizationSchema, faqSchema];
 
 export default function Index() {
   const { user } = useAuth();
+  const config = useSiteConfig();
+  const combinedSchema = [buildWebsiteSchema(config), buildOrganizationSchema(config), buildFaqSchema(config)].filter(Boolean);
 
   return (
     <div className="min-h-screen bg-gradient-hero">

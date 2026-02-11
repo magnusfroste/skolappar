@@ -54,6 +54,7 @@ import {
 } from '@/hooks/useAdmin';
 import { IdeaStatusBadge } from '@/components/IdeaStatusBadge';
 import { useSetting, useUpdateSetting } from '@/hooks/useSettings';
+import { SeoSettingsPanel } from '@/components/SeoSettingsPanel';
 import { toast } from '@/hooks/use-toast';
 
 export default function Admin() {
@@ -305,7 +306,7 @@ export default function Admin() {
         </div>
 
         <Tabs defaultValue="pending" className="space-y-6">
-          <TabsList className="grid w-full max-w-3xl grid-cols-6">
+          <TabsList className="grid w-full max-w-4xl grid-cols-7">
             <TabsTrigger value="pending" className="gap-2">
               <Clock className="h-4 w-4" />
               <span className="hidden sm:inline">Väntande</span> ({pendingApps?.length || 0})
@@ -319,6 +320,10 @@ export default function Admin() {
             <TabsTrigger value="resources" className="gap-2">
               <FileText className="h-4 w-4" />
               <span className="hidden sm:inline">Resurser</span>
+            </TabsTrigger>
+            <TabsTrigger value="seo" className="gap-2">
+              🔍
+              <span className="hidden sm:inline">SEO</span>
             </TabsTrigger>
             <TabsTrigger value="settings" className="gap-2">
               <Settings className="h-4 w-4" />
@@ -1137,6 +1142,11 @@ export default function Admin() {
                 </Dialog>
               </CardContent>
             </Card>
+          </TabsContent>
+
+          {/* SEO/AEO Tab */}
+          <TabsContent value="seo">
+            <SeoSettingsPanel />
           </TabsContent>
 
           {/* Settings Tab */}

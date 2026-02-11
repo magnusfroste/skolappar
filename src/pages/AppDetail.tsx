@@ -15,6 +15,7 @@ import { RelatedApps } from '@/components/RelatedApps';
 import { PublicNav } from '@/components/PublicNav';
 import { PublicFooter } from '@/components/PublicFooter';
 import { SEO, createAppSchema } from '@/components/SEO';
+import { useSiteConfig } from '@/hooks/useSiteConfig';
 import { useAppDetails, useAppComments, useAddComment, useDeleteComment } from '@/hooks/useAppDetails';
 import { useToggleUpvote, useUserUpvotes } from '@/hooks/useApps';
 import { useTrackClick } from '@/hooks/useTrackClick';
@@ -105,6 +106,7 @@ export default function AppDetail() {
     );
   }
 
+  const config = useSiteConfig();
   const appSchema = createAppSchema({
     title: app.title,
     description: app.long_description || app.description,
@@ -112,7 +114,7 @@ export default function AppDetail() {
     image: app.image_url || undefined,
     creator: app.profile?.display_name,
     datePublished: app.created_at,
-  });
+  }, config);
 
   return (
     <div className="min-h-screen bg-gradient-hero">

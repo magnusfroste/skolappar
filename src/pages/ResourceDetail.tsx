@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { MarkdownRenderer } from "@/components/MarkdownRenderer";
 import { SEO, createArticleSchema } from "@/components/SEO";
+import { useSiteConfig } from "@/hooks/useSiteConfig";
 import { PublicNav } from "@/components/PublicNav";
 import { PublicFooter } from "@/components/PublicFooter";
 
@@ -43,13 +44,14 @@ export default function ResourceDetail() {
     );
   }
 
+  const config = useSiteConfig();
   const articleSchema = createArticleSchema({
     title: resource.title,
     description: resource.excerpt || resource.title,
     url: `/resurser/${category}/${slug}`,
     datePublished: resource.created_at,
     dateModified: resource.updated_at,
-  });
+  }, config);
 
   return (
     <div className="min-h-screen bg-background">
