@@ -57,6 +57,7 @@ import { useSetting, useUpdateSetting } from '@/hooks/useSettings';
 import { SeoSettingsPanel } from '@/components/SeoSettingsPanel';
 import { BrandingSettingsPanel } from '@/components/BrandingSettingsPanel';
 import { ThemeSettingsPanel } from '@/components/ThemeSettingsPanel';
+import { FontSettingsPanel } from '@/components/FontSettingsPanel';
 import { toast } from '@/hooks/use-toast';
 
 export default function Admin() {
@@ -1151,6 +1152,7 @@ export default function Admin() {
             <div className="space-y-6">
               <BrandingSettingsPanel />
               <ThemeSettingsPanel />
+              <FontSettingsPanel />
               <SeoSettingsPanel />
             </div>
           </TabsContent>
