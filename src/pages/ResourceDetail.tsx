@@ -45,7 +45,6 @@ export default function ResourceDetail() {
     );
   }
 
-  const config = useSiteConfig();
   const articleSchema = createArticleSchema({
     title: resource.title,
     description: resource.excerpt || resource.title,
