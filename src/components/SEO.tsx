@@ -179,3 +179,39 @@ export function createFaqSchema(faqs: Array<{ question: string; answer: string }
     })),
   };
 }
+
+export function createHowToSchema(howTo: {
+  name: string;
+  description: string;
+  steps: Array<{ name: string; text: string; url?: string }>;
+}, config: SiteConfig) {
+  return {
+    '@context': 'https://schema.org',
+    '@type': 'HowTo',
+    name: howTo.name,
+    description: howTo.description,
+    inLanguage: config.site_language,
+    step: howTo.steps.map((step, i) => ({
+      '@type': 'HowToStep',
+      position: i + 1,
+      name: step.name,
+      text: step.text,
+      url: step.url,
+    })),
+  };
+}
+
+export function createQAPageSchema(questions: Array<{ question: string; answer: string }>) {
+  return {
+    '@context': 'https://schema.org',
+    '@type': 'QAPage',
+    mainEntity: questions.map((q) => ({
+      '@type': 'Question',
+      name: q.question,
+      acceptedAnswer: {
+        '@type': 'Answer',
+        text: q.answer,
+      },
+    })),
+  };
+}
