@@ -1155,6 +1155,7 @@ export default function Admin() {
               <ThemeSettingsPanel />
               <FontSettingsPanel />
               <SeoSettingsPanel />
+              <AeoSettingsPanel />
             </div>
           </TabsContent>
 
