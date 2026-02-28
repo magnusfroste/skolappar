@@ -107,7 +107,6 @@ export default function AppDetail() {
     );
   }
 
-  const config = useSiteConfig();
   const appSchema = createAppSchema({
     title: app.title,
     description: app.long_description || app.description,
