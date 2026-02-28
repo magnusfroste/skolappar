@@ -5,6 +5,10 @@ Allow: /
 # Sitemap (dynamisk)
 Sitemap: https://eruyrrjgdzmeugwubppw.supabase.co/functions/v1/sitemap
 
+# LLMs.txt för AI-sökmotorer
+# https://llmstxt.org
+LLMsTxt: https://eruyrrjgdzmeugwubppw.supabase.co/functions/v1/llms-txt
+
 # Crawl-delay for polite crawling
 Crawl-delay: 1
 
