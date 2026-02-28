@@ -34,6 +34,7 @@ export default function AppDetail() {
   const navigate = useNavigate();
   const { user } = useAuth();
   const [commentText, setCommentText] = useState('');
+  const config = useSiteConfig();
 
   const { data: app, isLoading: appLoading } = useAppDetails(id);
   const { data: comments, isLoading: commentsLoading } = useAppComments(id);
@@ -106,7 +107,6 @@ export default function AppDetail() {
     );
   }
 
-  const config = useSiteConfig();
   const appSchema = createAppSchema({
     title: app.title,
     description: app.long_description || app.description,
