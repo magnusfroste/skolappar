@@ -11,6 +11,7 @@ import { PublicFooter } from "@/components/PublicFooter";
 export default function ResourceDetail() {
   const { category, slug } = useParams<{ category: string; slug: string }>();
   const { data: resource, isLoading, error } = useResource(slug || '');
+  const config = useSiteConfig();
 
   if (isLoading) {
     return (
@@ -44,7 +45,6 @@ export default function ResourceDetail() {
     );
   }
 
-  const config = useSiteConfig();
   const articleSchema = createArticleSchema({
     title: resource.title,
     description: resource.excerpt || resource.title,
