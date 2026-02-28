@@ -58,6 +58,7 @@ import { SeoSettingsPanel } from '@/components/SeoSettingsPanel';
 import { BrandingSettingsPanel } from '@/components/BrandingSettingsPanel';
 import { ThemeSettingsPanel } from '@/components/ThemeSettingsPanel';
 import { FontSettingsPanel } from '@/components/FontSettingsPanel';
+import { AeoSettingsPanel } from '@/components/AeoSettingsPanel';
 import { toast } from '@/hooks/use-toast';
 
 export default function Admin() {
