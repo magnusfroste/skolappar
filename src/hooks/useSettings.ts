@@ -12,7 +12,7 @@ export const useSetting = (key: string) => {
         .maybeSingle();
 
       if (error) throw error;
-      return data?.value;
+      return data?.value ?? null;
     },
   });
 };
