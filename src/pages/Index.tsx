@@ -89,10 +89,10 @@ export default function Index() {
         <div className="max-w-4xl mx-auto">
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
             {[
-              { icon: "📱", label: "Appar", value: "50+" },
-              { icon: "👨‍👩‍👧‍👦", label: "Föräldrar", value: "30+" },
-              { icon: "📚", label: "Ämnen", value: "9" },
-              { icon: "❤️", label: "Upvotes", value: "500+" },
+              { icon: "📱", label: "Appar", value: stats?.apps },
+              { icon: "👨‍👩‍👧‍👦", label: "Föräldrar", value: stats?.creators },
+              { icon: "📚", label: "Ämnen", value: stats?.subjects },
+              { icon: "❤️", label: "Röster", value: stats?.upvotes },
             ].map((stat, i) => (
               <div
                 key={i}
@@ -100,7 +100,9 @@ export default function Index() {
                 style={{ animationDelay: `${i * 100}ms` }}
               >
                 <div className="text-3xl mb-2">{stat.icon}</div>
-                <div className="text-3xl font-heading font-bold text-foreground">{stat.value}</div>
+                <div className="text-3xl font-heading font-bold text-foreground">
+                  {stat.value ?? "–"}
+                </div>
                 <div className="text-sm text-muted-foreground">{stat.label}</div>
               </div>
             ))}
