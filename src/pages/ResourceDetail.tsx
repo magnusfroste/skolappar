@@ -67,6 +67,7 @@ export default function ResourceDetail() {
     title: resource.title,
     description: resource.excerpt || resource.title,
     url: `/resurser/${category}/${slug}`,
+    image: resource.cover_image_url || undefined,
     datePublished: resource.created_at,
     dateModified: resource.updated_at,
   }, config);
