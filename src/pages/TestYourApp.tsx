@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Helmet } from "react-helmet";
+import { SEO } from "@/components/SEO";
 import { Link2, Sparkles, ArrowRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -33,13 +33,11 @@ export default function TestYourApp() {
 
   return (
     <>
-      <Helmet>
-        <title>Testa din app | Skolappar.com</title>
-        <meta 
-          name="description" 
-          content="Testa om din pedagogiska app är redo för plattor och mobiler innan du skickar in den." 
-        />
-      </Helmet>
+      <SEO
+        title="Testa din app"
+        description="Testa om din pedagogiska app är redo för plattor och mobiler innan du skickar in den."
+        url="/testa-din-app"
+      />
 
       <PublicNav variant="solid" />
 

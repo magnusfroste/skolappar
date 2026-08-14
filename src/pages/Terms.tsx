@@ -1,13 +1,14 @@
 import { PublicNav } from "@/components/PublicNav";
 import { PublicFooter } from "@/components/PublicFooter";
+import { SEO } from "@/components/SEO";
 
 const Terms = () => {
   return (
     <>
-      <title>Allmänna villkor | skolappar.com</title>
-      <meta 
-        name="description" 
-        content="Läs våra allmänna villkor för att publicera och använda pedagogiska appar på skolappar.com." 
+      <SEO
+        title="Allmänna villkor"
+        description="Läs våra allmänna villkor för att publicera och använda pedagogiska appar på skolappar.com."
+        url="/villkor"
       />
       
       <div className="min-h-screen bg-background flex flex-col">

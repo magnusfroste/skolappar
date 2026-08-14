@@ -1,13 +1,14 @@
 import { PublicNav } from "@/components/PublicNav";
 import { PublicFooter } from "@/components/PublicFooter";
+import { SEO } from "@/components/SEO";
 
 const Privacy = () => {
   return (
     <>
-      <title>Integritetspolicy | skolappar.com</title>
-      <meta 
-        name="description" 
-        content="Läs om hur skolappar.com hanterar och skyddar dina personuppgifter i enlighet med GDPR." 
+      <SEO
+        title="Integritetspolicy"
+        description="Läs om hur skolappar.com hanterar och skyddar dina personuppgifter i enlighet med GDPR."
+        url="/integritet"
       />
       
       <div className="min-h-screen bg-background flex flex-col">
