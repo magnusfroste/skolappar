@@ -115,13 +115,17 @@ export function AppCardVisual({
           <div className="flex items-center justify-between pt-1 text-sm text-muted-foreground">
             <div className="flex items-center gap-3 min-w-0">
               {creatorName && creatorId ? (
-                <Link 
-                  to={`/profil/${creatorId}`} 
+                <button
+                  type="button"
                   className="truncate hover:text-primary transition-colors text-xs font-medium"
-                  onClick={(e) => e.stopPropagation()}
+                  onClick={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    navigate(`/profil/${creatorId}`);
+                  }}
                 >
                   {creatorName}
-                </Link>
+                </button>
               ) : creatorName ? (
                 <span className="truncate text-xs">{creatorName}</span>
               ) : null}
