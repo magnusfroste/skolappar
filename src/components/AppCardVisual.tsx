@@ -1,4 +1,4 @@
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { ChevronUp, MessageCircle, Eye } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -42,6 +42,8 @@ export function AppCardVisual({
   hasUpvoted,
   onUpvote,
 }: AppCardVisualProps) {
+  const navigate = useNavigate();
+
   return (
     <Link to={`/app/${id}`} className="block group">
       <Card className="overflow-hidden border-0 bg-card/90 backdrop-blur-sm shadow-playful hover:shadow-playful-lg transition-all duration-300 hover:-translate-y-2 hover:border-primary/20">
