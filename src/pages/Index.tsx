@@ -14,6 +14,7 @@ import { Sparkles, ArrowRight, BookOpen, Rocket, Users, Heart, Code, ChevronRigh
 export default function Index() {
   const { user } = useAuth();
   const config = useSiteConfig();
+  const { data: stats } = usePlatformStats();
   const combinedSchema = [buildWebsiteSchema(config), buildOrganizationSchema(config), buildFaqSchema(config)].filter(Boolean);
 
   return (
