@@ -1,4 +1,4 @@
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { ChevronUp, MessageCircle, Eye } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -42,6 +42,8 @@ export function AppCardVisual({
   hasUpvoted,
   onUpvote,
 }: AppCardVisualProps) {
+  const navigate = useNavigate();
+
   return (
     <Link to={`/app/${id}`} className="block group">
       <Card className="overflow-hidden border-0 bg-card/90 backdrop-blur-sm shadow-playful hover:shadow-playful-lg transition-all duration-300 hover:-translate-y-2 hover:border-primary/20">
@@ -52,6 +54,8 @@ export function AppCardVisual({
               src={imageUrl}
               alt={title}
               className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500 ease-out"
+              loading="lazy"
+              decoding="async"
             />
           ) : (
             <div className="w-full h-full flex items-center justify-center text-6xl bg-gradient-to-br from-primary/10 to-secondary/10 group-hover:from-primary/20 group-hover:to-secondary/20 transition-colors duration-300">
@@ -115,13 +119,17 @@ export function AppCardVisual({
           <div className="flex items-center justify-between pt-1 text-sm text-muted-foreground">
             <div className="flex items-center gap-3 min-w-0">
               {creatorName && creatorId ? (
-                <Link 
-                  to={`/profil/${creatorId}`} 
+                <button
+                  type="button"
                   className="truncate hover:text-primary transition-colors text-xs font-medium"
-                  onClick={(e) => e.stopPropagation()}
+                  onClick={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    navigate(`/profil/${creatorId}`);
+                  }}
                 >
                   {creatorName}
-                </Link>
+                </button>
               ) : creatorName ? (
                 <span className="truncate text-xs">{creatorName}</span>
               ) : null}

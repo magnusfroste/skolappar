@@ -1,6 +1,7 @@
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
+import { Suspense, lazy } from "react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { AuthProvider } from "@/hooks/useAuth";
@@ -8,29 +9,32 @@ import { GoogleAnalytics } from "@/components/GoogleAnalytics";
 import { DynamicFavicon } from "@/components/DynamicFavicon";
 import { DynamicTheme } from "@/components/DynamicTheme";
 import { DynamicFont } from "@/components/DynamicFont";
-import Index from "./pages/Index";
-import Auth from "./pages/Auth";
-import Apps from "./pages/Apps";
-import Dashboard from "./pages/Dashboard";
-import DashboardEdit from "./pages/DashboardEdit";
-import DashboardCreate from "./pages/DashboardCreate";
-import DashboardCreateIdea from "./pages/DashboardCreateIdea";
-import Ideas from "./pages/Ideas";
-import IdeaDetail from "./pages/IdeaDetail";
-import Admin from "./pages/Admin";
-import Profile from "./pages/Profile";
-import EditProfile from "./pages/EditProfile";
-import AppDetail from "./pages/AppDetail";
-import Resources from "./pages/Resources";
-import ResourceList from "./pages/ResourceList";
-import ResourceDetail from "./pages/ResourceDetail";
-import NotFound from "./pages/NotFound";
-import StarterDemo from "./pages/StarterDemo";
-import Terms from "./pages/Terms";
-import Privacy from "./pages/Privacy";
-import TestYourApp from "./pages/TestYourApp";
 
-const queryClient = new QueryClient();
+const Index = lazy(() => import("./pages/Index"));
+const Auth = lazy(() => import("./pages/Auth"));
+const Apps = lazy(() => import("./pages/Apps"));
+const Dashboard = lazy(() => import("./pages/Dashboard"));
+const DashboardEdit = lazy(() => import("./pages/DashboardEdit"));
+const DashboardCreate = lazy(() => import("./pages/DashboardCreate"));
+const DashboardCreateIdea = lazy(() => import("./pages/DashboardCreateIdea"));
+const Ideas = lazy(() => import("./pages/Ideas"));
+const IdeaDetail = lazy(() => import("./pages/IdeaDetail"));
+const Admin = lazy(() => import("./pages/Admin"));
+const Profile = lazy(() => import("./pages/Profile"));
+const EditProfile = lazy(() => import("./pages/EditProfile"));
+const AppDetail = lazy(() => import("./pages/AppDetail"));
+const Resources = lazy(() => import("./pages/Resources"));
+const ResourceList = lazy(() => import("./pages/ResourceList"));
+const ResourceDetail = lazy(() => import("./pages/ResourceDetail"));
+const NotFound = lazy(() => import("./pages/NotFound"));
+const StarterDemo = lazy(() => import("./pages/StarterDemo"));
+const Terms = lazy(() => import("./pages/Terms"));
+const Privacy = lazy(() => import("./pages/Privacy"));
+const TestYourApp = lazy(() => import("./pages/TestYourApp"));
+
+const queryClient = new QueryClient({
+  defaultOptions: { queries: { staleTime: 60_000, refetchOnWindowFocus: false, retry: 1 } },
+});
 
 const App = () => (
   <QueryClientProvider client={queryClient}>
@@ -43,6 +47,7 @@ const App = () => (
         <DynamicTheme />
         <DynamicFont />
         <BrowserRouter>
+          <Suspense fallback={<div className="min-h-screen" />}>
           <Routes>
             <Route path="/" element={<Index />} />
             <Route path="/auth" element={<Auth />} />
@@ -67,6 +72,7 @@ const App = () => (
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
           </Routes>
+          </Suspense>
         </BrowserRouter>
       </TooltipProvider>
     </AuthProvider>

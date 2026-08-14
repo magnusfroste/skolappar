@@ -48,6 +48,8 @@ export function RelatedApps({ appId, categoryIds }: RelatedAppsProps) {
                     src={app.image_url}
                     alt={app.title}
                     className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+              loading="lazy"
+              decoding="async"
                   />
                 </div>
               ) : (
