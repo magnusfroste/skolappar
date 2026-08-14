@@ -3,7 +3,7 @@ User-agent: *
 Allow: /
 
 # Sitemap (dynamisk)
-Sitemap: https://eruyrrjgdzmeugwubppw.supabase.co/functions/v1/sitemap
+Sitemap: https://www.skolappar.com/sitemap.xml
 
 # LLMs.txt för AI-sökmotorer
 # https://llmstxt.org

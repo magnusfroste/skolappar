@@ -15,6 +15,16 @@ interface SEOProps {
   jsonLd?: object;
 }
 
+export function baseUrl(config: SiteConfig) {
+  return (config.site_url || '').replace(/\/$/, '');
+}
+
+export function absoluteUrl(value: string | undefined, base: string) {
+  if (!value) return undefined;
+  if (/^https?:\/\//i.test(value)) return value;
+  return `${base}${value.startsWith('/') ? '' : '/'}${value}`;
+}
+
 export function SEO({
   title,
   description,
@@ -25,10 +35,14 @@ export function SEO({
   jsonLd,
 }: SEOProps) {
   const config = useSiteConfig();
-  const fullTitle = title ? `${title} | ${config.site_name}` : `${config.site_name} - ${config.site_description.slice(0, 50)}`;
-  const canonicalUrl = url ? `${config.site_url}${url}` : config.site_url;
+  const base = baseUrl(config);
+  const cleanTitle = title?.replace(new RegExp(`\\s*\\|\\s*${config.site_name}\\s*$`, 'i'), '').trim();
+  const fullTitle = cleanTitle
+    ? `${cleanTitle} | ${config.site_name}`
+    : `${config.site_name} – pedagogiska appar av föräldrar för barn`;
+  const canonicalUrl = url ? `${base}${url}` : `${base}/`;
   const metaDescription = description || config.site_description;
-  const metaImage = image || config.site_image;
+  const metaImage = absoluteUrl(image || config.site_image, base);
 
   return (
     <Helmet>
@@ -78,12 +92,12 @@ export function buildWebsiteSchema(config: SiteConfig) {
     '@context': 'https://schema.org',
     '@type': 'WebSite',
     name: config.site_name,
-    url: config.site_url,
+    url: `${baseUrl(config)}/`,
     description: config.site_description,
     inLanguage: config.site_language,
     potentialAction: {
       '@type': 'SearchAction',
-      target: `${config.site_url}/appar?search={search_term_string}`,
+      target: `${baseUrl(config)}/apps?search={search_term_string}`,
       'query-input': 'required name=search_term_string',
     },
   };
@@ -94,8 +108,8 @@ export function buildOrganizationSchema(config: SiteConfig) {
     '@context': 'https://schema.org',
     '@type': 'Organization',
     name: config.organization_name || config.site_name,
-    url: config.site_url,
-    logo: config.site_logo || `${config.site_url}/favicon.png`,
+    url: `${baseUrl(config)}/`,
+    logo: absoluteUrl(config.site_logo, baseUrl(config)) || `${baseUrl(config)}/favicon.png`,
     description: config.site_description,
     sameAs: [],
   };
@@ -121,17 +135,20 @@ export function createAppSchema(app: {
   title: string;
   description: string;
   url: string;
+  pageUrl?: string;
   image?: string;
   creator?: string;
   datePublished?: string;
 }, config: SiteConfig) {
+  const base = baseUrl(config);
   return {
     '@context': 'https://schema.org',
     '@type': 'SoftwareApplication',
     name: app.title,
     description: app.description,
-    url: app.url,
-    image: app.image,
+    url: app.pageUrl ? `${base}${app.pageUrl}` : app.url,
+    installUrl: app.url,
+    image: absoluteUrl(app.image, base) || absoluteUrl(config.site_image, base),
     applicationCategory: 'EducationalApplication',
     operatingSystem: 'Web',
     inLanguage: config.site_language,
@@ -149,15 +166,25 @@ export function createArticleSchema(article: {
   title: string;
   description: string;
   url: string;
+  image?: string;
+  author?: string;
   datePublished?: string;
   dateModified?: string;
 }, config: SiteConfig) {
+  const base = baseUrl(config);
   return {
     '@context': 'https://schema.org',
     '@type': 'Article',
     headline: article.title,
     description: article.description,
-    url: `${config.site_url}${article.url}`,
+    url: `${base}${article.url}`,
+    image: absoluteUrl(article.image, base) || absoluteUrl(config.site_image, base),
+    author: {
+      '@type': 'Organization',
+      name: article.author || config.organization_name || config.site_name,
+      url: `${base}/`,
+    },
+    mainEntityOfPage: { '@type': 'WebPage', '@id': `${base}${article.url}` },
     inLanguage: config.site_language,
     datePublished: article.datePublished,
     dateModified: article.dateModified,

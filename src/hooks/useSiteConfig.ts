@@ -17,7 +17,7 @@ export interface SiteConfig {
 
 const DEFAULTS: SiteConfig = {
   site_name: "Skolappar",
-  site_url: "https://skolappar.com",
+  site_url: "https://www.skolappar.com",
   site_description:
     "En community där engagerade föräldrar delar sina hemmagjorda skolappar. Utforska pedagogiska appar för barn i alla åldrar. Delad glädje är dubbel glädje!",
   site_language: "sv",

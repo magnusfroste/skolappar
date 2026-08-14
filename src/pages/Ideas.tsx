@@ -91,8 +91,9 @@ export default function Ideas() {
   return (
     <div className="min-h-screen bg-background">
       <SEO
-        title="App-idéer | Skolappar"
+        title="App-idéer"
         description="Föreslå appar du behöver eller bygg någon annans idé. Tillsammans skapar vi bättre pedagogiska verktyg för våra barn."
+        url="/ideer"
       />
       <PublicNav />
 

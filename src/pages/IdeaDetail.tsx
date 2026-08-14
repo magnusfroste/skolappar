@@ -79,8 +79,9 @@ export default function IdeaDetail() {
   return (
     <div className="min-h-screen bg-background">
       <SEO
-        title={`${idea.title} | App-idéer | Skolappar`}
+        title={`${idea.title} – app-idé`}
         description={idea.description.slice(0, 160)}
+        url={`/ideer/${idea.id}`}
       />
       <PublicNav />
 

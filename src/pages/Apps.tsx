@@ -164,7 +164,7 @@ export default function Apps() {
       <SEO 
         title="Utforska pedagogiska appar"
         description="Upptäck och utforska pedagogiska appar skapade av engagerade föräldrar. Hitta appar för matematik, svenska, engelska och mer."
-        url="/appar"
+        url="/apps"
       />
       
       {/* Navigation */}

@@ -1,0 +1,1 @@
+UPDATE public.settings SET value = to_jsonb('https://www.skolappar.com'::text) WHERE key = 'site_url';

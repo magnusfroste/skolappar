@@ -5,7 +5,7 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 }
 
-const SITE_URL = 'https://skolappar.com'
+const SITE_URL = 'https://www.skolappar.com'
 
 Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') {
@@ -51,7 +51,7 @@ Deno.serve(async (req) => {
     <priority>1.0</priority>
   </url>
   <url>
-    <loc>${SITE_URL}/appar</loc>
+    <loc>${SITE_URL}/apps</loc>
     <lastmod>${today}</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.9</priority>

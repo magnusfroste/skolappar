@@ -111,6 +111,7 @@ export default function AppDetail() {
     title: app.title,
     description: app.long_description || app.description,
     url: app.url,
+    pageUrl: `/app/${app.id}`,
     image: app.image_url || undefined,
     creator: app.profile?.display_name,
     datePublished: app.created_at,
