@@ -28,7 +28,7 @@ Deno.serve(async (req) => {
     settings?.forEach((s: any) => { config[s.key] = s.value })
 
     const siteName = config.site_name || 'Skolappar'
-    const siteUrl = config.site_url || 'https://skolappar.com'
+    const siteUrl = config.site_url || 'https://www.skolappar.com'
     const siteDesc = config.site_description || 'En community där engagerade föräldrar delar sina hemmagjorda skolappar.'
     const siteLang = config.site_language || 'sv'
     const orgName = config.organization_name || 'Skolappar'
