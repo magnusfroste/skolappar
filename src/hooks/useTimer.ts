@@ -15,7 +15,7 @@ export function useTimer({
 }: UseTimerOptions = {}) {
   const [time, setTime] = useState(initialTime);
   const [isRunning, setIsRunning] = useState(autoStart);
-  const intervalRef = useRef<NodeJS.Timeout | null>(null);
+  const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   const clear = useCallback(() => {
     if (intervalRef.current) {
