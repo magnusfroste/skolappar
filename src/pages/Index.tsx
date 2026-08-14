@@ -8,6 +8,7 @@ import { RecentAppsSection } from "@/components/RecentAppsSection";
 import { TopIdeasSection } from "@/components/TopIdeasSection";
 import { SEO, buildWebsiteSchema, buildOrganizationSchema, buildFaqSchema } from "@/components/SEO";
 import { useSiteConfig } from "@/hooks/useSiteConfig";
+import { usePlatformStats } from "@/hooks/useStats";
 import { Sparkles, ArrowRight, BookOpen, Rocket, Users, Heart, Code, ChevronRight } from "lucide-react";
 
 
