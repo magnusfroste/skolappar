@@ -225,21 +225,70 @@ var list_ideas_default = defineTool6({
   }
 });
 
-// src/lib/mcp/tools/update-idea.ts
+// src/lib/mcp/tools/get-idea.ts
 import { defineTool as defineTool7 } from "npm:@lovable.dev/mcp-js@2.0.2";
 import { z as z7 } from "npm:zod@^3.25.76";
-var update_idea_default = defineTool7({
+var get_idea_default = defineTool7({
+  name: "get_idea",
+  title: "H\xE4mta app-id\xE9",
+  description: "H\xE4mta alla detaljer om en enskild app-id\xE9.",
+  inputSchema: { id: z7.string().uuid() },
+  annotations: { readOnlyHint: true, openWorldHint: false },
+  handler: async ({ id }, ctx) => {
+    requireAuth(ctx);
+    const { data, error } = await supabaseForUser(ctx).from("ideas").select("*").eq("id", id).maybeSingle();
+    if (error) return fail(error.message);
+    if (!data) return fail("Id\xE9n hittades inte.");
+    return ok(data);
+  }
+});
+
+// src/lib/mcp/tools/create-idea.ts
+import { defineTool as defineTool8 } from "npm:@lovable.dev/mcp-js@2.0.2";
+import { z as z8 } from "npm:zod@^3.25.76";
+var create_idea_default = defineTool8({
+  name: "create_idea",
+  title: "Skapa app-id\xE9",
+  description: "L\xE4gg till en ny app-id\xE9 i community-listan.",
+  inputSchema: {
+    title: z8.string().trim().min(2).max(120),
+    description: z8.string().trim().min(5).max(5e3),
+    target_age: z8.string().trim().max(60).optional(),
+    target_subject: z8.string().trim().max(60).optional(),
+    status: z8.enum(["open", "claimed", "built"]).optional()
+  },
+  annotations: { readOnlyHint: false, openWorldHint: false },
+  handler: async ({ title, description, target_age, target_subject, status }, ctx) => {
+    requireAuth(ctx);
+    const { data, error } = await supabaseForUser(ctx).from("ideas").insert({
+      title,
+      description,
+      target_age: target_age ?? null,
+      target_subject: target_subject ?? null,
+      status: status ?? "open",
+      user_id: ctx.getUserId()
+    }).select().maybeSingle();
+    if (error) return fail(error.message);
+    if (!data) return fail("Id\xE9n kunde inte skapas.");
+    return ok(data);
+  }
+});
+
+// src/lib/mcp/tools/update-idea.ts
+import { defineTool as defineTool9 } from "npm:@lovable.dev/mcp-js@2.0.2";
+import { z as z9 } from "npm:zod@^3.25.76";
+var update_idea_default = defineTool9({
   name: "update_idea",
   title: "Uppdatera app-id\xE9",
   description: "Redigera en id\xE9 eller \xE4ndra dess status (\xF6ppen, p\xE5b\xF6rjad, byggd).",
   inputSchema: {
-    id: z7.string().uuid(),
-    title: z7.string().trim().min(2).max(120).optional(),
-    description: z7.string().trim().min(5).max(5e3).optional(),
-    target_age: z7.string().trim().max(60).optional(),
-    target_subject: z7.string().trim().max(60).optional(),
-    status: z7.enum(["open", "claimed", "built"]).optional(),
-    built_app_id: z7.string().uuid().optional()
+    id: z9.string().uuid(),
+    title: z9.string().trim().min(2).max(120).optional(),
+    description: z9.string().trim().min(5).max(5e3).optional(),
+    target_age: z9.string().trim().max(60).optional(),
+    target_subject: z9.string().trim().max(60).optional(),
+    status: z9.enum(["open", "claimed", "built"]).optional(),
+    built_app_id: z9.string().uuid().optional()
   },
   annotations: { readOnlyHint: false, openWorldHint: false },
   handler: async ({ id, ...fields }, ctx) => {
@@ -253,14 +302,36 @@ var update_idea_default = defineTool7({
   }
 });
 
+// src/lib/mcp/tools/claim-idea.ts
+import { defineTool as defineTool10 } from "npm:@lovable.dev/mcp-js@2.0.2";
+import { z as z10 } from "npm:zod@^3.25.76";
+var claim_idea_default = defineTool10({
+  name: "claim_idea",
+  title: "Ta an eller sl\xE4pp app-id\xE9",
+  description: "Markera en id\xE9 som p\xE5b\xF6rjad av den inloggade anv\xE4ndaren, eller sl\xE4pp den tillbaka som \xF6ppen.",
+  inputSchema: {
+    id: z10.string().uuid(),
+    release: z10.boolean().optional().describe("S\xE4tt true f\xF6r att sl\xE4ppa id\xE9n som \xF6ppen igen.")
+  },
+  annotations: { readOnlyHint: false, openWorldHint: false },
+  handler: async ({ id, release }, ctx) => {
+    requireAuth(ctx);
+    const patch = release ? { claimed_by: null, claimed_at: null, status: "open" } : { claimed_by: ctx.getUserId(), claimed_at: (/* @__PURE__ */ new Date()).toISOString(), status: "claimed" };
+    const { data, error } = await supabaseForUser(ctx).from("ideas").update(patch).eq("id", id).select().maybeSingle();
+    if (error) return fail(error.message);
+    if (!data) return fail("Id\xE9n hittades inte eller saknar beh\xF6righet.");
+    return ok(data);
+  }
+});
+
 // src/lib/mcp/tools/delete-idea.ts
-import { defineTool as defineTool8 } from "npm:@lovable.dev/mcp-js@2.0.2";
-import { z as z8 } from "npm:zod@^3.25.76";
-var delete_idea_default = defineTool8({
+import { defineTool as defineTool11 } from "npm:@lovable.dev/mcp-js@2.0.2";
+import { z as z11 } from "npm:zod@^3.25.76";
+var delete_idea_default = defineTool11({
   name: "delete_idea",
   title: "Ta bort app-id\xE9",
   description: "Radera en app-id\xE9 permanent.",
-  inputSchema: { id: z8.string().uuid() },
+  inputSchema: { id: z11.string().uuid() },
   annotations: { readOnlyHint: false, destructiveHint: true, openWorldHint: false },
   handler: async ({ id }, ctx) => {
     requireAuth(ctx);
@@ -270,17 +341,17 @@ var delete_idea_default = defineTool8({
 });
 
 // src/lib/mcp/tools/list-resources.ts
-import { defineTool as defineTool9 } from "npm:@lovable.dev/mcp-js@2.0.2";
-import { z as z9 } from "npm:zod@^3.25.76";
-var list_resources_default = defineTool9({
+import { defineTool as defineTool12 } from "npm:@lovable.dev/mcp-js@2.0.2";
+import { z as z12 } from "npm:zod@^3.25.76";
+var list_resources_default = defineTool12({
   name: "list_resources",
   title: "Lista resurser",
   description: "Lista kunskapsartiklar (resurser), inklusive opublicerade f\xF6r admin.",
   inputSchema: {
-    category: z9.string().trim().min(1).optional(),
-    include_unpublished: z9.boolean().default(true),
-    with_content: z9.boolean().default(false),
-    limit: z9.number().int().min(1).max(200).default(50)
+    category: z12.string().trim().min(1).optional(),
+    include_unpublished: z12.boolean().default(true),
+    with_content: z12.boolean().default(false),
+    limit: z12.number().int().min(1).max(200).default(50)
   },
   annotations: { readOnlyHint: true, openWorldHint: false },
   handler: async ({ category, include_unpublished, with_content, limit }, ctx) => {
@@ -295,22 +366,22 @@ var list_resources_default = defineTool9({
 });
 
 // src/lib/mcp/tools/upsert-resource.ts
-import { defineTool as defineTool10 } from "npm:@lovable.dev/mcp-js@2.0.2";
-import { z as z10 } from "npm:zod@^3.25.76";
-var upsert_resource_default = defineTool10({
+import { defineTool as defineTool13 } from "npm:@lovable.dev/mcp-js@2.0.2";
+import { z as z13 } from "npm:zod@^3.25.76";
+var upsert_resource_default = defineTool13({
   name: "upsert_resource",
   title: "Skapa eller uppdatera resurs",
   description: "Skapa en ny kunskapsartikel, eller uppdatera en befintlig n\xE4r id anges. Inneh\xE5llet \xE4r Markdown.",
   inputSchema: {
-    id: z10.string().uuid().optional().describe("Utel\xE4mna f\xF6r att skapa en ny resurs."),
-    title: z10.string().trim().min(2).max(160).optional(),
-    slug: z10.string().trim().regex(/^[a-z0-9-]+$/).max(160).optional(),
-    excerpt: z10.string().trim().max(400).optional(),
-    content: z10.string().trim().max(1e5).optional(),
-    category: z10.string().trim().min(1).max(60).optional(),
-    icon: z10.string().trim().max(60).optional(),
-    sort_order: z10.number().int().min(0).max(9999).optional(),
-    is_published: z10.boolean().optional()
+    id: z13.string().uuid().optional().describe("Utel\xE4mna f\xF6r att skapa en ny resurs."),
+    title: z13.string().trim().min(2).max(160).optional(),
+    slug: z13.string().trim().regex(/^[a-z0-9-]+$/).max(160).optional(),
+    excerpt: z13.string().trim().max(400).optional(),
+    content: z13.string().trim().max(1e5).optional(),
+    category: z13.string().trim().min(1).max(60).optional(),
+    icon: z13.string().trim().max(60).optional(),
+    sort_order: z13.number().int().min(0).max(9999).optional(),
+    is_published: z13.boolean().optional()
   },
   annotations: { readOnlyHint: false, openWorldHint: false },
   handler: async ({ id, ...fields }, ctx) => {
@@ -333,13 +404,13 @@ var upsert_resource_default = defineTool10({
 });
 
 // src/lib/mcp/tools/delete-resource.ts
-import { defineTool as defineTool11 } from "npm:@lovable.dev/mcp-js@2.0.2";
-import { z as z11 } from "npm:zod@^3.25.76";
-var delete_resource_default = defineTool11({
+import { defineTool as defineTool14 } from "npm:@lovable.dev/mcp-js@2.0.2";
+import { z as z14 } from "npm:zod@^3.25.76";
+var delete_resource_default = defineTool14({
   name: "delete_resource",
   title: "Ta bort resurs",
   description: "Radera en kunskapsartikel permanent.",
-  inputSchema: { id: z11.string().uuid() },
+  inputSchema: { id: z14.string().uuid() },
   annotations: { readOnlyHint: false, destructiveHint: true, openWorldHint: false },
   handler: async ({ id }, ctx) => {
     requireAuth(ctx);
@@ -349,13 +420,13 @@ var delete_resource_default = defineTool11({
 });
 
 // src/lib/mcp/tools/list-categories.ts
-import { defineTool as defineTool12 } from "npm:@lovable.dev/mcp-js@2.0.2";
-import { z as z12 } from "npm:zod@^3.25.76";
-var list_categories_default = defineTool12({
+import { defineTool as defineTool15 } from "npm:@lovable.dev/mcp-js@2.0.2";
+import { z as z15 } from "npm:zod@^3.25.76";
+var list_categories_default = defineTool15({
   name: "list_categories",
   title: "Lista kategorier",
   description: "Lista alla kategorier (\xE4mne, \xE5lder, typ, enhet) med id att anv\xE4nda vid app-uppdateringar.",
-  inputSchema: { type: z12.string().trim().min(1).optional() },
+  inputSchema: { type: z15.string().trim().min(1).optional() },
   annotations: { readOnlyHint: true, openWorldHint: false },
   handler: async ({ type }, ctx) => {
     requireAuth(ctx);
@@ -367,21 +438,21 @@ var list_categories_default = defineTool12({
 });
 
 // src/lib/mcp/tools/upsert-category.ts
-import { defineTool as defineTool13 } from "npm:@lovable.dev/mcp-js@2.0.2";
-import { z as z13 } from "npm:zod@^3.25.76";
-var upsert_category_default = defineTool13({
+import { defineTool as defineTool16 } from "npm:@lovable.dev/mcp-js@2.0.2";
+import { z as z16 } from "npm:zod@^3.25.76";
+var upsert_category_default = defineTool16({
   name: "upsert_category",
   title: "Skapa eller uppdatera kategori",
   description: "Skapa en ny kategori, eller uppdatera en befintlig n\xE4r id anges.",
   inputSchema: {
-    id: z13.string().uuid().optional(),
-    name: z13.string().trim().min(1).max(60).optional(),
-    slug: z13.string().trim().regex(/^[a-z0-9-]+$/).max(60).optional(),
-    type: z13.string().trim().min(1).max(40).optional(),
-    description: z13.string().trim().max(300).optional(),
-    icon: z13.string().trim().max(60).optional(),
-    color: z13.string().trim().max(40).optional(),
-    sort_order: z13.number().int().min(0).max(9999).optional()
+    id: z16.string().uuid().optional(),
+    name: z16.string().trim().min(1).max(60).optional(),
+    slug: z16.string().trim().regex(/^[a-z0-9-]+$/).max(60).optional(),
+    type: z16.string().trim().min(1).max(40).optional(),
+    description: z16.string().trim().max(300).optional(),
+    icon: z16.string().trim().max(60).optional(),
+    color: z16.string().trim().max(40).optional(),
+    sort_order: z16.number().int().min(0).max(9999).optional()
   },
   annotations: { readOnlyHint: false, openWorldHint: false },
   handler: async ({ id, ...fields }, ctx) => {
@@ -402,13 +473,13 @@ var upsert_category_default = defineTool13({
 });
 
 // src/lib/mcp/tools/delete-category.ts
-import { defineTool as defineTool14 } from "npm:@lovable.dev/mcp-js@2.0.2";
-import { z as z14 } from "npm:zod@^3.25.76";
-var delete_category_default = defineTool14({
+import { defineTool as defineTool17 } from "npm:@lovable.dev/mcp-js@2.0.2";
+import { z as z17 } from "npm:zod@^3.25.76";
+var delete_category_default = defineTool17({
   name: "delete_category",
   title: "Ta bort kategori",
   description: "Radera en kategori permanent.",
-  inputSchema: { id: z14.string().uuid() },
+  inputSchema: { id: z17.string().uuid() },
   annotations: { readOnlyHint: false, destructiveHint: true, openWorldHint: false },
   handler: async ({ id }, ctx) => {
     requireAuth(ctx);
@@ -418,15 +489,15 @@ var delete_category_default = defineTool14({
 });
 
 // src/lib/mcp/tools/list-comments.ts
-import { defineTool as defineTool15 } from "npm:@lovable.dev/mcp-js@2.0.2";
-import { z as z15 } from "npm:zod@^3.25.76";
-var list_comments_default = defineTool15({
+import { defineTool as defineTool18 } from "npm:@lovable.dev/mcp-js@2.0.2";
+import { z as z18 } from "npm:zod@^3.25.76";
+var list_comments_default = defineTool18({
   name: "list_comments",
   title: "Lista kommentarer",
   description: "Lista de senaste kommentarerna p\xE5 appar och id\xE9er f\xF6r moderering.",
   inputSchema: {
-    source: z15.enum(["apps", "ideas", "both"]).default("both"),
-    limit: z15.number().int().min(1).max(100).default(25)
+    source: z18.enum(["apps", "ideas", "both"]).default("both"),
+    limit: z18.number().int().min(1).max(100).default(25)
   },
   annotations: { readOnlyHint: true, openWorldHint: false },
   handler: async ({ source, limit }, ctx) => {
@@ -448,15 +519,15 @@ var list_comments_default = defineTool15({
 });
 
 // src/lib/mcp/tools/delete-comment.ts
-import { defineTool as defineTool16 } from "npm:@lovable.dev/mcp-js@2.0.2";
-import { z as z16 } from "npm:zod@^3.25.76";
-var delete_comment_default = defineTool16({
+import { defineTool as defineTool19 } from "npm:@lovable.dev/mcp-js@2.0.2";
+import { z as z19 } from "npm:zod@^3.25.76";
+var delete_comment_default = defineTool19({
   name: "delete_comment",
   title: "Ta bort kommentar",
   description: "Moderera bort en kommentar p\xE5 en app eller en id\xE9.",
   inputSchema: {
-    id: z16.string().uuid(),
-    source: z16.enum(["app", "idea"]).default("app")
+    id: z19.string().uuid(),
+    source: z19.enum(["app", "idea"]).default("app")
   },
   annotations: { readOnlyHint: false, destructiveHint: true, openWorldHint: false },
   handler: async ({ id, source }, ctx) => {
@@ -468,13 +539,13 @@ var delete_comment_default = defineTool16({
 });
 
 // src/lib/mcp/tools/list-settings.ts
-import { defineTool as defineTool17 } from "npm:@lovable.dev/mcp-js@2.0.2";
-import { z as z17 } from "npm:zod@^3.25.76";
-var list_settings_default = defineTool17({
+import { defineTool as defineTool20 } from "npm:@lovable.dev/mcp-js@2.0.2";
+import { z as z20 } from "npm:zod@^3.25.76";
+var list_settings_default = defineTool20({
   name: "list_settings",
   title: "Lista inst\xE4llningar",
   description: "L\xE4s plattformens inst\xE4llningar: varum\xE4rke, tema, typsnitt, SEO/AEO, analys och startsidans sektioner.",
-  inputSchema: { key_prefix: z17.string().trim().min(1).optional() },
+  inputSchema: { key_prefix: z20.string().trim().min(1).optional() },
   annotations: { readOnlyHint: true, openWorldHint: false },
   handler: async ({ key_prefix }, ctx) => {
     requireAuth(ctx);
@@ -486,15 +557,15 @@ var list_settings_default = defineTool17({
 });
 
 // src/lib/mcp/tools/set-setting.ts
-import { defineTool as defineTool18 } from "npm:@lovable.dev/mcp-js@2.0.2";
-import { z as z18 } from "npm:zod@^3.25.76";
-var set_setting_default = defineTool18({
+import { defineTool as defineTool21 } from "npm:@lovable.dev/mcp-js@2.0.2";
+import { z as z21 } from "npm:zod@^3.25.76";
+var set_setting_default = defineTool21({
   name: "set_setting",
   title: "\xC4ndra inst\xE4llning",
   description: "Skriv en plattformsinst\xE4llning (varum\xE4rke, tema, typsnitt, SEO/AEO, analys, startsidans sektioner). V\xE4rdet \xE4r JSON.",
   inputSchema: {
-    key: z18.string().trim().min(1).max(120),
-    value: z18.union([z18.string(), z18.number(), z18.boolean(), z18.record(z18.unknown()), z18.array(z18.unknown()), z18.null()])
+    key: z21.string().trim().min(1).max(120),
+    value: z21.union([z21.string(), z21.number(), z21.boolean(), z21.record(z21.unknown()), z21.array(z21.unknown()), z21.null()])
   },
   annotations: { readOnlyHint: false, openWorldHint: false },
   handler: async ({ key, value }, ctx) => {
@@ -506,15 +577,15 @@ var set_setting_default = defineTool18({
 });
 
 // src/lib/mcp/tools/list-users.ts
-import { defineTool as defineTool19 } from "npm:@lovable.dev/mcp-js@2.0.2";
-import { z as z19 } from "npm:zod@^3.25.76";
-var list_users_default = defineTool19({
+import { defineTool as defineTool22 } from "npm:@lovable.dev/mcp-js@2.0.2";
+import { z as z22 } from "npm:zod@^3.25.76";
+var list_users_default = defineTool22({
   name: "list_users",
   title: "Lista anv\xE4ndare",
   description: "Lista profiler med deras roller (admin, moderator, user).",
   inputSchema: {
-    search: z19.string().trim().min(1).optional().describe("S\xF6k i visningsnamn."),
-    limit: z19.number().int().min(1).max(200).default(50)
+    search: z22.string().trim().min(1).optional().describe("S\xF6k i visningsnamn."),
+    limit: z22.number().int().min(1).max(200).default(50)
   },
   annotations: { readOnlyHint: true, openWorldHint: false },
   handler: async ({ search, limit }, ctx) => {
@@ -534,16 +605,16 @@ var list_users_default = defineTool19({
 });
 
 // src/lib/mcp/tools/set-user-role.ts
-import { defineTool as defineTool20 } from "npm:@lovable.dev/mcp-js@2.0.2";
-import { z as z20 } from "npm:zod@^3.25.76";
-var set_user_role_default = defineTool20({
+import { defineTool as defineTool23 } from "npm:@lovable.dev/mcp-js@2.0.2";
+import { z as z23 } from "npm:zod@^3.25.76";
+var set_user_role_default = defineTool23({
   name: "set_user_role",
   title: "Ge eller ta bort roll",
   description: "Ge en anv\xE4ndare rollen admin/moderator/user, eller ta bort rollen. Kr\xE4ver adminbeh\xF6righet.",
   inputSchema: {
-    user_id: z20.string().uuid(),
-    role: z20.enum(["admin", "moderator", "user"]),
-    action: z20.enum(["grant", "revoke"]).default("grant")
+    user_id: z23.string().uuid(),
+    role: z23.enum(["admin", "moderator", "user"]),
+    action: z23.enum(["grant", "revoke"]).default("grant")
   },
   annotations: { readOnlyHint: false, destructiveHint: true, openWorldHint: false },
   handler: async ({ user_id, role, action }, ctx) => {
@@ -559,8 +630,8 @@ var set_user_role_default = defineTool20({
 });
 
 // src/lib/mcp/tools/platform-stats.ts
-import { defineTool as defineTool21 } from "npm:@lovable.dev/mcp-js@2.0.2";
-var platform_stats_default = defineTool21({
+import { defineTool as defineTool24 } from "npm:@lovable.dev/mcp-js@2.0.2";
+var platform_stats_default = defineTool24({
   name: "platform_stats",
   title: "Plattforms\xF6versikt",
   description: "Nyckeltal: antal appar per status, id\xE9er, resurser, anv\xE4ndare, r\xF6ster och klick.",
@@ -618,7 +689,10 @@ var mcp_default = defineMcp({
     update_app_default,
     delete_app_default,
     list_ideas_default,
+    get_idea_default,
+    create_idea_default,
     update_idea_default,
+    claim_idea_default,
     delete_idea_default,
     list_resources_default,
     upsert_resource_default,

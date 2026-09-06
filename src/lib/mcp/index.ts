@@ -6,7 +6,10 @@ import createApp from "./tools/create-app";
 import updateApp from "./tools/update-app";
 import deleteApp from "./tools/delete-app";
 import listIdeas from "./tools/list-ideas";
+import getIdea from "./tools/get-idea";
+import createIdea from "./tools/create-idea";
 import updateIdea from "./tools/update-idea";
+import claimIdea from "./tools/claim-idea";
 import deleteIdea from "./tools/delete-idea";
 import listResources from "./tools/list-resources";
 import upsertResource from "./tools/upsert-resource";
@@ -42,7 +45,10 @@ export default defineMcp({
     updateApp,
     deleteApp,
     listIdeas,
+    getIdea,
+    createIdea,
     updateIdea,
+    claimIdea,
     deleteIdea,
     listResources,
     upsertResource,
