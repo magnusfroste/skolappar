@@ -17,9 +17,13 @@ const nameSchema = z.string().min(2, 'Namnet måste vara minst 2 tecken').max(50
 
 export default function Auth() {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const { user, signIn, signUp, signInWithGoogle, loading } = useAuth();
   const { toast } = useToast();
-  
+
+  const rawNext = searchParams.get('next');
+  const nextPath = rawNext && rawNext.startsWith('/') && !rawNext.startsWith('//') ? rawNext : null;
+
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [loginEmail, setLoginEmail] = useState('');
   const [loginPassword, setLoginPassword] = useState('');
@@ -29,9 +33,14 @@ export default function Auth() {
 
   useEffect(() => {
     if (user && !loading) {
-      navigate('/min-sida');
+      if (nextPath) {
+        window.location.replace(nextPath);
+      } else {
+        navigate('/min-sida');
+      }
     }
-  }, [user, loading, navigate]);
+  }, [user, loading, navigate, nextPath]);
+
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
