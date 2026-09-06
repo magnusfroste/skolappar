@@ -1,5 +1,5 @@
 import { createClient } from "@supabase/supabase-js";
-import type { ToolContext } from "@lovable.dev/mcp-js";
+import type { ToolContext, ToolHandlerResult, JsonValueInput } from "@lovable.dev/mcp-js";
 
 type RuntimeGlobals = typeof globalThis & {
   Deno?: { env?: { get?: (name: string) => string | undefined } };
@@ -65,13 +65,13 @@ export function requireAuth(ctx: ToolContext) {
   if (!ctx.isAuthenticated()) throw new Error("Inte inloggad. Anslut via OAuth först.");
 }
 
-export function ok(data: unknown) {
+export function ok(data: unknown): ToolHandlerResult {
   return {
-    content: [{ type: "text" as const, text: JSON.stringify(data, null, 2) }],
-    structuredContent: { result: data } as Record<string, unknown>,
+    content: [{ type: "text", text: JSON.stringify(data, null, 2) }],
+    structuredContent: { result: data as JsonValueInput },
   };
 }
 
-export function fail(message: string) {
-  return { content: [{ type: "text" as const, text: message }], isError: true };
+export function fail(message: string): ToolHandlerResult {
+  return { content: [{ type: "text", text: message }], isError: true };
 }
