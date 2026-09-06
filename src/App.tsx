@@ -71,6 +71,8 @@ const App = () => (
             <Route path="/villkor" element={<Terms />} />
             <Route path="/integritet" element={<Privacy />} />
             <Route path="/testa-din-app" element={<TestYourApp />} />
+            <Route path="/.lovable/oauth/consent" element={<OAuthConsent />} />
+
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
           </Routes>
