@@ -119,7 +119,7 @@ export default function Auth() {
   };
 
   const handleGoogleLogin = async () => {
-    const { error } = await signInWithGoogle();
+    const { error } = await signInWithGoogle(nextPath ?? undefined);
     if (error) {
       toast({
         title: 'Google-inloggning misslyckades',
