@@ -289,6 +289,77 @@
         "outputSchema": null
       },
       {
+        "name": "get_idea",
+        "title": "Hämta app-idé",
+        "description": "Hämta alla detaljer om en enskild app-idé.",
+        "annotations": {
+          "readOnlyHint": true,
+          "openWorldHint": false
+        },
+        "inputSchema": {
+          "type": "object",
+          "properties": {
+            "id": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          "required": [
+            "id"
+          ],
+          "additionalProperties": false,
+          "$schema": "http://json-schema.org/draft-07/schema#"
+        },
+        "outputSchema": null
+      },
+      {
+        "name": "create_idea",
+        "title": "Skapa app-idé",
+        "description": "Lägg till en ny app-idé i community-listan.",
+        "annotations": {
+          "readOnlyHint": false,
+          "openWorldHint": false
+        },
+        "inputSchema": {
+          "type": "object",
+          "properties": {
+            "title": {
+              "type": "string",
+              "minLength": 2,
+              "maxLength": 120
+            },
+            "description": {
+              "type": "string",
+              "minLength": 5,
+              "maxLength": 5000
+            },
+            "target_age": {
+              "type": "string",
+              "maxLength": 60
+            },
+            "target_subject": {
+              "type": "string",
+              "maxLength": 60
+            },
+            "status": {
+              "type": "string",
+              "enum": [
+                "open",
+                "claimed",
+                "built"
+              ]
+            }
+          },
+          "required": [
+            "title",
+            "description"
+          ],
+          "additionalProperties": false,
+          "$schema": "http://json-schema.org/draft-07/schema#"
+        },
+        "outputSchema": null
+      },
+      {
         "name": "update_idea",
         "title": "Uppdatera app-idé",
         "description": "Redigera en idé eller ändra dess status (öppen, påbörjad, byggd).",
@@ -332,6 +403,34 @@
             "built_app_id": {
               "type": "string",
               "format": "uuid"
+            }
+          },
+          "required": [
+            "id"
+          ],
+          "additionalProperties": false,
+          "$schema": "http://json-schema.org/draft-07/schema#"
+        },
+        "outputSchema": null
+      },
+      {
+        "name": "claim_idea",
+        "title": "Ta an eller släpp app-idé",
+        "description": "Markera en idé som påbörjad av den inloggade användaren, eller släpp den tillbaka som öppen.",
+        "annotations": {
+          "readOnlyHint": false,
+          "openWorldHint": false
+        },
+        "inputSchema": {
+          "type": "object",
+          "properties": {
+            "id": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "release": {
+              "type": "boolean",
+              "description": "Sätt true för att släppa idén som öppen igen."
             }
           },
           "required": [
