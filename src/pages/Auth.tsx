@@ -93,7 +93,7 @@ export default function Auth() {
     }
     
     setIsSubmitting(true);
-    const { error } = await signUp(signupEmail, signupPassword, signupName);
+    const { error } = await signUp(signupEmail, signupPassword, signupName, nextPath ?? undefined);
     setIsSubmitting(false);
     
     if (error) {
