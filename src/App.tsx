@@ -31,6 +31,8 @@ const StarterDemo = lazy(() => import("./pages/StarterDemo"));
 const Terms = lazy(() => import("./pages/Terms"));
 const Privacy = lazy(() => import("./pages/Privacy"));
 const TestYourApp = lazy(() => import("./pages/TestYourApp"));
+const OAuthConsent = lazy(() => import("./pages/OAuthConsent"));
+
 
 const queryClient = new QueryClient({
   defaultOptions: { queries: { staleTime: 60_000, refetchOnWindowFocus: false, retry: 1 } },
@@ -69,6 +71,8 @@ const App = () => (
             <Route path="/villkor" element={<Terms />} />
             <Route path="/integritet" element={<Privacy />} />
             <Route path="/testa-din-app" element={<TestYourApp />} />
+            <Route path="/.lovable/oauth/consent" element={<OAuthConsent />} />
+
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
           </Routes>
