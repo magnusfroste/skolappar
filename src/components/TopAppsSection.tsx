@@ -47,7 +47,7 @@ export function TopAppsSection() {
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {topApps?.slice(0, 3).map((app: any, index: number) => (
+            {topApps?.slice(0, 3).map((app, index) => (
               <Link key={app.id} to={`/app/${app.id}`}>
                 <Card className="group relative overflow-hidden rounded-2xl border-0 bg-card/80 backdrop-blur-sm shadow-playful hover:shadow-playful-lg transition-all duration-300 hover:-translate-y-1">
                   {/* Rank badge */}

@@ -11,6 +11,7 @@ interface Profile {
 interface Category {
   id: string;
   name: string;
+  slug: string;
   icon: string | null;
   color: string | null;
   type: string;
@@ -74,7 +75,7 @@ export function useAppDetails(appId: string | undefined) {
         const categoryIds = appCategories.map((ac) => ac.category_id);
         const { data: cats } = await supabase
           .from('categories')
-          .select('id, name, icon, color, type')
+          .select('id, name, slug, icon, color, type')
           .in('id', categoryIds);
         categories = cats || [];
       }

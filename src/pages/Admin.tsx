@@ -61,6 +61,14 @@ import { FontSettingsPanel } from '@/components/FontSettingsPanel';
 import { AeoSettingsPanel } from '@/components/AeoSettingsPanel';
 import { toast } from '@/hooks/use-toast';
 
+type PendingApp = NonNullable<ReturnType<typeof usePendingApps>['data']>[number];
+type AdminApp = NonNullable<ReturnType<typeof useAllApps>['data']>[number];
+type AdminCategory = NonNullable<ReturnType<typeof useAdminCategories>['data']>[number];
+type AdminResource = NonNullable<ReturnType<typeof useAdminResources>['data']>[number];
+type AdminIdea = NonNullable<ReturnType<typeof useAdminIdeas>['data']>[number];
+type AppStatus = Parameters<ReturnType<typeof useUpdateAppStatus>['mutateAsync']>[0]['status'];
+type IdeaStatus = Parameters<ReturnType<typeof useUpdateIdeaStatus>['mutateAsync']>[0]['status'];
+
 export default function Admin() {
   const { data: isAdmin, isLoading: adminLoading } = useIsAdmin();
   const { data: pendingApps, isLoading: pendingLoading } = usePendingApps();
@@ -96,7 +104,7 @@ export default function Admin() {
     icon: '',
     sort_order: 0
   });
-  const [editingCategory, setEditingCategory] = useState<any>(null);
+  const [editingCategory, setEditingCategory] = useState<AdminCategory | null>(null);
   const [categoryDialogOpen, setCategoryDialogOpen] = useState(false);
 
   // Resource state
@@ -110,7 +118,7 @@ export default function Admin() {
     sort_order: 0,
     is_published: true
   });
-  const [editingResource, setEditingResource] = useState<any>(null);
+  const [editingResource, setEditingResource] = useState<AdminResource | null>(null);
   const [resourceDialogOpen, setResourceDialogOpen] = useState(false);
 
   // Delist dialog state
@@ -236,7 +244,7 @@ export default function Admin() {
     }
   };
 
-  const handleToggleResourcePublished = async (resource: any) => {
+  const handleToggleResourcePublished = async (resource: AdminResource) => {
     try {
       await updateResource.mutateAsync({ id: resource.id, is_published: !resource.is_published });
       toast({ title: resource.is_published ? 'Resurs avpublicerad' : 'Resurs publicerad' });
@@ -358,7 +366,7 @@ export default function Admin() {
                   </div>
                 ) : (
                   <div className="space-y-4">
-                    {pendingApps?.map((app: any) => (
+                    {pendingApps?.map((app: PendingApp) => (
                       <div key={app.id} className="border rounded-lg p-4 space-y-4">
                         <div className="flex items-start gap-4">
                           {app.image_url ? (
@@ -383,7 +391,7 @@ export default function Admin() {
                               </a>
                             </div>
                             <div className="flex gap-1 mt-2 flex-wrap">
-                              {app.categories?.slice(0, 5).map((cat: any) => (
+                              {app.categories?.slice(0, 5).map((cat) => (
                                 <Badge key={cat.id} variant="outline" className="text-xs">
                                   {cat.icon} {cat.name}
                                 </Badge>
@@ -443,7 +451,7 @@ export default function Admin() {
                   </div>
                 ) : (
                   <div className="space-y-2">
-                    {allApps?.map((app: any) => (
+                    {allApps?.map((app: AdminApp) => (
                       <div key={app.id} className="flex items-center gap-4 p-3 rounded-lg border hover:bg-muted/50 transition-colors">
                         {app.image_url ? (
                           <img src={app.image_url} alt={app.title} className="h-12 w-12 rounded-lg object-cover" />
@@ -465,7 +473,7 @@ export default function Admin() {
                         <div className="flex items-center gap-1">
                           <Select
                             value={app.status}
-                            onValueChange={(value) => handleStatusChange(app.id, value as any)}
+                            onValueChange={(value) => handleStatusChange(app.id, value as AppStatus)}
                           >
                             <SelectTrigger className="w-32 h-8 text-xs">
                               <SelectValue />
@@ -613,14 +621,14 @@ export default function Admin() {
                     </div>
                   ) : (
                     <div className="space-y-2">
-                      {ideas?.map((idea: any) => (
+                      {ideas?.map((idea: AdminIdea) => (
                         <div key={idea.id} className="flex items-center gap-4 p-3 rounded-lg border hover:bg-muted/50 transition-colors">
                           <div className="flex-1 min-w-0">
                             <div className="flex items-center gap-2 flex-wrap">
                               <Link to={`/ideer/${idea.id}`} className="font-medium truncate hover:underline">
                                 {idea.title}
                               </Link>
-                              <IdeaStatusBadge status={idea.status} />
+                              <IdeaStatusBadge status={idea.status as IdeaStatus} />
                             </div>
                             <div className="flex items-center gap-3 mt-1 text-xs text-muted-foreground">
                               <span>Av: {idea.profile?.display_name || 'Okänd'}</span>
@@ -644,7 +652,7 @@ export default function Admin() {
                           <div className="flex items-center gap-1">
                             <Select
                               value={idea.status}
-                              onValueChange={(value) => handleIdeaStatusChange(idea.id, value as any)}
+                              onValueChange={(value) => handleIdeaStatusChange(idea.id, value as IdeaStatus)}
                             >
                               <SelectTrigger className="w-28 h-8 text-xs">
                                 <SelectValue />
@@ -1314,7 +1322,7 @@ export default function Admin() {
   );
 }
 
-function CategoryRow({ category, onEdit, onDelete }: { category: any; onEdit: () => void; onDelete: () => void }) {
+function CategoryRow({ category, onEdit, onDelete }: { category: AdminCategory; onEdit: () => void; onDelete: () => void }) {
   return (
     <div className="flex items-center justify-between p-3 rounded-lg border hover:bg-muted/50 transition-colors">
       <div className="flex items-center gap-3">
@@ -1364,7 +1372,7 @@ function ResourceRow({
   onDelete, 
   onTogglePublished 
 }: { 
-  resource: any; 
+  resource: AdminResource; 
   onEdit: () => void; 
   onDelete: () => void;
   onTogglePublished: () => void;

@@ -181,8 +181,8 @@ export default function AppDetail() {
             {/* Regular categories */}
             <div className="flex flex-wrap gap-2">
               {app.categories
-                .filter((cat: any) => cat.type !== 'device')
-                .map((cat: any) => (
+                .filter((cat) => cat.type !== 'device')
+                .map((cat) => (
                   <Badge
                     key={cat.id}
                     variant="secondary"
@@ -198,13 +198,13 @@ export default function AppDetail() {
             </div>
             
             {/* Device badges */}
-            {app.categories.some((cat: any) => cat.type === 'device') && (
+            {app.categories.some((cat) => cat.type === 'device') && (
               <div className="flex items-center gap-2">
                 <span className="text-sm text-muted-foreground">Fungerar på:</span>
                 <div className="flex items-center gap-1.5">
                   {app.categories
-                    .filter((cat: any) => cat.type === 'device')
-                    .map((cat: any) => {
+                    .filter((cat) => cat.type === 'device')
+                    .map((cat) => {
                       const config = deviceConfig[cat.slug] || deviceConfig[cat.name.toLowerCase()];
                       if (!config) return null;
                       return (
@@ -336,7 +336,7 @@ export default function AppDetail() {
         {/* Related Apps */}
         <RelatedApps 
           appId={app.id} 
-          categoryIds={app.categories.filter((c: any) => c.type !== 'device').map((c: any) => c.id)} 
+          categoryIds={app.categories.filter((c) => c.type !== 'device').map((c) => c.id)} 
         />
       </div>
 

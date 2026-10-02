@@ -5,10 +5,14 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Bot } from 'lucide-react';
 
+type OAuthRedirect = { redirect_url?: string; redirect_to?: string };
+type OAuthAuthorizationDetails = OAuthRedirect & { client?: { name?: string } | null };
+type OAuthResult<T> = Promise<{ data: T | null; error: { message: string } | null }>;
+
 type OAuthApi = {
-  getAuthorizationDetails: (id: string) => Promise<{ data: any; error: any }>;
-  approveAuthorization: (id: string) => Promise<{ data: any; error: any }>;
-  denyAuthorization: (id: string) => Promise<{ data: any; error: any }>;
+  getAuthorizationDetails: (id: string) => OAuthResult<OAuthAuthorizationDetails>;
+  approveAuthorization: (id: string) => OAuthResult<OAuthRedirect>;
+  denyAuthorization: (id: string) => OAuthResult<OAuthRedirect>;
 };
 
 const oauth = () => (supabase.auth as unknown as { oauth: OAuthApi }).oauth;
@@ -16,7 +20,7 @@ const oauth = () => (supabase.auth as unknown as { oauth: OAuthApi }).oauth;
 export default function OAuthConsent() {
   const [params] = useSearchParams();
   const authorizationId = params.get('authorization_id') ?? '';
-  const [details, setDetails] = useState<any>(null);
+  const [details, setDetails] = useState<OAuthAuthorizationDetails | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
 

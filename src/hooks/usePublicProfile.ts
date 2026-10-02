@@ -81,7 +81,7 @@ export const usePublicProfileApps = (userId: string | undefined) => {
 
           return {
             ...app,
-            categories: appCategories?.map((ac: any) => ac.category).filter(Boolean) || [],
+            categories: appCategories?.map((ac) => ac.category).filter(Boolean) || [],
           };
         })
       );

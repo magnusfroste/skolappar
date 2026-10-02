@@ -74,6 +74,16 @@ If you want to self-host this application, you'll need:
 npm run build
 ```
 
+## Hälsokoll av appar
+
+`scripts/check-apps.mjs` hämtar alla godkända appar från databasen och kontrollerar att varje app-URL svarar.
+
+```bash
+node scripts/check-apps.mjs
+```
+
+GitHub Action `.github/workflows/app-health.yml` kör samma koll varje måndag och öppnar ett issue (etikett `app-health`) om någon app slutat svara.
+
 ## Tech Stack
 
 - **React** - UI framework

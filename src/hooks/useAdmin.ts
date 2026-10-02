@@ -51,7 +51,7 @@ export function usePendingApps() {
       return data.map(app => ({
         ...app,
         profile: profileMap.get(app.user_id) || null,
-        categories: app.app_categories?.map((ac: any) => ac.categories).filter(Boolean) || []
+        categories: app.app_categories?.map((ac) => ac.categories).filter(Boolean) || []
       }));
     }
   });
@@ -82,7 +82,7 @@ export function useAllApps() {
       return data.map(app => ({
         ...app,
         profile: profileMap.get(app.user_id) || null,
-        categories: app.app_categories?.map((ac: any) => ac.categories).filter(Boolean) || []
+        categories: app.app_categories?.map((ac) => ac.categories).filter(Boolean) || []
       }));
     }
   });
@@ -389,7 +389,7 @@ export function useUpdateIdeaStatus() {
 
   return useMutation({
     mutationFn: async ({ ideaId, status }: { ideaId: string; status: 'open' | 'claimed' | 'built' }) => {
-      const updates: any = { status };
+      const updates: { status: typeof status; claimed_by?: string | null; claimed_at?: string | null } = { status };
       
       // Reset claim info if setting back to open
       if (status === 'open') {

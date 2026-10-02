@@ -35,7 +35,7 @@ export function useBranding(): BrandingConfig {
       data?.forEach((row) => {
         const key = row.key as keyof BrandingConfig;
         if (key in config) {
-          (config as any)[key] = row.value;
+          (config as Record<keyof BrandingConfig, unknown>)[key] = row.value;
         }
       });
       return config;

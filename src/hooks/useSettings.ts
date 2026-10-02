@@ -1,5 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import type { Json } from "@/integrations/supabase/types";
 
 export const useSetting = (key: string) => {
   return useQuery({
@@ -21,10 +22,10 @@ export const useUpdateSetting = () => {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async ({ key, value }: { key: string; value: any }) => {
+    mutationFn: async ({ key, value }: { key: string; value: unknown }) => {
       const { error } = await supabase
         .from("settings")
-        .upsert({ key, value, updated_at: new Date().toISOString() });
+        .upsert({ key, value: value as Json, updated_at: new Date().toISOString() });
 
       if (error) throw error;
     },

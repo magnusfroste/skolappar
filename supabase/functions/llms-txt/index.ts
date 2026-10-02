@@ -24,16 +24,17 @@ Deno.serve(async (req) => {
         'organization_name', 'faq_items', 'llms_txt_intro', 'llms_txt_extra'
       ])
 
-    const config: Record<string, any> = {}
-    settings?.forEach((s: any) => { config[s.key] = s.value })
+    const config: Record<string, unknown> = {}
+    settings?.forEach((s: { key: string; value: unknown }) => { config[s.key] = s.value })
+    const str = (key: string, fallback: string) => (typeof config[key] === 'string' && config[key] ? config[key] as string : fallback)
 
-    const siteName = config.site_name || 'Skolappar'
-    const siteUrl = config.site_url || 'https://www.skolappar.com'
-    const siteDesc = config.site_description || 'En community där engagerade föräldrar delar sina hemmagjorda skolappar.'
-    const siteLang = config.site_language || 'sv'
-    const orgName = config.organization_name || 'Skolappar'
-    const customIntro = config.llms_txt_intro || ''
-    const customExtra = config.llms_txt_extra || ''
+    const siteName = str('site_name', 'Skolappar')
+    const siteUrl = str('site_url', 'https://www.skolappar.com')
+    const siteDesc = str('site_description', 'En community där engagerade föräldrar delar sina hemmagjorda skolappar.')
+    const siteLang = str('site_language', 'sv')
+    const orgName = str('organization_name', 'Skolappar')
+    const customIntro = str('llms_txt_intro', '')
+    const customExtra = str('llms_txt_extra', '')
     const faqs = Array.isArray(config.faq_items) ? config.faq_items : []
 
     // Fetch approved/featured apps

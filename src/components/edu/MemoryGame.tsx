@@ -27,7 +27,7 @@ export function MemoryGame({ pairs, onComplete, className }: MemoryGameProps) {
       .sort(() => Math.random() - 0.5)
       .map((p, i) => ({ id: `card-${i}`, content: p.content, originalId: p.originalId, matched: false }));
     
-    setCards(shuffled as any);
+    setCards(shuffled as typeof cards);
   }, [pairs]);
 
   const handleFlip = (id: string) => {

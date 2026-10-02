@@ -128,7 +128,7 @@ export function useApps(filters: AppsFilters = {}) {
         created_at: app.created_at,
         user_id: app.user_id,
         profile: profilesMap.get(app.user_id) || null,
-        categories: app.app_categories?.map((ac: any) => ac.categories).filter(Boolean) || [],
+        categories: app.app_categories?.map((ac) => ac.categories).filter(Boolean) || [],
       }));
 
       // Filter by categories

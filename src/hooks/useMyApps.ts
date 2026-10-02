@@ -55,7 +55,7 @@ export function useMyApps() {
         clicks_count: app.clicks_count || 0,
         created_at: app.created_at,
         updated_at: app.updated_at,
-        categories: app.app_categories?.map((ac: any) => ac.categories).filter(Boolean) || []
+        categories: app.app_categories?.map((ac) => ac.categories).filter(Boolean) || []
       }));
     },
     enabled: !!user

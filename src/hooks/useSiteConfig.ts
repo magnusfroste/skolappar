@@ -47,7 +47,7 @@ export function useSiteConfig(): SiteConfig {
       data?.forEach((row) => {
         const key = row.key as keyof SiteConfig;
         if (key in config) {
-          (config as any)[key] = row.value;
+          (config as Record<keyof SiteConfig, unknown>)[key] = row.value;
         }
       });
       return config;

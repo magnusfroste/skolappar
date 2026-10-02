@@ -38,7 +38,7 @@ export function useApp(appId: string | undefined) {
 
       return {
         ...data,
-        categories: data.app_categories?.map((ac: any) => ac.category_id) || []
+        categories: data.app_categories?.map((ac) => ac.category_id) || []
       };
     },
     enabled: !!appId && !!user

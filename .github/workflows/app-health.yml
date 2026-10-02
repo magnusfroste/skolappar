@@ -1,0 +1,57 @@
+name: App health check
+
+# Kontrollerar varje måndag att alla appar som listas på skolappar.com
+# fortfarande svarar. Öppnar (eller uppdaterar) ett issue om något är trasigt.
+on:
+  schedule:
+    - cron: '0 6 * * 1'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  issues: write
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Kontrollera app-länkar
+        id: check
+        continue-on-error: true
+        run: node scripts/check-apps.mjs
+      - name: Skapa eller uppdatera issue
+        uses: actions/github-script@v7
+        env:
+          FAILED: ${{ steps.check.outcome == 'failure' }}
+        with:
+          script: |
+            const fs = require('fs');
+            const body = fs.readFileSync('app-health-report.md', 'utf8');
+            const title = 'Hälsokoll: appar som inte svarar';
+            const { data: issues } = await github.rest.issues.listForRepo({
+              owner: context.repo.owner, repo: context.repo.repo, state: 'open', labels: 'app-health',
+            });
+            const existing = issues.find((i) => i.title === title);
+            if (process.env.FAILED === 'true') {
+              if (existing) {
+                await github.rest.issues.createComment({
+                  owner: context.repo.owner, repo: context.repo.repo, issue_number: existing.number, body,
+                });
+              } else {
+                await github.rest.issues.create({
+                  owner: context.repo.owner, repo: context.repo.repo, title, body, labels: ['app-health'],
+                });
+              }
+            } else if (existing) {
+              await github.rest.issues.createComment({
+                owner: context.repo.owner, repo: context.repo.repo, issue_number: existing.number,
+                body: 'Alla appar svarar igen – stänger.\n\n' + body,
+              });
+              await github.rest.issues.update({
+                owner: context.repo.owner, repo: context.repo.repo, issue_number: existing.number, state: 'closed',
+              });
+            }

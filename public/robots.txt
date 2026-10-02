@@ -2,7 +2,9 @@
 User-agent: *
 Allow: /
 
-# Sitemap (dynamisk)
+# Sitemap (dynamisk – inkluderar alla appar och resurser)
+Sitemap: https://eruyrrjgdzmeugwubppw.supabase.co/functions/v1/sitemap
+# Sitemap (statisk fallback)
 Sitemap: https://www.skolappar.com/sitemap.xml
 
 # LLMs.txt för AI-sökmotorer
