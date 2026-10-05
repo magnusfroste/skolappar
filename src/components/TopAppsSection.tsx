@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useTopAppsThisWeek } from '@/hooks/useTopApps';
 import { useSetting } from '@/hooks/useSettings';
+import { AppThumbnail } from '@/components/AppThumbnail';
 
 export function TopAppsSection() {
   const { data: showTopApps } = useSetting('show_top_apps');
@@ -15,7 +16,7 @@ export function TopAppsSection() {
   if (!isLoading && (!topApps || topApps.length === 0)) return null;
 
   return (
-    <section className="relative z-10 container mx-auto px-4 py-12">
+    <section className="relative z-10 container mx-auto px-4 pt-4 pb-12 md:py-12">
       <div className="max-w-5xl mx-auto">
         <div className="flex items-center justify-between mb-8">
           <div className="flex items-center gap-3">
@@ -57,19 +58,12 @@ export function TopAppsSection() {
                   
                   {/* Image */}
                   <div className="aspect-video overflow-hidden">
-                    {app.image_url ? (
-                      <img
-                        src={app.image_url}
-                        alt={app.title}
-                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-              loading="lazy"
-              decoding="async"
-                      />
-                    ) : (
-                      <div className="w-full h-full bg-gradient-to-br from-primary/20 to-secondary/20 flex items-center justify-center text-4xl">
-                        📱
-                      </div>
-                    )}
+                    <AppThumbnail
+                      title={app.title}
+                      imageUrl={app.image_url || undefined}
+                      appUrl={app.url}
+                      imageClassName="group-hover:scale-105 transition-transform duration-300"
+                    />
                   </div>
                   
                   {/* Content */}

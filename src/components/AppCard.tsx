@@ -4,6 +4,7 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { DeviceBadges } from '@/components/DeviceBadges';
+import { AppThumbnail } from '@/components/AppThumbnail';
 import { useTrackClick } from '@/hooks/useTrackClick';
 
 interface Category {
@@ -54,19 +55,12 @@ export function AppCard({
           {/* Image */}
           <Link to={`/app/${id}`} className="flex-shrink-0">
             <div className="relative w-full sm:w-32 h-32 rounded-xl overflow-hidden bg-muted">
-              {imageUrl ? (
-                <img
-                  src={imageUrl}
-                  alt={title}
-                  className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-              loading="lazy"
-              decoding="async"
-                />
-              ) : (
-                <div className="w-full h-full flex items-center justify-center text-4xl bg-gradient-to-br from-primary/10 to-secondary/10">
-                  📱
-                </div>
-              )}
+              <AppThumbnail
+                title={title}
+                imageUrl={imageUrl}
+                appUrl={url}
+                imageClassName="group-hover:scale-105 transition-transform duration-300"
+              />
             </div>
           </Link>
 

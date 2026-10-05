@@ -3,6 +3,7 @@ import { ChevronUp, MessageCircle, Eye } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
+import { AppThumbnail } from '@/components/AppThumbnail';
 
 interface Category {
   id: string;
@@ -32,6 +33,7 @@ export function AppCardVisual({
   id,
   title,
   description,
+  url,
   imageUrl,
   upvotesCount,
   commentsCount,
@@ -49,19 +51,12 @@ export function AppCardVisual({
       <Card className="overflow-hidden border-0 bg-card/90 backdrop-blur-sm shadow-playful hover:shadow-playful-lg transition-all duration-300 hover:-translate-y-2 hover:border-primary/20">
         {/* Thumbnail */}
         <div className="relative aspect-video overflow-hidden">
-          {imageUrl ? (
-            <img
-              src={imageUrl}
-              alt={title}
-              className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500 ease-out"
-              loading="lazy"
-              decoding="async"
-            />
-          ) : (
-            <div className="w-full h-full flex items-center justify-center text-6xl bg-gradient-to-br from-primary/10 to-secondary/10 group-hover:from-primary/20 group-hover:to-secondary/20 transition-colors duration-300">
-              <span className="group-hover:scale-110 group-hover:rotate-6 transition-transform duration-300">📱</span>
-            </div>
-          )}
+          <AppThumbnail
+            title={title}
+            imageUrl={imageUrl}
+            appUrl={url}
+            imageClassName="group-hover:scale-110 transition-transform duration-500 ease-out"
+          />
           
           {/* Gradient overlay on hover */}
           <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
@@ -73,7 +68,7 @@ export function AppCardVisual({
             className={`absolute top-3 right-3 flex-col h-auto py-1.5 px-2.5 gap-0 transition-all duration-200 hover:scale-110 ${
               hasUpvoted 
                 ? 'bg-primary text-primary-foreground shadow-lg' 
-                : 'bg-background/90 backdrop-blur-sm opacity-80 group-hover:opacity-100'
+                : 'border border-border bg-card text-card-foreground opacity-100 shadow-playful'
             }`}
             onClick={(e) => {
               e.preventDefault();
