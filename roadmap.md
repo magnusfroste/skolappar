@@ -1,8 +1,8 @@
 # Roadmap
 
-- [ ] Lägg till laddningsvy före React-montering
-- [ ] Förbättra reservbilder i alla angivna appkort
-- [ ] Förtydliga favoritknappen på mobil
-- [ ] Öka kontrasten på röstknappen
-- [ ] Minska mobilavståndet före topplistan
-- [ ] Verifiera mobil och desktop
+- [x] Lägg till laddningsvy före React-montering
+- [x] Förbättra reservbilder i alla angivna appkort
+- [x] Förtydliga favoritknappen på mobil
+- [x] Öka kontrasten på röstknappen
+- [x] Minska mobilavståndet före topplistan
+- [x] Verifiera mobil och desktop
