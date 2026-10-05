@@ -3,6 +3,7 @@ import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useRelatedApps } from '@/hooks/useRelatedApps';
+import { AppThumbnail } from '@/components/AppThumbnail';
 
 interface RelatedAppsProps {
   appId: string;
@@ -42,21 +43,14 @@ export function RelatedApps({ appId, categoryIds }: RelatedAppsProps) {
         {apps.map((app) => (
           <Link key={app.id} to={`/app/${app.id}`}>
             <Card className="overflow-hidden hover:shadow-playful transition-shadow group">
-              {app.image_url ? (
-                <div className="aspect-video overflow-hidden bg-muted">
-                  <img
-                    src={app.image_url}
-                    alt={app.title}
-                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-              loading="lazy"
-              decoding="async"
-                  />
-                </div>
-              ) : (
-                <div className="aspect-video bg-gradient-to-br from-primary/10 to-secondary/10 flex items-center justify-center">
-                  <span className="text-3xl">📱</span>
-                </div>
-              )}
+              <div className="aspect-video overflow-hidden bg-muted">
+                <AppThumbnail
+                  title={app.title}
+                  imageUrl={app.image_url || undefined}
+                  appUrl={app.url}
+                  imageClassName="group-hover:scale-105 transition-transform duration-300"
+                />
+              </div>
               <div className="p-3">
                 <h4 className="font-medium truncate group-hover:text-primary transition-colors">
                   {app.title}

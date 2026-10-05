@@ -208,7 +208,7 @@ export default function Apps() {
             onClick={() => setShowFavoritesOnly(!showFavoritesOnly)}
           >
             <Heart className={`w-4 h-4 ${showFavoritesOnly ? 'fill-current' : ''}`} />
-            <span className="hidden sm:inline">Bara gillade</span>
+            <span>Mina favoriter</span>
           </Button>
 
           {showFilters && (
@@ -339,6 +339,7 @@ export default function Apps() {
                       id={app.id}
                       title={app.title}
                       imageUrl={app.image_url || undefined}
+                      url={app.url}
                     />
                   ) : (
                     <AppCardVisual
