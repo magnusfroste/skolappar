@@ -1,0 +1,17 @@
+# Skolappar
+
+> En community där föräldrar delar gratis pedagogiska appar som de byggt till sina egna barn.
+
+Skolappar.com samlar hemmagjorda skolappar för barn i olika åldrar – matte, språk, geografi, logik med mera. Föräldrar och lärare kan hitta och testa appar, dela egna appar och idéer, och lära sig bygga appar själva med AI-verktyg ("vibe-coding"). Allt är gratis.
+
+En utförligare, dynamiskt genererad version med alla appar och vanliga frågor finns här: https://eruyrrjgdzmeugwubppw.supabase.co/functions/v1/llms-txt
+
+## Viktiga länkar
+
+- [Startsida](https://www.skolappar.com/)
+- [Alla appar](https://www.skolappar.com/apps)
+- [Idéer](https://www.skolappar.com/ideer)
+- [Resurser: lär dig bygga appar](https://www.skolappar.com/resurser)
+- [Startmall](https://www.skolappar.com/startmall)
+- [Testa din app](https://www.skolappar.com/testa-din-app)
+- [Sitemap](https://www.skolappar.com/sitemap.xml)
