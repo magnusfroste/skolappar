@@ -55,8 +55,14 @@
       </div>
     </div>
     <style>
+      :root {
+        --loading-background: 45 100% 98%;
+        --loading-foreground: 240 20% 15%;
+        --loading-primary: 12 90% 58%;
+        --loading-secondary: 174 72% 46%;
+      }
       html, body, #root { min-height: 100%; margin: 0; }
-      body { background: hsl(45 100% 98%); }
+      body { background: hsl(var(--loading-background)); }
       .app-loading {
         min-height: 100vh;
         display: flex;
@@ -64,9 +70,9 @@
         align-items: center;
         justify-content: center;
         gap: 12px;
-        color: hsl(240 20% 15%);
+        color: hsl(var(--loading-foreground));
         font-family: ui-rounded, system-ui, sans-serif;
-        background: linear-gradient(160deg, hsl(45 100% 98%), hsl(12 90% 58% / .08), hsl(174 72% 46% / .08));
+        background: linear-gradient(160deg, hsl(var(--loading-background)), hsl(var(--loading-primary) / .08), hsl(var(--loading-secondary) / .08));
       }
       .app-loading img { border-radius: 16px; }
       .app-loading strong { font-size: 20px; }
@@ -74,7 +80,7 @@
         width: 8px;
         height: 8px;
         border-radius: 999px;
-        background: hsl(12 90% 58%);
+        background: hsl(var(--loading-primary));
         animation: loading-pulse 1s ease-in-out infinite alternate;
       }
       @keyframes loading-pulse { to { opacity: .35; transform: scale(.8); } }

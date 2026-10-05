@@ -7,7 +7,6 @@ import { useRecentApps } from '@/hooks/useRecentApps';
 import { useSetting } from '@/hooks/useSettings';
 import { formatDistanceToNow } from 'date-fns';
 import { sv } from 'date-fns/locale';
-import { AppThumbnail } from '@/components/AppThumbnail';
 
 export function RecentAppsSection() {
   const { data: showRecentApps } = useSetting('show_recent_apps');
@@ -60,12 +59,19 @@ export function RecentAppsSection() {
                   
                   {/* Image */}
                   <div className="aspect-video overflow-hidden">
-                    <AppThumbnail
-                      title={app.title}
-                      imageUrl={app.image_url || undefined}
-                      appUrl={app.url}
-                      imageClassName="group-hover:scale-105 transition-transform duration-300"
-                    />
+                    {app.image_url ? (
+                      <img
+                        src={app.image_url}
+                        alt={app.title}
+                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                        loading="lazy"
+                        decoding="async"
+                      />
+                    ) : (
+                      <div className="w-full h-full bg-gradient-to-br from-primary/20 to-secondary/20 flex items-center justify-center text-4xl">
+                        📱
+                      </div>
+                    )}
                   </div>
                   
                   {/* Content */}
