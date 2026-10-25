@@ -10,6 +10,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useToast } from '@/hooks/use-toast';
 import { Sparkles, BookOpen, Users, Rocket, Mail, Lock, User } from 'lucide-react';
 import { z } from 'zod';
+import { ForgotPassword } from '@/components/ForgotPassword';
 
 const emailSchema = z.string().email('Ogiltig e-postadress');
 const passwordSchema = z.string().min(6, 'Lösenordet måste vara minst 6 tecken');
@@ -285,6 +286,7 @@ export default function Auth() {
                     >
                       {isSubmitting ? 'Loggar in...' : 'Logga in'}
                     </Button>
+                    <ForgotPassword email={loginEmail} />
                   </form>
                 </TabsContent>
                 

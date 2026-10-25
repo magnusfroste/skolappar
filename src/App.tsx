@@ -12,6 +12,7 @@ import { DynamicFont } from "@/components/DynamicFont";
 
 const Index = lazy(() => import("./pages/Index"));
 const Auth = lazy(() => import("./pages/Auth"));
+const ResetPassword = lazy(() => import("./pages/ResetPassword"));
 const Apps = lazy(() => import("./pages/Apps"));
 const Dashboard = lazy(() => import("./pages/Dashboard"));
 const DashboardEdit = lazy(() => import("./pages/DashboardEdit"));
@@ -53,6 +54,7 @@ const App = () => (
           <Routes>
             <Route path="/" element={<Index />} />
             <Route path="/auth" element={<Auth />} />
+            <Route path="/reset-password" element={<ResetPassword />} />
             <Route path="/apps" element={<Apps />} />
             <Route path="/min-sida" element={<Dashboard />} />
             <Route path="/min-sida/app/:id" element={<DashboardEdit />} />
