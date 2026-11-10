@@ -101,6 +101,9 @@ export default function ResourceDetail() {
       
       <div className="container max-w-3xl py-12 px-4">
         <article>
+          {!/^\s*#\s/.test(resource.content) && (
+            <h1 className="text-3xl font-bold text-foreground mb-6">{resource.title}</h1>
+          )}
           <MarkdownRenderer content={resource.content} />
         </article>
       </div>
