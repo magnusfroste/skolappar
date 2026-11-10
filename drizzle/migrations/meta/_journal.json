@@ -8,6 +8,13 @@
       "when": 1792944879609,
       "tag": "0000_restrict_profile_visibility",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1794355099480,
+      "tag": "0001_tighten_public_read_policies",
+      "breakpoints": true
     }
   ]
 }
