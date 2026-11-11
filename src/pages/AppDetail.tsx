@@ -1,5 +1,6 @@
 import { useParams, Link, useNavigate } from 'react-router-dom';
-import { ArrowLeft, ExternalLink, ChevronUp, MessageCircle, Trash2, Send, Eye, Monitor, Tablet, Smartphone, Layers } from 'lucide-react';
+import { ArrowLeft, ExternalLink, ChevronUp, MessageCircle, Trash2, Send, Eye, Monitor, Tablet, Smartphone, Layers, Play } from 'lucide-react';
+import { AppPlayer } from '@/components/AppPlayer';
 import { useState } from 'react';
 import { format } from 'date-fns';
 import { sv } from 'date-fns/locale';
@@ -34,6 +35,7 @@ export default function AppDetail() {
   const navigate = useNavigate();
   const { user } = useAuth();
   const [commentText, setCommentText] = useState('');
+  const [playing, setPlaying] = useState(false);
   const config = useSiteConfig();
 
   const { data: app, isLoading: appLoading } = useAppDetails(id);
@@ -128,6 +130,8 @@ export default function AppDetail() {
         jsonLd={appSchema}
       />
       
+      {playing && <AppPlayer url={app.url} title={app.title} onClose={() => setPlaying(false)} />}
+
       {/* Navigation */}
       <PublicNav variant="solid" />
 
@@ -163,16 +167,31 @@ export default function AppDetail() {
               <span>{format(new Date(app.created_at), 'd MMM yyyy', { locale: sv })}</span>
             </div>
           </div>
-          <Button 
-            className="gap-2"
-            onClick={() => {
-              trackClick.mutate(app.id);
-              window.open(app.url, '_blank', 'noopener,noreferrer');
-            }}
-          >
-            Öppna
-            <ExternalLink className="w-4 h-4" />
-          </Button>
+          <div className="flex gap-2 shrink-0">
+            <Button
+              size="lg"
+              className="h-12 gap-2 rounded-full"
+              onClick={() => {
+                trackClick.mutate(app.id);
+                setPlaying(true);
+              }}
+            >
+              <Play className="w-4 h-4" />
+              Spela
+            </Button>
+            <Button
+              size="icon"
+              variant="outline"
+              className="h-12 w-12 rounded-full"
+              aria-label="Öppna i ny flik"
+              onClick={() => {
+                trackClick.mutate(app.id);
+                window.open(app.url, '_blank', 'noopener,noreferrer');
+              }}
+            >
+              <ExternalLink className="w-4 h-4" />
+            </Button>
+          </div>
         </div>
 
         {/* Categories & Device support */}
