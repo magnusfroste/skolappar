@@ -4,6 +4,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { useMyApps } from '@/hooks/useMyApps';
 import { useMyCreatedIdeas, useMyClaimedIdeas } from '@/hooks/useMyIdeas';
 import { useIsAdmin } from '@/hooks/useAdmin';
+import { ADMIN_SECTIONS } from '@/lib/adminSections';
 import {
   Sidebar,
   SidebarContent,
@@ -108,23 +109,33 @@ export function AppSidebar() {
                   </SidebarMenuButton>
                 </SidebarMenuItem>
               ))}
-              {isAdmin && (
-                <SidebarMenuItem>
-                  <SidebarMenuButton
-                    asChild
-                    isActive={isActive('/admin')}
-                    tooltip="Admin"
-                  >
-                    <Link to="/admin">
-                      <Shield className="h-4 w-4" />
-                      <span>Admin</span>
-                    </Link>
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
-              )}
             </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>
+
+        {/* Admin */}
+        {isAdmin && (
+          <SidebarGroup>
+            <SidebarGroupLabel>Admin</SidebarGroupLabel>
+            <SidebarGroupContent>
+              <SidebarMenu>
+                {ADMIN_SECTIONS.map((item) => {
+                  const active = location.pathname === '/admin' && (new URLSearchParams(location.search).get('tab') || 'pending') === item.tab;
+                  return (
+                    <SidebarMenuItem key={item.tab}>
+                      <SidebarMenuButton asChild isActive={active} tooltip={item.title}>
+                        <Link to={`/admin?tab=${item.tab}`}>
+                          <item.icon className="h-4 w-4" />
+                          <span>{item.title}</span>
+                        </Link>
+                      </SidebarMenuButton>
+                    </SidebarMenuItem>
+                  );
+                })}
+              </SidebarMenu>
+            </SidebarGroupContent>
+          </SidebarGroup>
+        )}
 
         {/* My Apps */}
         <SidebarGroup>

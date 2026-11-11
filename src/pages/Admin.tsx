@@ -1,5 +1,6 @@
 import { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useSearchParams } from 'react-router-dom';
+import { ADMIN_SECTIONS } from '@/lib/adminSections';
 import { Check, X, Star, Clock, ExternalLink, Trash2, Plus, Edit2, Shield, Settings, FileText, Eye, EyeOff, Lightbulb, MessageSquare, ThumbsUp, TrendingUp } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
@@ -71,6 +72,9 @@ type IdeaStatus = Parameters<ReturnType<typeof useUpdateIdeaStatus>['mutateAsync
 
 export default function Admin() {
   const { data: isAdmin, isLoading: adminLoading } = useIsAdmin();
+  const [searchParams, setSearchParams] = useSearchParams();
+  const tab = searchParams.get("tab") || "pending";
+  const currentSection = ADMIN_SECTIONS.find((s) => s.tab === tab) ?? ADMIN_SECTIONS[0];
   const { data: pendingApps, isLoading: pendingLoading } = usePendingApps();
   const { data: allApps, isLoading: allAppsLoading } = useAllApps();
   const { data: categories, isLoading: categoriesLoading } = useAdminCategories();
@@ -299,50 +303,14 @@ export default function Admin() {
 
   const subjectCategories = categories?.filter(c => c.type === 'subject') || [];
   const ageCategories = categories?.filter(c => c.type === 'age') || [];
-  const typeCategories = categories?.filter(c => c.type === 'type') || [];
+  const typeCategories = categories?.filter(c => c.type === 'app_type') || [];
 
   return (
     <AuthenticatedLayout>
-      <div className="p-6 md:p-8 max-w-7xl mx-auto">
-        {/* Page Header */}
-        <div className="flex items-center gap-3 mb-8">
-          <Shield className="h-8 w-8 text-primary" />
-          <div>
-            <h1 className="text-2xl font-bold bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
-              Admin Panel
-            </h1>
-            <p className="text-sm text-muted-foreground">
-              Hantera appar och kategorier
-            </p>
-          </div>
-        </div>
+      <div className="p-4 md:p-8 max-w-5xl mx-auto">
+        <h1 className="sr-only">Admin – {currentSection.title}</h1>
 
-        <Tabs defaultValue="pending" className="space-y-6">
-          <TabsList className="grid w-full max-w-4xl grid-cols-7">
-            <TabsTrigger value="pending" className="gap-2">
-              <Clock className="h-4 w-4" />
-              <span className="hidden sm:inline">Väntande</span> ({pendingApps?.length || 0})
-            </TabsTrigger>
-            <TabsTrigger value="all">Alla appar</TabsTrigger>
-            <TabsTrigger value="ideas" className="gap-2">
-              <Lightbulb className="h-4 w-4" />
-              <span className="hidden sm:inline">Idéer</span>
-            </TabsTrigger>
-            <TabsTrigger value="categories">Kategorier</TabsTrigger>
-            <TabsTrigger value="resources" className="gap-2">
-              <FileText className="h-4 w-4" />
-              <span className="hidden sm:inline">Resurser</span>
-            </TabsTrigger>
-            <TabsTrigger value="seo" className="gap-2">
-              🔍
-              <span className="hidden sm:inline">SEO</span>
-            </TabsTrigger>
-            <TabsTrigger value="settings" className="gap-2">
-              <Settings className="h-4 w-4" />
-              <span className="hidden sm:inline">Inst.</span>
-            </TabsTrigger>
-          </TabsList>
-
+        <Tabs value={tab} onValueChange={(v) => setSearchParams({ tab: v })} className="space-y-6">
           {/* Pending Apps Tab */}
           <TabsContent value="pending">
             <Card>
