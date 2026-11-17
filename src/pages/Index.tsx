@@ -7,12 +7,13 @@ import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
 import { PublicNav } from "@/components/PublicNav";
 import { PublicFooter } from "@/components/PublicFooter";
-import { AppCardVisual } from "@/components/AppCardVisual";
+import { AppLaunchTile } from "@/components/AppLaunchTile";
+import { AppPlayer } from "@/components/AppPlayer";
+import { useTrackClick } from "@/hooks/useTrackClick";
 import { TopIdeasSection } from "@/components/TopIdeasSection";
 import { SEO, buildWebsiteSchema, buildOrganizationSchema, buildFaqSchema } from "@/components/SEO";
 import { useSiteConfig } from "@/hooks/useSiteConfig";
-import { useApps, useCategories, useUserUpvotes, useToggleUpvote } from "@/hooks/useApps";
-import { toast } from "sonner";
+import { useApps, useCategories } from "@/hooks/useApps";
 
 const AI_TOOLS = [
   { name: "Lovable", slug: "lovable" },
@@ -28,6 +29,8 @@ export default function Index() {
   const { user } = useAuth();
   const config = useSiteConfig();
   const [search, setSearch] = useState("");
+  const [playing, setPlaying] = useState<{ url: string; title: string } | null>(null);
+  const trackClick = useTrackClick();
   const [subject, setSubject] = useState<string | null>(null);
 
   const { data: categories } = useCategories();
@@ -36,26 +39,18 @@ export default function Index() {
     subjects: subject ? [subject] : undefined,
     sort: "popular",
   });
-  const { data: userUpvotes = [] } = useUserUpvotes();
-  const toggleUpvote = useToggleUpvote();
 
   const subjects = useMemo(() => categories?.filter((c) => c.type === "subject") ?? [], [categories]);
   const visibleApps = apps?.slice(0, HOME_LIMIT) ?? [];
   const shareHref = user ? "/min-sida/ny" : "/auth";
   const combinedSchema = [buildWebsiteSchema(config), buildOrganizationSchema(config), buildFaqSchema(config)].filter(Boolean);
 
-  const handleUpvote = (appId: string) => {
-    if (!user) {
-      toast("Logga in för att rösta");
-      return;
-    }
-    toggleUpvote.mutate({ appId, hasUpvoted: userUpvotes.includes(appId) });
-  };
 
   return (
     <div className="min-h-screen bg-gradient-hero">
       <SEO url="/" jsonLd={combinedSchema} />
       <PublicNav variant="transparent" />
+      {playing && <AppPlayer url={playing.url} title={playing.title} onClose={() => setPlaying(null)} />}
 
       {/* Kompakt intro + sök */}
       <section className="container mx-auto px-4 pt-8 md:pt-14 pb-6 text-center">
@@ -90,7 +85,7 @@ export default function Index() {
       {/* Appgalleri */}
       <section className="container mx-auto px-4 pb-12">
         {isLoading ? (
-          <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+          <div className="grid grid-cols-2 gap-4 sm:gap-6 lg:grid-cols-3 xl:grid-cols-4">
             {Array.from({ length: 8 }).map((_, i) => (
               <Skeleton key={i} className="aspect-[4/3] rounded-2xl" />
             ))}
@@ -98,23 +93,18 @@ export default function Index() {
         ) : visibleApps.length === 0 ? (
           <p className="text-center text-muted-foreground py-16">Inga appar hittades.</p>
         ) : (
-          <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+          <div className="grid grid-cols-2 gap-4 sm:gap-6 lg:grid-cols-3 xl:grid-cols-4">
             {visibleApps.map((app) => (
-              <AppCardVisual
+              <AppLaunchTile
                 key={app.id}
                 id={app.id}
                 title={app.title}
-                description={app.description}
                 url={app.url}
                 imageUrl={app.image_url}
-                upvotesCount={app.upvotes_count}
-                commentsCount={app.comments_count}
-                clicksCount={app.clicks_count}
-                creatorId={app.user_id}
-                creatorName={app.profile?.display_name || undefined}
-                categories={app.categories}
-                hasUpvoted={userUpvotes.includes(app.id)}
-                onUpvote={() => handleUpvote(app.id)}
+                onLaunch={() => {
+                  trackClick.mutate(app.id);
+                  setPlaying({ url: app.url, title: app.title });
+                }}
               />
             ))}
           </div>
