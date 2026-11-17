@@ -12,4 +12,4 @@
 - [x] Minska mobilavståndet före topplistan
 - [x] Verifiera mobil och desktop
 - [ ] SEO-översikt från Search Console (väntar: koppling i ny arbetsyta)
-- [ ] Ny logo i synk med favicon och delningsbild
+- [x] Ny logo i synk med favicon och delningsbild
