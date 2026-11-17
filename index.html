@@ -4,6 +4,16 @@
     <meta name="google-site-verification" content="h0-6p9O5ll0eH_BMcEsdBSvnylEteg85L-l5omPO9lg" />
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <script>
+      // Sätt mörkt tema före första renderingen för att undvika vit blinkning
+      (function () {
+        try {
+          var stored = localStorage.getItem('darkMode');
+          var dark = stored === 'true' || (stored === null && window.matchMedia('(prefers-color-scheme: dark)').matches);
+          if (dark) document.documentElement.classList.add('dark');
+        } catch (e) {}
+      })();
+    </script>
     <title>Skolappar - Pedagogiska appar av föräldrar för barn</title>
     <meta name="description" content="En community där engagerade föräldrar delar sina hemmagjorda skolappar. Utforska pedagogiska appar för barn i alla åldrar. Delad glädje är dubbel glädje!">
     <meta name="author" content="Skolappar" />
@@ -66,6 +76,10 @@
         --loading-foreground: 240 20% 15%;
         --loading-primary: 12 90% 58%;
         --loading-secondary: 174 72% 46%;
+      }
+      .dark {
+        --loading-background: 240 20% 10%;
+        --loading-foreground: 45 30% 95%;
       }
       html, body, #root { min-height: 100%; margin: 0; }
       body { background: hsl(var(--loading-background)); }

@@ -10,11 +10,8 @@ export function DarkModeToggle() {
   const darkModeEnabled = savedTheme && typeof savedTheme === 'object' && (savedTheme as Record<string, unknown>).darkModeEnabled === true;
 
   useEffect(() => {
-    const stored = localStorage.getItem('darkMode');
-    if (stored === 'true') {
-      setIsDark(true);
-      document.documentElement.classList.add('dark');
-    }
+    // Boot-scriptet i index.html har redan satt klassen utifrån sparat val eller systeminställning
+    setIsDark(document.documentElement.classList.contains('dark'));
   }, []);
 
   const toggle = () => {

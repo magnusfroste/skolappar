@@ -26,15 +26,32 @@ const COLOR_MAP: Record<string, string[]> = {
   border: ['--border', '--input', '--sidebar-border'],
 };
 
-function applyColorsToRoot(colors: ThemeColors) {
-  const root = document.documentElement;
+const ALL_VARS = Object.values(COLOR_MAP).flat();
+
+// Ljusa färger sätts i en stilmall scopad till :root:not(.dark) så att
+// .dark-klassens tokens alltid vinner när mörkt läge är aktivt.
+function applyLightStylesheet(colors: ThemeColors) {
+  let style = document.getElementById('dynamic-light-theme') as HTMLStyleElement | null;
+  if (!style) {
+    style = document.createElement('style');
+    style.id = 'dynamic-light-theme';
+    document.head.appendChild(style);
+  }
+
+  const lines: string[] = [];
   Object.entries(COLOR_MAP).forEach(([key, vars]) => {
     const hex = colors[key as keyof ThemeColors];
     if (hex?.startsWith('#')) {
       const hsl = hexToHsl(hex);
-      vars.forEach(v => root.style.setProperty(v, hsl));
+      vars.forEach(v => lines.push(`  ${v}: ${hsl};`));
     }
   });
+
+  style.textContent = `:root:not(.dark) {\n${lines.join('\n')}\n}`;
+
+  // Städa bort eventuella inline-stilar från äldre versioner som annars skriver över .dark
+  const root = document.documentElement;
+  ALL_VARS.forEach(v => root.style.removeProperty(v));
 }
 
 function applyDarkStylesheet(colors: ThemeColors) {
@@ -67,7 +84,7 @@ export function DynamicTheme() {
 
     // New format with light/dark
     if (theme.light && typeof theme.light === 'object') {
-      applyColorsToRoot(theme.light as ThemeColors);
+      applyLightStylesheet(theme.light as ThemeColors);
       
       if (theme.darkModeEnabled && theme.dark && typeof theme.dark === 'object') {
         applyDarkStylesheet(theme.dark as ThemeColors);
@@ -84,13 +101,7 @@ export function DynamicTheme() {
 
     // Legacy flat format
     const flat = theme as Record<string, string>;
-    Object.entries(COLOR_MAP).forEach(([key, vars]) => {
-      const hex = flat[key];
-      if (hex?.startsWith('#')) {
-        const hsl = hexToHsl(hex);
-        vars.forEach(v => document.documentElement.style.setProperty(v, hsl));
-      }
-    });
+    applyLightStylesheet(flat as unknown as ThemeColors);
 
     if (flat.radius) {
       document.documentElement.style.setProperty('--radius', flat.radius);
