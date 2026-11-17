@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import { Search, ArrowRight, Rocket, ChevronRight } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
@@ -24,6 +24,7 @@ const AI_TOOLS = [
 ];
 
 const HOME_LIMIT = 12;
+const HOME_PAGE = 8;
 
 export default function Index() {
   const { user } = useAuth();
@@ -41,7 +42,34 @@ export default function Index() {
   });
 
   const subjects = useMemo(() => categories?.filter((c) => c.type === "subject") ?? [], [categories]);
-  const visibleApps = apps?.slice(0, HOME_LIMIT) ?? [];
+  const totalApps = apps?.length ?? 0;
+  const [visibleCount, setVisibleCount] = useState(HOME_LIMIT);
+  const sentinelRef = useRef<HTMLDivElement>(null);
+  const visibleApps = apps?.slice(0, visibleCount) ?? [];
+  const hasMore = visibleCount < totalApps;
+
+  // Börja om uppifrån vid ny sökning eller nytt ämne
+  useEffect(() => {
+    setVisibleCount(HOME_LIMIT);
+  }, [search, subject]);
+
+  // Fler appar när man scrollar neråt
+  useEffect(() => {
+    if (!hasMore) return;
+    const loadMore = () => {
+      const el = sentinelRef.current;
+      if (!el) return;
+      if (el.getBoundingClientRect().top <= window.innerHeight + 300) {
+        setVisibleCount((c) => Math.min(c + HOME_PAGE, totalApps));
+      }
+    };
+    window.addEventListener("scroll", loadMore, { passive: true });
+    window.addEventListener("resize", loadMore);
+    return () => {
+      window.removeEventListener("scroll", loadMore);
+      window.removeEventListener("resize", loadMore);
+    };
+  }, [hasMore, totalApps]);
   const shareHref = user ? "/min-sida/ny" : "/auth";
   const combinedSchema = [buildWebsiteSchema(config), buildOrganizationSchema(config), buildFaqSchema(config)].filter(Boolean);
 
@@ -110,11 +138,19 @@ export default function Index() {
           </div>
         )}
 
-        {(apps?.length ?? 0) > HOME_LIMIT && (
+        {hasMore && (
+          <div ref={sentinelRef} aria-hidden className="grid grid-cols-2 gap-4 sm:gap-6 lg:grid-cols-3 xl:grid-cols-4 pt-6">
+            {Array.from({ length: Math.min(HOME_PAGE, totalApps - visibleCount) }).map((_, i) => (
+              <Skeleton key={i} className="aspect-[4/3] rounded-3xl" />
+            ))}
+          </div>
+        )}
+
+        {!hasMore && totalApps > HOME_LIMIT && (
           <div className="text-center mt-8">
             <Button size="lg" variant="outline" className="h-12 gap-2 rounded-full" asChild>
               <Link to="/apps">
-                Alla {apps?.length} appar <ArrowRight className="w-4 h-4" />
+                Alla {totalApps} appar <ArrowRight className="w-4 h-4" />
               </Link>
             </Button>
           </div>
