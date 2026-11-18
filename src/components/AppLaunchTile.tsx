@@ -8,11 +8,13 @@ interface AppLaunchTileProps {
   url: string;
   imageUrl?: string;
   age?: string;
+  ageIcon?: string;
+  ageColor?: string;
   onLaunch: () => void;
 }
 
 /** App Store-läge: ett tryck på bilden startar appen, titelraden med ålderstagg går till detaljer. */
-export function AppLaunchTile({ id, title, url, imageUrl, age, onLaunch }: AppLaunchTileProps) {
+export function AppLaunchTile({ id, title, url, imageUrl, age, ageIcon, ageColor, onLaunch }: AppLaunchTileProps) {
   return (
     <div className="group">
       <button
@@ -35,7 +37,11 @@ export function AppLaunchTile({ id, title, url, imageUrl, age, onLaunch }: AppLa
       >
         <h3 className="truncate font-heading text-base font-bold transition-colors group-hover/title:text-primary">{title}</h3>
         {age && (
-          <span className="shrink-0 rounded-full bg-muted px-2.5 py-1 text-xs font-semibold text-muted-foreground">
+          <span
+            className="shrink-0 rounded-full px-2.5 py-1 text-xs font-semibold text-foreground"
+            style={ageColor ? { backgroundColor: `${ageColor}33` } : undefined}
+          >
+            {ageIcon && <span className="mr-1" aria-hidden>{ageIcon}</span>}
             {age}
           </span>
         )}
