@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Link } from "react-router-dom";
-import { Search, ArrowRight, Rocket, ChevronRight } from "lucide-react";
+import { Search, Rocket, ChevronRight } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -146,15 +146,6 @@ export default function Index() {
           </div>
         )}
 
-        {!hasMore && totalApps > HOME_LIMIT && (
-          <div className="text-center mt-8">
-            <Button size="lg" variant="outline" className="h-12 gap-2 rounded-full" asChild>
-              <Link to="/apps">
-                Alla {totalApps} appar <ArrowRight className="w-4 h-4" />
-              </Link>
-            </Button>
-          </div>
-        )}
       </section>
 
       <TopIdeasSection />
