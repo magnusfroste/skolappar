@@ -11,9 +11,9 @@
   },
   "mcp": {
     "server": {
-      "name": "skolappar",
+      "name": "skolappar-com",
       "version": "1.0.0",
-      "title": "skolappar"
+      "title": "skolappar-com"
     },
     "tools": [
       {
@@ -29,6 +29,34 @@
           "$schema": "https://json-schema.org/draft/2020-12/schema",
           "type": "object",
           "properties": {}
+        },
+        "outputSchema": null
+      },
+      {
+        "name": "app_analytics",
+        "title": "Apparnas öppningsstatistik",
+        "description": "Adminrapport: appöppningar för 7, 30 eller 90 UTC-kalenderdagar, daglig utveckling och upp till 100 appar sorterade efter öppningar. Samma rapport som Statistik i admin. Öppningar är inte unika besökare eller sidvisningar. Äldre klick ingår bara i total_opens; tidsserien börjar 18 november 2026. Lovables besöksanalys och Google Analytics ingår inte.",
+        "annotations": {
+          "readOnlyHint": true,
+          "idempotentHint": true,
+          "openWorldHint": false
+        },
+        "inputSchema": {
+          "type": "object",
+          "properties": {
+            "days": {
+              "type": "number",
+              "enum": [
+                7,
+                30,
+                90
+              ],
+              "default": 7,
+              "description": "Antal UTC-kalenderdagar inklusive idag."
+            }
+          },
+          "additionalProperties": false,
+          "$schema": "http://json-schema.org/draft-07/schema#"
         },
         "outputSchema": null
       },
