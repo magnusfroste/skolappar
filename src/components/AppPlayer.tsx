@@ -1,5 +1,5 @@
 import { useEffect } from "react";
-import { X, ExternalLink } from "lucide-react";
+import { ArrowLeft, ExternalLink } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 interface AppPlayerProps {
@@ -24,8 +24,14 @@ export function AppPlayer({ url, title, onClose }: AppPlayerProps) {
   return (
     <div className="fixed inset-0 z-[100] flex flex-col bg-background" role="dialog" aria-modal="true" aria-label={title}>
       <div className="flex items-center gap-2 px-2 h-14 border-b border-border bg-card shrink-0">
-        <Button variant="ghost" size="icon" className="h-12 w-12" onClick={onClose} aria-label="Stäng">
-          <X className="w-5 h-5" />
+        <Button
+          variant="ghost"
+          className="h-12 w-12 rounded-full bg-primary/10 text-primary hover:bg-primary/20"
+          size="icon"
+          onClick={onClose}
+          aria-label="Tillbaka till apparna"
+        >
+          <ArrowLeft className="w-7 h-7" strokeWidth={2.5} />
         </Button>
         <span className="flex-1 truncate font-heading font-semibold">{title}</span>
         <Button variant="ghost" size="sm" className="h-12 gap-2" asChild>
