@@ -1,9 +1,8 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Link } from "react-router-dom";
-import { Search, Rocket, ChevronRight } from "lucide-react";
+import { Rocket, ChevronRight } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
 import { PublicNav } from "@/components/PublicNav";
 import { PublicFooter } from "@/components/PublicFooter";
@@ -30,29 +29,30 @@ const HOME_PAGE = 8;
 export default function Index() {
   const { user } = useAuth();
   const config = useSiteConfig();
-  const [search, setSearch] = useState("");
   const [playing, setPlaying] = useState<{ url: string; title: string } | null>(null);
   const trackClick = useTrackClick();
   const [subject, setSubject] = useState<string | null>(null);
+  const [age, setAge] = useState<string | null>(null);
 
   const { data: categories } = useCategories();
   const { data: apps, isLoading } = useApps({
-    search: search.trim() || undefined,
     subjects: subject ? [subject] : undefined,
+    ages: age ? [age] : undefined,
     sort: "popular",
   });
 
   const subjects = useMemo(() => categories?.filter((c) => c.type === "subject") ?? [], [categories]);
+  const ages = useMemo(() => categories?.filter((c) => c.type === "age") ?? [], [categories]);
   const totalApps = apps?.length ?? 0;
   const [visibleCount, setVisibleCount] = useState(HOME_LIMIT);
   const sentinelRef = useRef<HTMLDivElement>(null);
   const visibleApps = apps?.slice(0, visibleCount) ?? [];
   const hasMore = visibleCount < totalApps;
 
-  // Börja om uppifrån vid ny sökning eller nytt ämne
+  // Börja om uppifrån vid nytt ämne eller ny ålder
   useEffect(() => {
     setVisibleCount(HOME_LIMIT);
-  }, [search, subject]);
+  }, [subject, age]);
 
   // Fler appar när man scrollar neråt
   useEffect(() => {
@@ -81,32 +81,37 @@ export default function Index() {
       <PublicNav variant="transparent" />
       {playing && <AppPlayer url={playing.url} title={playing.title} onClose={() => setPlaying(null)} />}
 
-      {/* Kompakt intro + sök */}
-      <section className="container mx-auto px-4 pt-8 md:pt-14 pb-6 text-center">
-        <h1 className="text-4xl md:text-6xl font-heading font-black leading-tight">
-          Skolappar av <span className="text-gradient">föräldrar</span>
-        </h1>
-        <p className="mt-3 text-lg text-muted-foreground">Gratis appar som gör lärande kul.</p>
-
-        <div className="relative max-w-xl mx-auto mt-6">
-          <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
-          <Input
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            placeholder="Sök app…"
-            aria-label="Sök app"
-            className="h-14 pl-12 rounded-2xl text-base bg-card shadow-playful border-0"
-          />
+      {/* Kompakt intro + filter */}
+      <section className="container mx-auto px-4 pt-8 md:pt-14 pb-6">
+        <div className="text-center">
+          <h1 className="text-4xl md:text-6xl font-heading font-black leading-tight">
+            Skolappar av <span className="text-gradient">föräldrar</span>
+          </h1>
+          <p className="mt-3 text-lg text-muted-foreground">Gratis appar som gör lärande kul.</p>
         </div>
 
-        {subjects.length > 0 && (
-          <div className="mt-4 -mx-4 px-4 flex gap-2 overflow-x-auto md:flex-wrap md:justify-center scrollbar-none">
-            <Chip active={!subject} onClick={() => setSubject(null)}>Alla</Chip>
-            {subjects.map((s) => (
-              <Chip key={s.id} active={subject === s.slug} onClick={() => setSubject(subject === s.slug ? null : s.slug)}>
-                {s.icon} {s.name}
-              </Chip>
-            ))}
+        {(subjects.length > 0 || ages.length > 0) && (
+          <div className="mt-6 flex flex-wrap items-center gap-2">
+            {subjects.length > 0 && (
+              <div className="flex gap-2 overflow-x-auto scrollbar-none w-full md:w-auto md:flex-wrap md:overflow-visible">
+                <Chip active={!subject} onClick={() => setSubject(null)}>Alla</Chip>
+                {subjects.map((s) => (
+                  <Chip key={s.id} active={subject === s.slug} onClick={() => setSubject(subject === s.slug ? null : s.slug)}>
+                    {s.icon} {s.name}
+                  </Chip>
+                ))}
+              </div>
+            )}
+            {ages.length > 0 && (
+              <div className="flex gap-2 overflow-x-auto scrollbar-none w-full md:w-auto md:ml-auto md:flex-wrap md:overflow-visible">
+                <Chip active={!age} onClick={() => setAge(null)}>Alla åldrar</Chip>
+                {ages.map((a) => (
+                  <Chip key={a.id} active={age === a.slug} onClick={() => setAge(age === a.slug ? null : a.slug)}>
+                    {a.icon} {a.name}
+                  </Chip>
+                ))}
+              </div>
+            )}
           </div>
         )}
       </section>
