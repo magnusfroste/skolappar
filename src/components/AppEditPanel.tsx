@@ -9,7 +9,6 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Checkbox } from '@/components/ui/checkbox';
 import { AppStatusBadge } from '@/components/AppStatusBadge';
-import { ImageUploader } from '@/components/ImageUploader';
 import {
   Form,
   FormControl,
@@ -237,24 +236,6 @@ export function AppEditPanel({ appId }: AppEditPanelProps) {
                     placeholder="Beskriv appen mer utförligt..."
                     className="resize-none h-32"
                     {...field}
-                  />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-
-          {/* Image */}
-          <FormField
-            control={form.control}
-            name="image_url"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Bild</FormLabel>
-                <FormControl>
-                  <ImageUploader
-                    value={field.value}
-                    onChange={(url) => field.onChange(url || '')}
                   />
                 </FormControl>
                 <FormMessage />
