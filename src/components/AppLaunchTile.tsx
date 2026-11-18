@@ -7,11 +7,12 @@ interface AppLaunchTileProps {
   title: string;
   url: string;
   imageUrl?: string;
+  age?: string;
   onLaunch: () => void;
 }
 
-/** App Store-läge: ett tryck på bilden startar appen, "Läs mer" går till detaljer. */
-export function AppLaunchTile({ id, title, url, imageUrl, onLaunch }: AppLaunchTileProps) {
+/** App Store-läge: ett tryck på bilden startar appen, titelraden med ålderstagg går till detaljer. */
+export function AppLaunchTile({ id, title, url, imageUrl, age, onLaunch }: AppLaunchTileProps) {
   return (
     <div className="group">
       <button
@@ -27,12 +28,18 @@ export function AppLaunchTile({ id, title, url, imageUrl, onLaunch }: AppLaunchT
           </span>
         </span>
       </button>
-      <div className="mt-2 flex items-center justify-between gap-2 px-1">
-        <h3 className="truncate font-heading text-base font-bold">{title}</h3>
-        <Link to={`/app/${id}`} className="shrink-0 py-2 text-sm text-muted-foreground hover:text-primary">
-          Läs mer
-        </Link>
-      </div>
+      <Link
+        to={`/app/${id}`}
+        aria-label={`Läs mer om ${title}`}
+        className="mt-2 flex items-center justify-between gap-2 px-1 py-1 rounded-lg group/title"
+      >
+        <h3 className="truncate font-heading text-base font-bold transition-colors group-hover/title:text-primary">{title}</h3>
+        {age && (
+          <span className="shrink-0 rounded-full bg-muted px-2.5 py-1 text-xs font-semibold text-muted-foreground">
+            {age}
+          </span>
+        )}
+      </Link>
     </div>
   );
 }

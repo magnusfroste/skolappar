@@ -129,6 +129,7 @@ export default function Index() {
                 title={app.title}
                 url={app.url}
                 imageUrl={app.image_url}
+                age={app.categories.find((c) => c.type === "age")?.name}
                 onLaunch={() => {
                   trackClick.mutate(app.id);
                   setPlaying({ url: app.url, title: app.title });
