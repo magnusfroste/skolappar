@@ -12,7 +12,7 @@ export default defineTool({
     url: z.string().url(),
     long_description: z.string().trim().max(10000).optional(),
     image_url: z.string().url().optional().describe(
-      "Bild som visas på app-korten. Korten beskär bilden till liggande 4:3-format – använd en attraktiv, ljus skärmdump eller illustration på minst 800×600 px med motivet centrerat. Utelämnas bilden skapas automatiskt en skärmdump av appens url, så lämna hellre tom än en bild i fel format."
+      "Bild som visas på app-korten. Korten beskär bilden till liggande 4:3-format – använd en attraktiv, ljus bild på minst 800×600 px med motivet centrerat. Bilden ska ge ett tydligt visuellt intryck av vad spelet/appen handlar om – ju bättre man ser själva spelet, desto bättre effekt. Håll den enkel: inte för många detaljer, och lägg INTE in appens namn, ålder eller kategori i bilden – det visas redan på kortet under bilden. Utelämnas bilden skapas automatiskt en skärmdump av appens url, så lämna hellre tom än en bild i fel format."
     ),
     category_ids: z.array(z.string().uuid()).max(20).optional().describe(
       "Appens kategorier. Ange exakt en av varje typ: subject (Matte, STEM, Språk, Samhälle, Kreativt), age (F–3, 4–6, 7–9+) och app_type (Spel, Öva, Verktyg). Hämta id:n med list_categories. Utan rätt kategorier syns inte appen i startsidans filter."
