@@ -29,6 +29,13 @@
       "when": 1794966928582,
       "tag": "0003_app_open_analytics",
       "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1795042269144,
+      "tag": "0004_admin_user_overview",
+      "breakpoints": true
     }
   ]
 }

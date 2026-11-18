@@ -504,6 +504,7 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      admin_user_overview: { Args: never; Returns: Json }
       app_open_analytics: { Args: { period_days?: number }; Returns: Json }
       has_role: {
         Args: {

@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
 import { AgentAccessPanel } from '@/components/AgentAccessPanel';
 import { AppAnalyticsPanel } from '@/components/AppAnalyticsPanel';
+import { AdminUsersPanel } from '@/components/AdminUsersPanel';
 import { ADMIN_SECTIONS } from '@/lib/adminSections';
 import { Check, X, Star, Clock, ExternalLink, Trash2, Plus, Edit2, Shield, Settings, FileText, Eye, EyeOff, Lightbulb, MessageSquare, ThumbsUp, TrendingUp } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -1139,6 +1140,10 @@ export default function Admin() {
 
           <TabsContent value="agents">
             <AgentAccessPanel />
+          </TabsContent>
+
+          <TabsContent value="users">
+            <AdminUsersPanel />
           </TabsContent>
 
           <TabsContent value="analytics">
