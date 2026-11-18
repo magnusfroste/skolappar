@@ -132,6 +132,10 @@ export default function Index() {
                 age={app.categories.find((c) => c.type === "age")?.name}
                 ageIcon={app.categories.find((c) => c.type === "age")?.icon}
                 ageColor={app.categories.find((c) => c.type === "age")?.color}
+                subjectIcon={app.categories.find((c) => c.type === "subject")?.icon}
+                subjectColor={app.categories.find((c) => c.type === "subject")?.color}
+                typeIcon={app.categories.find((c) => c.type === "app_type")?.icon}
+                typeColor={app.categories.find((c) => c.type === "app_type")?.color}
                 onLaunch={() => {
                   trackClick.mutate(app.id);
                   setPlaying({ url: app.url, title: app.title });

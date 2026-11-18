@@ -10,11 +10,15 @@ interface AppLaunchTileProps {
   age?: string;
   ageIcon?: string;
   ageColor?: string;
+  subjectIcon?: string;
+  subjectColor?: string;
+  typeIcon?: string;
+  typeColor?: string;
   onLaunch: () => void;
 }
 
-/** App Store-läge: ett tryck på bilden startar appen, titelraden med ålderstagg går till detaljer. */
-export function AppLaunchTile({ id, title, url, imageUrl, age, ageIcon, ageColor, onLaunch }: AppLaunchTileProps) {
+/** App Store-läge: ett tryck på bilden startar appen, titelraden med symboler går till detaljer. */
+export function AppLaunchTile({ id, title, url, imageUrl, age, ageIcon, ageColor, subjectIcon, subjectColor, typeIcon, typeColor, onLaunch }: AppLaunchTileProps) {
   return (
     <div className="group">
       <button
@@ -36,15 +40,35 @@ export function AppLaunchTile({ id, title, url, imageUrl, age, ageIcon, ageColor
         className="mt-2 flex items-center justify-between gap-2 px-1 py-1 rounded-lg group/title"
       >
         <h3 className="truncate font-heading text-base font-bold transition-colors group-hover/title:text-primary">{title}</h3>
-        {age && (
-          <span
-            className="shrink-0 rounded-full px-2.5 py-1 text-xs font-semibold text-foreground"
-            style={ageColor ? { backgroundColor: `${ageColor}33` } : undefined}
-          >
-            {ageIcon && <span className="mr-1" aria-hidden>{ageIcon}</span>}
-            {age}
-          </span>
-        )}
+        <span className="flex shrink-0 items-center gap-1">
+          {subjectIcon && (
+            <span
+              className="flex h-7 w-7 items-center justify-center rounded-full text-sm"
+              style={subjectColor ? { backgroundColor: `${subjectColor}33` } : undefined}
+              aria-hidden
+            >
+              {subjectIcon}
+            </span>
+          )}
+          {typeIcon && (
+            <span
+              className="flex h-7 w-7 items-center justify-center rounded-full text-sm"
+              style={typeColor ? { backgroundColor: `${typeColor}33` } : undefined}
+              aria-hidden
+            >
+              {typeIcon}
+            </span>
+          )}
+          {age && (
+            <span
+              className="rounded-full px-2.5 py-1 text-xs font-semibold text-foreground"
+              style={ageColor ? { backgroundColor: `${ageColor}33` } : undefined}
+            >
+              {ageIcon && <span className="mr-1" aria-hidden>{ageIcon}</span>}
+              {age}
+            </span>
+          )}
+        </span>
       </Link>
     </div>
   );
