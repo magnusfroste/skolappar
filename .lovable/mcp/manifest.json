@@ -878,6 +878,29 @@
         "outputSchema": null
       },
       {
+        "name": "admin_users",
+        "title": "Användaröversikt",
+        "description": "Adminrapport: alla konton med e-post, inloggningsmetod (google eller email), roller, antal idéer och personens appar med status, öppningar och röster. Samma data som sidan Användare i admin. E-postadresser är privata och visas bara här.",
+        "annotations": {
+          "readOnlyHint": true,
+          "idempotentHint": true,
+          "openWorldHint": false
+        },
+        "inputSchema": {
+          "type": "object",
+          "properties": {
+            "search": {
+              "type": "string",
+              "minLength": 1,
+              "description": "Filtrerar på visningsnamn eller e-post."
+            }
+          },
+          "additionalProperties": false,
+          "$schema": "http://json-schema.org/draft-07/schema#"
+        },
+        "outputSchema": null
+      },
+      {
         "name": "set_user_role",
         "title": "Ge eller ta bort roll",
         "description": "Ge en användare rollen admin/moderator/user, eller ta bort rollen. Kräver adminbehörighet.",

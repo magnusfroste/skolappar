@@ -612,17 +612,44 @@ var list_users_default = defineTool22({
   }
 });
 
-// src/lib/mcp/tools/set-user-role.ts
+// src/lib/mcp/tools/admin-users.ts
 import { defineTool as defineTool23 } from "npm:@lovable.dev/mcp-js@2.0.2";
 import { z as z23 } from "npm:zod@^3.25.76";
-var set_user_role_default = defineTool23({
+var admin_users_default = defineTool23({
+  name: "admin_users",
+  title: "Anv\xE4ndar\xF6versikt",
+  description: "Adminrapport: alla konton med e-post, inloggningsmetod (google eller email), roller, antal id\xE9er och personens appar med status, \xF6ppningar och r\xF6ster. Samma data som sidan Anv\xE4ndare i admin. E-postadresser \xE4r privata och visas bara h\xE4r.",
+  inputSchema: {
+    search: z23.string().trim().min(1).optional().describe("Filtrerar p\xE5 visningsnamn eller e-post.")
+  },
+  annotations: { readOnlyHint: true, idempotentHint: true, openWorldHint: false },
+  handler: async ({ search }, ctx) => {
+    requireAuth(ctx);
+    const supabase = supabaseForUser(ctx);
+    const { data, error } = await supabase.rpc("admin_user_overview");
+    if (error) return fail("Kunde inte l\xE4sa anv\xE4ndar\xF6versikten. Verktyget kr\xE4ver adminbeh\xF6righet.");
+    let users = data ?? [];
+    if (search) {
+      const q = search.toLowerCase();
+      users = users.filter(
+        (u) => `${u.display_name ?? ""} ${u.email ?? ""}`.toLowerCase().includes(q)
+      );
+    }
+    return ok(users);
+  }
+});
+
+// src/lib/mcp/tools/set-user-role.ts
+import { defineTool as defineTool24 } from "npm:@lovable.dev/mcp-js@2.0.2";
+import { z as z24 } from "npm:zod@^3.25.76";
+var set_user_role_default = defineTool24({
   name: "set_user_role",
   title: "Ge eller ta bort roll",
   description: "Ge en anv\xE4ndare rollen admin/moderator/user, eller ta bort rollen. Kr\xE4ver adminbeh\xF6righet.",
   inputSchema: {
-    user_id: z23.string().uuid(),
-    role: z23.enum(["admin", "moderator", "user"]),
-    action: z23.enum(["grant", "revoke"]).default("grant")
+    user_id: z24.string().uuid(),
+    role: z24.enum(["admin", "moderator", "user"]),
+    action: z24.enum(["grant", "revoke"]).default("grant")
   },
   annotations: { readOnlyHint: false, destructiveHint: true, openWorldHint: false },
   handler: async ({ user_id, role, action }, ctx) => {
@@ -638,8 +665,8 @@ var set_user_role_default = defineTool23({
 });
 
 // src/lib/mcp/tools/platform-stats.ts
-import { defineTool as defineTool24 } from "npm:@lovable.dev/mcp-js@2.0.2";
-var platform_stats_default = defineTool24({
+import { defineTool as defineTool25 } from "npm:@lovable.dev/mcp-js@2.0.2";
+var platform_stats_default = defineTool25({
   name: "platform_stats",
   title: "Plattforms\xF6versikt",
   description: "Nyckeltal: antal appar per status, id\xE9er, resurser, anv\xE4ndare, r\xF6ster och klick.",
@@ -679,30 +706,30 @@ var platform_stats_default = defineTool24({
 });
 
 // src/lib/mcp/tools/app-analytics.ts
-import { defineTool as defineTool25 } from "npm:@lovable.dev/mcp-js@2.0.2";
-import { z as z25 } from "npm:zod@^3.25.76";
+import { defineTool as defineTool26 } from "npm:@lovable.dev/mcp-js@2.0.2";
+import { z as z26 } from "npm:zod@^3.25.76";
 
 // src/lib/appAnalytics.ts
-import { z as z24 } from "npm:zod@^3.25.76";
-var reportSchema = z24.object({
-  period_days: z24.number(),
-  period_start: z24.string(),
-  period_end: z24.string(),
-  timezone: z24.string(),
-  tracking_since: z24.string(),
-  total_opens: z24.number(),
-  period_opens: z24.number(),
-  apps_opened: z24.number(),
-  apps: z24.array(z24.object({
-    id: z24.string(),
-    title: z24.string(),
-    status: z24.string(),
-    total_opens: z24.number(),
-    period_opens: z24.number(),
-    upvotes: z24.number(),
-    comments: z24.number()
+import { z as z25 } from "npm:zod@^3.25.76";
+var reportSchema = z25.object({
+  period_days: z25.number(),
+  period_start: z25.string(),
+  period_end: z25.string(),
+  timezone: z25.string(),
+  tracking_since: z25.string(),
+  total_opens: z25.number(),
+  period_opens: z25.number(),
+  apps_opened: z25.number(),
+  apps: z25.array(z25.object({
+    id: z25.string(),
+    title: z25.string(),
+    status: z25.string(),
+    total_opens: z25.number(),
+    period_opens: z25.number(),
+    upvotes: z25.number(),
+    comments: z25.number()
   })),
-  daily: z24.array(z24.object({ date: z24.string(), opens: z24.number() }))
+  daily: z25.array(z25.object({ date: z25.string(), opens: z25.number() }))
 });
 async function readAppAnalytics(client, days) {
   const { data, error } = await client.rpc("app_open_analytics", { period_days: days });
@@ -711,11 +738,11 @@ async function readAppAnalytics(client, days) {
 }
 
 // src/lib/mcp/tools/app-analytics.ts
-var app_analytics_default = defineTool25({
+var app_analytics_default = defineTool26({
   name: "app_analytics",
   title: "Apparnas \xF6ppningsstatistik",
   description: "Adminrapport: app\xF6ppningar f\xF6r 7, 30 eller 90 UTC-kalenderdagar, daglig utveckling och upp till 100 appar sorterade efter \xF6ppningar. Samma rapport som Statistik i admin. \xD6ppningar \xE4r inte unika bes\xF6kare eller sidvisningar. \xC4ldre klick ing\xE5r bara i total_opens; tidsserien b\xF6rjar 18 november 2026. Lovables bes\xF6ksanalys och Google Analytics ing\xE5r inte.",
-  inputSchema: { days: z25.union([z25.literal(7), z25.literal(30), z25.literal(90)]).default(7).describe("Antal UTC-kalenderdagar inklusive idag.") },
+  inputSchema: { days: z26.union([z26.literal(7), z26.literal(30), z26.literal(90)]).default(7).describe("Antal UTC-kalenderdagar inklusive idag.") },
   annotations: { readOnlyHint: true, idempotentHint: true, openWorldHint: false },
   handler: async ({ days }, ctx) => {
     requireAuth(ctx);
@@ -733,7 +760,7 @@ var mcp_default = defineMcp({
   name: "skolappar-com",
   title: "skolappar-com",
   version: "1.0.0",
-  instructions: "Verktyg f\xF6r att sk\xF6ta skolappar.com \u2013 hela administrationen. Du agerar som den inloggade anv\xE4ndaren och f\xE5r dennes beh\xF6righeter (adminverktyg kr\xE4ver adminroll). B\xF6rja med platform_stats f\xF6r en \xF6versikt, list_apps f\xF6r moderering (status pending \u2192 approved/featured/rejected/delisted), list_ideas f\xF6r community-id\xE9er, list_resources/upsert_resource f\xF6r kunskapsartiklar i Markdown, list_categories f\xF6r kategori-id:n, list_settings/set_setting f\xF6r varum\xE4rke, tema, typsnitt, SEO/AEO och startsidans sektioner, samt list_users/set_user_role f\xF6r beh\xF6righeter. Kategorisering: varje app ska ha exakt en kategori av varje typ \u2013 subject (Matte, STEM, Spr\xE5k, Samh\xE4lle, Kreativt), age (F\u20133, 4\u20136, 7\u20139+) och app_type (Spel, \xD6va, Verktyg). Startsidans filter bygger p\xE5 dessa, s\xE5 en app utan r\xE4tt kategorier blir osynlig f\xF6r sina anv\xE4ndare. N\xE4r en inl\xE4mnad app saknar eller har fel kategorier: h\xE4mta id:n med list_categories och r\xE4tta med update_app (category_ids ers\xE4tter samtliga). Appbilder: bilden ska ge ett tydligt visuellt intryck av vad spelet/appen handlar om \u2013 ju b\xE4ttre man ser sj\xE4lva spelet, desto b\xE4ttre effekt. H\xE5ll bilden enkel utan f\xF6r m\xE5nga detaljer, och l\xE4gg aldrig in appens namn, \xE5lder eller kategori i bilden \u2013 det visas redan p\xE5 kortet. All text p\xE5 plattformen \xE4r p\xE5 svenska \u2013 skriv inneh\xE5ll p\xE5 svenska.",
+  instructions: "Verktyg f\xF6r att sk\xF6ta skolappar.com \u2013 hela administrationen. Du agerar som den inloggade anv\xE4ndaren och f\xE5r dennes beh\xF6righeter (adminverktyg kr\xE4ver adminroll). B\xF6rja med platform_stats f\xF6r en \xF6versikt, list_apps f\xF6r moderering (status pending \u2192 approved/featured/rejected/delisted), list_ideas f\xF6r community-id\xE9er, list_resources/upsert_resource f\xF6r kunskapsartiklar i Markdown, list_categories f\xF6r kategori-id:n, list_settings/set_setting f\xF6r varum\xE4rke, tema, typsnitt, SEO/AEO och startsidans sektioner, samt list_users/set_user_role f\xF6r beh\xF6righeter. admin_users ger hela admin\xF6versikten av konton: e-post, inloggningsmetod (google eller email), roller, id\xE9er och personens appar med status och \xF6ppningar. Kategorisering: varje app ska ha exakt en kategori av varje typ \u2013 subject (Matte, STEM, Spr\xE5k, Samh\xE4lle, Kreativt), age (F\u20133, 4\u20136, 7\u20139+) och app_type (Spel, \xD6va, Verktyg). Startsidans filter bygger p\xE5 dessa, s\xE5 en app utan r\xE4tt kategorier blir osynlig f\xF6r sina anv\xE4ndare. N\xE4r en inl\xE4mnad app saknar eller har fel kategorier: h\xE4mta id:n med list_categories och r\xE4tta med update_app (category_ids ers\xE4tter samtliga). Appbilder: bilden ska ge ett tydligt visuellt intryck av vad spelet/appen handlar om \u2013 ju b\xE4ttre man ser sj\xE4lva spelet, desto b\xE4ttre effekt. H\xE5ll bilden enkel utan f\xF6r m\xE5nga detaljer, och l\xE4gg aldrig in appens namn, \xE5lder eller kategori i bilden \u2013 det visas redan p\xE5 kortet. All text p\xE5 plattformen \xE4r p\xE5 svenska \u2013 skriv inneh\xE5ll p\xE5 svenska.",
   auth: auth.oauth.issuer({
     issuer: `https://${projectRef}.supabase.co/auth/v1`,
     acceptedAudiences: "authenticated"
@@ -763,6 +790,7 @@ var mcp_default = defineMcp({
     list_settings_default,
     set_setting_default,
     list_users_default,
+    admin_users_default,
     set_user_role_default
   ]
 });

@@ -25,7 +25,9 @@ function UserRow({ user }: { user: AdminUser }) {
           <div className="flex items-center gap-1.5 font-medium truncate">
             {name}{user.is_admin && <Shield className="h-3.5 w-3.5 text-primary shrink-0" aria-label="Admin" />}
           </div>
-          <div className="text-xs text-muted-foreground truncate">{user.email} · sedan {date(user.created_at)}</div>
+          <div className="text-xs text-muted-foreground truncate">
+            {user.email} · {user.auth_method === 'google' ? 'Google' : 'E-post'} · sedan {date(user.created_at)}
+          </div>
         </div>
         <div className="flex items-center gap-3 text-sm text-muted-foreground shrink-0">
           <span title="Appar">📱 {user.apps.length}</span>

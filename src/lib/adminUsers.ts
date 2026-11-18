@@ -4,6 +4,7 @@ export type AdminUserApp = { id: string; title: string; status: string; clicks: 
 export type AdminUser = {
   id: string; email: string | null; created_at: string; last_sign_in_at: string | null;
   display_name: string | null; avatar_url: string | null; is_admin: boolean;
+  auth_method: string; providers: string[];
   ideas_count: number; apps: AdminUserApp[];
 };
 
