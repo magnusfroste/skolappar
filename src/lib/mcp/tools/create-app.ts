@@ -14,7 +14,9 @@ export default defineTool({
     image_url: z.string().url().optional().describe(
       "Bild som visas på app-korten. Korten beskär bilden till liggande 4:3-format – använd en attraktiv, ljus skärmdump eller illustration på minst 800×600 px med motivet centrerat. Utelämnas bilden skapas automatiskt en skärmdump av appens url, så lämna hellre tom än en bild i fel format."
     ),
-    category_ids: z.array(z.string().uuid()).max(20).optional(),
+    category_ids: z.array(z.string().uuid()).max(20).optional().describe(
+      "Appens kategorier. Ange exakt en av varje typ: subject (Matte, STEM, Språk, Samhälle, Kreativt), age (F–3, 4–6, 7–9+) och app_type (Spel, Öva, Verktyg). Hämta id:n med list_categories. Utan rätt kategorier syns inte appen i startsidans filter."
+    ),
   },
   annotations: { readOnlyHint: false, openWorldHint: false },
   handler: async ({ title, description, url, long_description, image_url, category_ids }, ctx) => {

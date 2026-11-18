@@ -144,7 +144,8 @@
                 "type": "string",
                 "format": "uuid"
               },
-              "maxItems": 20
+              "maxItems": 20,
+              "description": "Appens kategorier. Ange exakt en av varje typ: subject (Matte, STEM, Språk, Samhälle, Kreativt), age (F–3, 4–6, 7–9+) och app_type (Spel, Öva, Verktyg). Hämta id:n med list_categories. Utan rätt kategorier syns inte appen i startsidans filter."
             }
           },
           "required": [
@@ -219,7 +220,7 @@
                 "format": "uuid"
               },
               "maxItems": 20,
-              "description": "Ersätter appens kategorier."
+              "description": "Ersätter appens samtliga kategorier. Appen ska ha exakt en av varje typ: subject (Matte, STEM, Språk, Samhälle, Kreativt), age (F–3, 4–6, 7–9+) och app_type (Spel, Öva, Verktyg). Hämta id:n med list_categories. Använd för att rätta appar där inlämnaren missat kategorier – utan dem syns inte appen i startsidans filter."
             }
           },
           "required": [
