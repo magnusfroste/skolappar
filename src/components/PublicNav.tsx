@@ -68,9 +68,11 @@ export function PublicNav({ variant = 'transparent' }: PublicNavProps) {
             <Button variant="ghost" size="sm" asChild className={cn(isActive('/resurser') && "bg-muted text-foreground")}>
               <Link to="/resurser">Resurser</Link>
             </Button>
-            <Button variant="ghost" size="sm" asChild className={cn(isActive('/testa-din-app') && "bg-muted text-foreground")}>
-              <Link to="/testa-din-app">Testa app</Link>
-            </Button>
+            {user && (
+              <Button variant="ghost" size="sm" asChild className={cn(isActive('/testa-din-app') && "bg-muted text-foreground")}>
+                <Link to="/testa-din-app">Testa app</Link>
+              </Button>
+            )}
 
             {loading ? (
               <Skeleton className="w-20 h-9" />
@@ -179,17 +181,19 @@ export function PublicNav({ variant = 'transparent' }: PublicNavProps) {
                     <span className="font-medium">Resurser</span>
                   </Link>
 
-                  <Link 
-                    to="/testa-din-app" 
-                    onClick={closeMobileMenu}
-                    className={cn(
-                      "flex items-center gap-3 px-3 py-3 rounded-xl transition-colors",
-                      isActive('/testa-din-app') ? "bg-primary/10 text-primary" : "text-foreground hover:bg-muted"
-                    )}
-                  >
-                    <TestTube2 className="w-5 h-5" />
-                    <span className="font-medium">Testa app</span>
-                  </Link>
+                  {user && (
+                    <Link 
+                      to="/testa-din-app" 
+                      onClick={closeMobileMenu}
+                      className={cn(
+                        "flex items-center gap-3 px-3 py-3 rounded-xl transition-colors",
+                        isActive('/testa-din-app') ? "bg-primary/10 text-primary" : "text-foreground hover:bg-muted"
+                      )}
+                    >
+                      <TestTube2 className="w-5 h-5" />
+                      <span className="font-medium">Testa app</span>
+                    </Link>
+                  )}
 
                   <div className="my-2 border-t border-border" />
 
