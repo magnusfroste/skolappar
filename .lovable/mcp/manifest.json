@@ -136,7 +136,7 @@
             "image_url": {
               "type": "string",
               "format": "uri",
-              "description": "Bild som visas på app-korten. Korten beskär bilden till liggande 4:3-format – använd en attraktiv, ljus skärmdump eller illustration på minst 800×600 px med motivet centrerat. Utelämnas bilden skapas automatiskt en skärmdump av appens url, så lämna hellre tom än en bild i fel format."
+              "description": "Bild som visas på app-korten. Korten beskär bilden till liggande 4:3-format – använd en attraktiv, ljus bild på minst 800×600 px med motivet centrerat. Bilden ska ge ett tydligt visuellt intryck av vad spelet/appen handlar om – ju bättre man ser själva spelet, desto bättre effekt. Håll den enkel: inte för många detaljer, och lägg INTE in appens namn, ålder eller kategori i bilden – det visas redan på kortet under bilden. Utelämnas bilden skapas automatiskt en skärmdump av appens url, så lämna hellre tom än en bild i fel format."
             },
             "category_ids": {
               "type": "array",
@@ -194,7 +194,7 @@
             "image_url": {
               "type": "string",
               "format": "uri",
-              "description": "Bild som visas på app-korten. Korten beskär bilden till liggande 4:3-format – använd en attraktiv, ljus skärmdump eller illustration på minst 800×600 px med motivet centrerat. Utelämnas bilden skapas automatiskt en skärmdump av appens url, så lämna hellre tom än en bild i fel format."
+              "description": "Bild som visas på app-korten. Korten beskär bilden till liggande 4:3-format – använd en attraktiv, ljus bild på minst 800×600 px med motivet centrerat. Bilden ska ge ett tydligt visuellt intryck av vad spelet/appen handlar om – ju bättre man ser själva spelet, desto bättre effekt. Håll den enkel: inte för många detaljer, och lägg INTE in appens namn, ålder eller kategori i bilden – det visas redan på kortet under bilden. Utelämnas bilden skapas automatiskt en skärmdump av appens url, så lämna hellre tom än en bild i fel format."
             },
             "status": {
               "type": "string",
