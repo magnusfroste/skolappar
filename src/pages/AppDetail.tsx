@@ -1,3 +1,4 @@
+import { AppThumbnail } from '@/components/AppThumbnail';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { ArrowLeft, ExternalLink, ChevronUp, MessageCircle, Trash2, Send, Eye, Monitor, Tablet, Smartphone, Layers, Play } from 'lucide-react';
 import { AppPlayer } from '@/components/AppPlayer';
@@ -142,19 +143,22 @@ export default function AppDetail() {
           Tillbaka
         </Button>
 
-        {/* Thumbnail */}
-        <div className="aspect-video rounded-2xl overflow-hidden shadow-playful-lg bg-card">
-          {app.image_url ? (
-            <img src={app.image_url} alt={app.title} className="w-full h-full object-cover" />
-          ) : (
-            <div className="w-full h-full flex items-center justify-center text-8xl bg-gradient-to-br from-primary/10 to-secondary/10">
-              📱
-            </div>
-          )}
-        </div>
-
+        {/* Thumbnail + title side by side */}
+        <div className="flex flex-col sm:flex-row gap-5 sm:items-center">
+          <button
+            type="button"
+            aria-label={`Starta ${app.title}`}
+            onClick={() => {
+              trackClick.mutate(app.id);
+              setPlaying(true);
+            }}
+            className="w-full sm:w-64 shrink-0 aspect-[4/3] rounded-2xl overflow-hidden shadow-playful-lg bg-card"
+          >
+            <AppThumbnail title={app.title} imageUrl={app.image_url || undefined} appUrl={app.url} className="w-full h-full" />
+          </button>
+          <div className="min-w-0 flex-1 space-y-4">
         {/* Title & actions */}
-        <div className="flex items-start justify-between gap-4">
+        <div className="flex flex-col gap-4">
           <div className="min-w-0 flex-1">
             <h1 className="font-heading text-2xl sm:text-3xl font-bold line-clamp-2">{app.title}</h1>
             <div className="flex items-center gap-2 mt-1 text-sm text-muted-foreground">
@@ -191,6 +195,9 @@ export default function AppDetail() {
             >
               <ExternalLink className="w-4 h-4" />
             </Button>
+          </div>
+        </div>
+
           </div>
         </div>
 
