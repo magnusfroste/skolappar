@@ -17,6 +17,7 @@ import { useApps, useCategories } from "@/hooks/useApps";
 
 const AI_TOOLS = [
   { name: "Lovable", slug: "lovable" },
+  { name: "Claude Code", slug: "claude-code" },
   { name: "Google AI Studio", slug: "google-ai-studio" },
   { name: "Bolt.new", slug: "bolt-new" },
   { name: "Cursor", slug: "cursor" },
