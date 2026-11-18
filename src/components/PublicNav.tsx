@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { Sparkles, ArrowRight, Shield, Menu, X, Compass, User, BookOpen, LogOut, TestTube2, Lightbulb, Home } from 'lucide-react';
+import { Sparkles, ArrowRight, Shield, Menu, X, User, BookOpen, LogOut, TestTube2, Lightbulb, Home } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
@@ -55,9 +55,6 @@ export function PublicNav({ variant = 'transparent' }: PublicNavProps) {
                 <Home className="w-4 h-4" />
                 Hem
               </Link>
-            </Button>
-            <Button variant="ghost" size="sm" asChild className={cn(isActive('/apps') && "bg-muted text-foreground")}>
-              <Link to="/apps">Utforska</Link>
             </Button>
             <Button variant="ghost" size="sm" asChild className={cn("gap-1.5", isActive('/ideer') && "bg-muted text-foreground")}>
               <Link to="/ideer">
@@ -143,18 +140,6 @@ export function PublicNav({ variant = 'transparent' }: PublicNavProps) {
                   >
                     <Home className="w-5 h-5" />
                     <span className="font-medium">Startsida</span>
-                  </Link>
-
-                  <Link 
-                    to="/apps" 
-                    onClick={closeMobileMenu}
-                    className={cn(
-                      "flex items-center gap-3 px-3 py-3 rounded-xl transition-colors",
-                      isActive('/apps') ? "bg-primary/10 text-primary" : "text-foreground hover:bg-muted"
-                    )}
-                  >
-                    <Compass className="w-5 h-5" />
-                    <span className="font-medium">Utforska appar</span>
                   </Link>
 
                   <Link 
