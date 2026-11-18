@@ -1,5 +1,7 @@
 # Roadmap
 
+- [x] Visa appöppningar och utveckling i admin samt via MCP, verifiera behörigheter och flödet
+
 - [x] Lägg till säker lösenordsåterställning via mejl
 - [x] Skydda privata profiler och behåll offentliga skaparnamn
 - [x] Verifiera återställningsbegäran, ogiltig länk, mobilvy och profilregler

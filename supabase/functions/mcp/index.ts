@@ -678,11 +678,60 @@ var platform_stats_default = defineTool24({
   }
 });
 
+// src/lib/mcp/tools/app-analytics.ts
+import { defineTool as defineTool25 } from "npm:@lovable.dev/mcp-js@2.0.2";
+import { z as z25 } from "npm:zod@^3.25.76";
+
+// src/lib/appAnalytics.ts
+import { z as z24 } from "npm:zod@^3.25.76";
+var reportSchema = z24.object({
+  period_days: z24.number(),
+  period_start: z24.string(),
+  period_end: z24.string(),
+  timezone: z24.string(),
+  tracking_since: z24.string(),
+  total_opens: z24.number(),
+  period_opens: z24.number(),
+  apps_opened: z24.number(),
+  apps: z24.array(z24.object({
+    id: z24.string(),
+    title: z24.string(),
+    status: z24.string(),
+    total_opens: z24.number(),
+    period_opens: z24.number(),
+    upvotes: z24.number(),
+    comments: z24.number()
+  })),
+  daily: z24.array(z24.object({ date: z24.string(), opens: z24.number() }))
+});
+async function readAppAnalytics(client, days) {
+  const { data, error } = await client.rpc("app_open_analytics", { period_days: days });
+  if (error) throw error;
+  return reportSchema.parse(data);
+}
+
+// src/lib/mcp/tools/app-analytics.ts
+var app_analytics_default = defineTool25({
+  name: "app_analytics",
+  title: "Apparnas \xF6ppningsstatistik",
+  description: "Adminrapport: app\xF6ppningar f\xF6r 7, 30 eller 90 UTC-kalenderdagar, daglig utveckling och upp till 100 appar sorterade efter \xF6ppningar. Samma rapport som Statistik i admin. \xD6ppningar \xE4r inte unika bes\xF6kare eller sidvisningar. \xC4ldre klick ing\xE5r bara i total_opens; tidsserien b\xF6rjar 18 november 2026. Lovables bes\xF6ksanalys och Google Analytics ing\xE5r inte.",
+  inputSchema: { days: z25.union([z25.literal(7), z25.literal(30), z25.literal(90)]).default(7).describe("Antal UTC-kalenderdagar inklusive idag.") },
+  annotations: { readOnlyHint: true, idempotentHint: true, openWorldHint: false },
+  handler: async ({ days }, ctx) => {
+    requireAuth(ctx);
+    try {
+      return ok(await readAppAnalytics(supabaseForUser(ctx), days));
+    } catch {
+      return fail("Kunde inte l\xE4sa statistiken. Rapporten kr\xE4ver en anslutning med adminbeh\xF6righet.");
+    }
+  }
+});
+
 // src/lib/mcp/index.ts
 var projectRef = "eruyrrjgdzmeugwubppw";
 var mcp_default = defineMcp({
-  name: "skolappar",
-  title: "skolappar",
+  name: "skolappar-com",
+  title: "skolappar-com",
   version: "1.0.0",
   instructions: "Verktyg f\xF6r att sk\xF6ta skolappar.com \u2013 hela administrationen. Du agerar som den inloggade anv\xE4ndaren och f\xE5r dennes beh\xF6righeter (adminverktyg kr\xE4ver adminroll). B\xF6rja med platform_stats f\xF6r en \xF6versikt, list_apps f\xF6r moderering (status pending \u2192 approved/featured/rejected/delisted), list_ideas f\xF6r community-id\xE9er, list_resources/upsert_resource f\xF6r kunskapsartiklar i Markdown, list_categories f\xF6r kategori-id:n, list_settings/set_setting f\xF6r varum\xE4rke, tema, typsnitt, SEO/AEO och startsidans sektioner, samt list_users/set_user_role f\xF6r beh\xF6righeter. Kategorisering: varje app ska ha exakt en kategori av varje typ \u2013 subject (Matte, STEM, Spr\xE5k, Samh\xE4lle, Kreativt), age (F\u20133, 4\u20136, 7\u20139+) och app_type (Spel, \xD6va, Verktyg). Startsidans filter bygger p\xE5 dessa, s\xE5 en app utan r\xE4tt kategorier blir osynlig f\xF6r sina anv\xE4ndare. N\xE4r en inl\xE4mnad app saknar eller har fel kategorier: h\xE4mta id:n med list_categories och r\xE4tta med update_app (category_ids ers\xE4tter samtliga). Appbilder: bilden ska ge ett tydligt visuellt intryck av vad spelet/appen handlar om \u2013 ju b\xE4ttre man ser sj\xE4lva spelet, desto b\xE4ttre effekt. H\xE5ll bilden enkel utan f\xF6r m\xE5nga detaljer, och l\xE4gg aldrig in appens namn, \xE5lder eller kategori i bilden \u2013 det visas redan p\xE5 kortet. All text p\xE5 plattformen \xE4r p\xE5 svenska \u2013 skriv inneh\xE5ll p\xE5 svenska.",
   auth: auth.oauth.issuer({
@@ -691,6 +740,7 @@ var mcp_default = defineMcp({
   }),
   tools: [
     platform_stats_default,
+    app_analytics_default,
     list_apps_default,
     get_app_default,
     create_app_default,

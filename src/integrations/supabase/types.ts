@@ -47,6 +47,32 @@ export type Database = {
           },
         ]
       }
+      app_open_events: {
+        Row: {
+          app_id: string
+          id: string
+          opened_at: string
+        }
+        Insert: {
+          app_id: string
+          id?: string
+          opened_at?: string
+        }
+        Update: {
+          app_id?: string
+          id?: string
+          opened_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "app_open_events_app_id_fkey"
+            columns: ["app_id"]
+            isOneToOne: false
+            referencedRelation: "apps"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       apps: {
         Row: {
           clicks_count: number | null
@@ -478,6 +504,7 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      app_open_analytics: { Args: { period_days?: number }; Returns: Json }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
