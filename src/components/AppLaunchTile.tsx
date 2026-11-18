@@ -37,13 +37,13 @@ export function AppLaunchTile({ id, title, url, imageUrl, age, ageIcon, ageColor
       <Link
         to={`/app/${id}`}
         aria-label={`Läs mer om ${title}`}
-        className="mt-2 block px-1 py-1 rounded-lg group/title"
+        className="mt-2 flex items-center justify-between gap-2 px-1 py-1 rounded-lg group/title"
       >
         <h3 className="truncate font-heading text-base font-bold transition-colors group-hover/title:text-primary">{title}</h3>
-        <span className="mt-1.5 flex items-center justify-end gap-1">
+        <span className="flex shrink-0 items-center gap-1">
           {subjectIcon && (
             <span
-              className="flex h-7 w-7 items-center justify-center rounded-full text-sm"
+              className="flex h-6 w-6 items-center justify-center rounded-full text-xs"
               style={subjectColor ? { backgroundColor: `${subjectColor}33` } : undefined}
               aria-hidden
             >
@@ -52,7 +52,7 @@ export function AppLaunchTile({ id, title, url, imageUrl, age, ageIcon, ageColor
           )}
           {typeIcon && (
             <span
-              className="flex h-7 w-7 items-center justify-center rounded-full text-sm"
+              className="flex h-6 w-6 items-center justify-center rounded-full text-xs"
               style={typeColor ? { backgroundColor: `${typeColor}33` } : undefined}
               aria-hidden
             >
@@ -61,10 +61,9 @@ export function AppLaunchTile({ id, title, url, imageUrl, age, ageIcon, ageColor
           )}
           {age && (
             <span
-              className="rounded-full px-2.5 py-1 text-xs font-semibold text-foreground"
+              className="rounded-full px-2 py-0.5 text-[11px] font-semibold text-foreground"
               style={ageColor ? { backgroundColor: `${ageColor}33` } : undefined}
             >
-              {ageIcon && <span className="mr-1" aria-hidden>{ageIcon}</span>}
               {age}
             </span>
           )}
