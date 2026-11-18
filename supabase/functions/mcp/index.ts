@@ -127,8 +127,8 @@ var create_app_default = defineTool3({
     description: z3.string().trim().min(5).max(500),
     url: z3.string().url(),
     long_description: z3.string().trim().max(1e4).optional(),
-    image_url: z3.string().url().optional(),
-    category_ids: z3.array(z3.string().uuid()).max(20).optional()
+    image_url: z3.string().url().optional().describe("Bild som visas p\xE5 app-kortet. Kortet \xE4r 16:9 och besk\xE4rs i mitten, s\xE5 anv\xE4nd en bild i 1200\xD7675 eller st\xF6rre med motivet stort och centrerat. Bilden ska visa appen sj\xE4lv \u2013 som en app-ikon eller sk\xE4rmdump p\xE5 en iPad: ett tydligt motiv, liten eller ingen text, inga logotyper, ramar eller p\xE5lagda rubriker. Barn ska k\xE4nna igen appen i liten storlek. L\xE4mna tom hellre \xE4n att skicka en texttung bild."),
+    category_ids: z3.array(z3.string().uuid()).max(20).optional().describe("Ers\xE4tter appens samtliga kategorier. Ange exakt en av varje typ: subject (Matte, STEM, Spr\xE5k, Samh\xE4lle, Kreativt), age (F\u20133, 4\u20136, 7\u20139+) och app_type (Spel, \xD6va, Verktyg). H\xE4mta id:n med list_categories.")
   },
   annotations: { readOnlyHint: false, openWorldHint: false },
   handler: async ({ title, description, url, long_description, image_url, category_ids }, ctx) => {
@@ -157,11 +157,11 @@ var update_app_default = defineTool4({
     description: z4.string().trim().min(5).max(500).optional(),
     long_description: z4.string().trim().max(1e4).optional(),
     url: z4.string().url().optional(),
-    image_url: z4.string().url().optional(),
+    image_url: z4.string().url().optional().describe("Bild som visas p\xE5 app-kortet. Kortet \xE4r 16:9 och besk\xE4rs i mitten, s\xE5 anv\xE4nd en bild i 1200\xD7675 eller st\xF6rre med motivet stort och centrerat. Bilden ska visa appen sj\xE4lv \u2013 som en app-ikon eller sk\xE4rmdump p\xE5 en iPad: ett tydligt motiv, liten eller ingen text, inga logotyper, ramar eller p\xE5lagda rubriker. Barn ska k\xE4nna igen appen i liten storlek. L\xE4mna tom hellre \xE4n att skicka en texttung bild."),
     status: z4.enum(["pending", "approved", "rejected", "featured", "delisted"]).optional(),
     is_featured: z4.boolean().optional(),
     delist_reason: z4.string().trim().max(500).optional(),
-    category_ids: z4.array(z4.string().uuid()).max(20).optional().describe("Ers\xE4tter appens kategorier.")
+    category_ids: z4.array(z4.string().uuid()).max(20).optional().describe("Ers\xE4tter appens samtliga kategorier. Ange exakt en av varje typ: subject (Matte, STEM, Spr\xE5k, Samh\xE4lle, Kreativt), age (F\u20133, 4\u20136, 7\u20139+) och app_type (Spel, \xD6va, Verktyg). H\xE4mta id:n med list_categories.")
   },
   annotations: { readOnlyHint: false, openWorldHint: false },
   handler: async ({ id, category_ids, ...fields }, ctx) => {
@@ -676,7 +676,7 @@ var mcp_default = defineMcp({
   name: "skolappar",
   title: "skolappar",
   version: "1.0.0",
-  instructions: "Verktyg f\xF6r att sk\xF6ta skolappar.com \u2013 hela administrationen. Du agerar som den inloggade anv\xE4ndaren och f\xE5r dennes beh\xF6righeter (adminverktyg kr\xE4ver adminroll). B\xF6rja med platform_stats f\xF6r en \xF6versikt, list_apps f\xF6r moderering (status pending \u2192 approved/featured/rejected/delisted), list_ideas f\xF6r community-id\xE9er, list_resources/upsert_resource f\xF6r kunskapsartiklar i Markdown, list_categories f\xF6r kategori-id:n, list_settings/set_setting f\xF6r varum\xE4rke, tema, typsnitt, SEO/AEO och startsidans sektioner, samt list_users/set_user_role f\xF6r beh\xF6righeter. All text p\xE5 plattformen \xE4r p\xE5 svenska \u2013 skriv inneh\xE5ll p\xE5 svenska.",
+  instructions: "Verktyg f\xF6r att sk\xF6ta skolappar.com \u2013 hela administrationen. Du agerar som den inloggade anv\xE4ndaren och f\xE5r dennes beh\xF6righeter (adminverktyg kr\xE4ver adminroll). B\xF6rja med platform_stats f\xF6r en \xF6versikt, list_apps f\xF6r moderering (status pending \u2192 approved/featured/rejected/delisted), list_ideas f\xF6r community-id\xE9er, list_resources/upsert_resource f\xF6r kunskapsartiklar i Markdown, list_categories f\xF6r kategori-id:n, list_settings/set_setting f\xF6r varum\xE4rke, tema, typsnitt, SEO/AEO och startsidans sektioner, samt list_users/set_user_role f\xF6r beh\xF6righeter. All text p\xE5 plattformen \xE4r p\xE5 svenska \u2013 skriv inneh\xE5ll p\xE5 svenska. Bilder: en bild av appen, som en app-ikon p\xE5 en iPad \u2013 ett tydligt motiv i mitten, liten eller ingen text, inga ramar eller logotyper; 1200\xD7675 (16:9).",
   auth: auth.oauth.issuer({
     issuer: `https://${projectRef}.supabase.co/auth/v1`,
     acceptedAudiences: "authenticated"
