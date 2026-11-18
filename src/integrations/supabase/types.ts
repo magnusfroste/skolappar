@@ -14,6 +14,68 @@ export type Database = {
   }
   public: {
     Tables: {
+      agent_api_keys: {
+        Row: {
+          created_at: string
+          expires_at: string | null
+          id: string
+          key_hash: string
+          key_prefix: string
+          last_used_at: string | null
+          name: string
+          revoked_at: string | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          expires_at?: string | null
+          id?: string
+          key_hash: string
+          key_prefix: string
+          last_used_at?: string | null
+          name: string
+          revoked_at?: string | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          expires_at?: string | null
+          id?: string
+          key_hash?: string
+          key_prefix?: string
+          last_used_at?: string | null
+          name?: string
+          revoked_at?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
+      agent_key_sessions: {
+        Row: {
+          access_token: string
+          expires_at: string
+          key_id: string
+        }
+        Insert: {
+          access_token: string
+          expires_at: string
+          key_id: string
+        }
+        Update: {
+          access_token?: string
+          expires_at?: string
+          key_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "agent_key_sessions_key_id_fkey"
+            columns: ["key_id"]
+            isOneToOne: true
+            referencedRelation: "agent_api_keys"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       app_categories: {
         Row: {
           app_id: string
@@ -506,6 +568,10 @@ export type Database = {
     Functions: {
       admin_user_overview: { Args: never; Returns: Json }
       app_open_analytics: { Args: { period_days?: number }; Returns: Json }
+      create_agent_api_key: {
+        Args: { key_name: string; valid_days?: number }
+        Returns: Json
+      }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
@@ -514,6 +580,7 @@ export type Database = {
         Returns: boolean
       }
       increment_clicks: { Args: { app_id: string }; Returns: undefined }
+      revoke_agent_api_key: { Args: { key_id: string }; Returns: undefined }
     }
     Enums: {
       app_role: "admin" | "moderator" | "user"
