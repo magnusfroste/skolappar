@@ -12,7 +12,9 @@ export default defineTool({
     description: z.string().trim().min(5).max(500).optional(),
     long_description: z.string().trim().max(10000).optional(),
     url: z.string().url().optional(),
-    image_url: z.string().url().optional(),
+    image_url: z.string().url().optional().describe(
+      "Bild som visas på app-korten. Korten beskär bilden till liggande 4:3-format – använd en attraktiv, ljus skärmdump eller illustration på minst 800×600 px med motivet centrerat. Utelämnas bilden skapas automatiskt en skärmdump av appens url, så lämna hellre tom än en bild i fel format."
+    ),
     status: z.enum(["pending", "approved", "rejected", "featured", "delisted"]).optional(),
     is_featured: z.boolean().optional(),
     delist_reason: z.string().trim().max(500).optional(),

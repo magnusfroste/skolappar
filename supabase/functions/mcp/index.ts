@@ -127,7 +127,9 @@ var create_app_default = defineTool3({
     description: z3.string().trim().min(5).max(500),
     url: z3.string().url(),
     long_description: z3.string().trim().max(1e4).optional(),
-    image_url: z3.string().url().optional(),
+    image_url: z3.string().url().optional().describe(
+      "Bild som visas p\xE5 app-korten. Korten besk\xE4r bilden till liggande 4:3-format \u2013 anv\xE4nd en attraktiv, ljus sk\xE4rmdump eller illustration p\xE5 minst 800\xD7600 px med motivet centrerat. Utel\xE4mnas bilden skapas automatiskt en sk\xE4rmdump av appens url, s\xE5 l\xE4mna hellre tom \xE4n en bild i fel format."
+    ),
     category_ids: z3.array(z3.string().uuid()).max(20).optional()
   },
   annotations: { readOnlyHint: false, openWorldHint: false },
@@ -157,7 +159,9 @@ var update_app_default = defineTool4({
     description: z4.string().trim().min(5).max(500).optional(),
     long_description: z4.string().trim().max(1e4).optional(),
     url: z4.string().url().optional(),
-    image_url: z4.string().url().optional(),
+    image_url: z4.string().url().optional().describe(
+      "Bild som visas p\xE5 app-korten. Korten besk\xE4r bilden till liggande 4:3-format \u2013 anv\xE4nd en attraktiv, ljus sk\xE4rmdump eller illustration p\xE5 minst 800\xD7600 px med motivet centrerat. Utel\xE4mnas bilden skapas automatiskt en sk\xE4rmdump av appens url, s\xE5 l\xE4mna hellre tom \xE4n en bild i fel format."
+    ),
     status: z4.enum(["pending", "approved", "rejected", "featured", "delisted"]).optional(),
     is_featured: z4.boolean().optional(),
     delist_reason: z4.string().trim().max(500).optional(),
