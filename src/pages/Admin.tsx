@@ -392,6 +392,7 @@ export default function Admin() {
   const subjectCategories = categories?.filter(c => c.type === 'subject') || [];
   const ageCategories = categories?.filter(c => c.type === 'age') || [];
   const typeCategories = categories?.filter(c => c.type === 'app_type') || [];
+  const deviceCategories = categories?.filter(c => c.type === 'device') || [];
 
   return (
     <AuthenticatedLayout>
@@ -871,6 +872,7 @@ export default function Admin() {
                             <SelectItem value="subject">Ämne</SelectItem>
                             <SelectItem value="age">Årskurs</SelectItem>
                             <SelectItem value="type">Apptyp</SelectItem>
+                            <SelectItem value="device">Enhet</SelectItem>
                           </SelectContent>
                         </Select>
                       </div>
@@ -951,6 +953,21 @@ export default function Admin() {
                         ))}
                       </div>
                     </div>
+
+                    {/* Device Categories */}
+                    <div>
+                      <h3 className="font-semibold mb-3 text-sm text-muted-foreground uppercase tracking-wide">Enheter</h3>
+                      <div className="grid gap-2">
+                        {deviceCategories.map((cat) => (
+                          <CategoryRow
+                            key={cat.id}
+                            category={cat}
+                            onEdit={() => setEditingCategory(cat)}
+                            onDelete={() => handleDeleteCategory(cat.id)}
+                          />
+                        ))}
+                      </div>
+                    </div>
                   </>
                 )}
 
@@ -989,6 +1006,7 @@ export default function Admin() {
                               <SelectItem value="subject">Ämne</SelectItem>
                               <SelectItem value="age">Årskurs</SelectItem>
                               <SelectItem value="type">Apptyp</SelectItem>
+                              <SelectItem value="device">Enhet</SelectItem>
                             </SelectContent>
                           </Select>
                         </div>
