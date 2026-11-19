@@ -4,7 +4,7 @@ import { AgentAccessPanel } from '@/components/AgentAccessPanel';
 import { AppAnalyticsPanel } from '@/components/AppAnalyticsPanel';
 import { AdminUsersPanel } from '@/components/AdminUsersPanel';
 import { ADMIN_SECTIONS } from '@/lib/adminSections';
-import { Check, X, Star, Clock, ExternalLink, Trash2, Plus, Edit2, Shield, Settings, FileText, Eye, EyeOff, Lightbulb, MessageSquare, ThumbsUp, TrendingUp } from 'lucide-react';
+import { Check, X, Star, Clock, ExternalLink, Trash2, Plus, Edit2, Shield, Settings, FileText, Eye, EyeOff, Lightbulb, MessageSquare, ThumbsUp, TrendingUp, Search } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -163,9 +163,23 @@ export default function Admin() {
   const [delistingAppId, setDelistingAppId] = useState<string | null>(null);
   const [delistReason, setDelistReason] = useState('');
 
-  // Sorting for the "Alla appar" list
+  // Sorting + filtering for the "Alla appar" list
   const [appSort, setAppSort] = useState<AppSort>('newest');
-  const sortedApps = useMemo(() => sortAdminApps(allApps ?? [], appSort), [allApps, appSort]);
+  const [appQuery, setAppQuery] = useState('');
+  const [appStatus, setAppStatus] = useState<AppStatus | 'all'>('all');
+  const filteredApps = useMemo(() => {
+    const q = appQuery.trim().toLowerCase();
+    return (allApps ?? []).filter((app) => {
+      if (appStatus !== 'all' && app.status !== appStatus) return false;
+      if (!q) return true;
+      return (
+        app.title.toLowerCase().includes(q) ||
+        (app.profile?.display_name ?? '').toLowerCase().includes(q)
+      );
+    });
+  }, [allApps, appQuery, appStatus]);
+  const sortedApps = useMemo(() => sortAdminApps(filteredApps, appSort), [filteredApps, appSort]);
+  const hasAppFilters = appQuery.trim() !== '' || appStatus !== 'all';
   const appMetricValue = (app: AdminApp) =>
     appSort === 'clicks' ? app.clicks_count ?? 0
     : appSort === 'upvotes' ? app.upvotes_count ?? 0
@@ -446,25 +460,54 @@ export default function Admin() {
           {/* All Apps Tab */}
           <TabsContent value="all">
             <Card>
-              <CardHeader className="flex flex-row flex-wrap items-center justify-between gap-3">
-                <div className="space-y-1">
-                  <CardTitle>Alla appar</CardTitle>
-                  <CardDescription>
-                    {allApps?.length ?? 0} appar i systemet
-                  </CardDescription>
+              <CardHeader className="flex flex-col gap-3">
+                <div className="flex flex-wrap items-center justify-between gap-3">
+                  <div className="space-y-1">
+                    <CardTitle>Alla appar</CardTitle>
+                    <CardDescription>
+                      {hasAppFilters
+                        ? `${filteredApps.length} av ${allApps?.length ?? 0} appar`
+                        : `${allApps?.length ?? 0} appar i systemet`}
+                    </CardDescription>
+                  </div>
+                  <div className="flex w-full flex-wrap items-center gap-2 sm:w-auto">
+                    <div className="relative min-w-0 flex-1 sm:w-56 sm:flex-none">
+                      <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                      <Input
+                        value={appQuery}
+                        onChange={(e) => setAppQuery(e.target.value)}
+                        placeholder="Sök appar"
+                        className="h-9 pl-9 text-sm"
+                        aria-label="Sök på appnamn eller ägare"
+                      />
+                    </div>
+                    <Select value={appStatus} onValueChange={(v) => setAppStatus(v as AppStatus | 'all')}>
+                      <SelectTrigger className="w-[150px] h-9 text-sm" aria-label="Filtrera på status">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="all">Alla statusar</SelectItem>
+                        <SelectItem value="pending">Väntande</SelectItem>
+                        <SelectItem value="approved">Godkänd</SelectItem>
+                        <SelectItem value="featured">Utvald</SelectItem>
+                        <SelectItem value="rejected">Avvisad</SelectItem>
+                        <SelectItem value="delisted">Avlistad</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    <Select value={appSort} onValueChange={(v) => setAppSort(v as AppSort)}>
+                      <SelectTrigger className="w-[190px] h-9 text-sm" aria-label="Sortera appar">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {(Object.keys(APP_SORT_LABELS) as AppSort[]).map((value) => (
+                          <SelectItem key={value} value={value}>
+                            {APP_SORT_LABELS[value]}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
                 </div>
-                <Select value={appSort} onValueChange={(v) => setAppSort(v as AppSort)}>
-                  <SelectTrigger className="w-[190px] h-9 text-sm" aria-label="Sortera appar">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {(Object.keys(APP_SORT_LABELS) as AppSort[]).map((value) => (
-                      <SelectItem key={value} value={value}>
-                        {APP_SORT_LABELS[value]}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
               </CardHeader>
               <CardContent>
                 {allAppsLoading ? (
@@ -476,7 +519,21 @@ export default function Admin() {
                 ) : (
                   <div className="space-y-2">
                     {sortedApps.length === 0 ? (
-                      <p className="py-8 text-center text-sm text-muted-foreground">Inga appar ännu.</p>
+                      <div className="py-8 text-center">
+                        <p className="text-sm text-muted-foreground">
+                          {hasAppFilters ? 'Inga appar matchar filtret.' : 'Inga appar ännu.'}
+                        </p>
+                        {hasAppFilters && (
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className="mt-2"
+                            onClick={() => { setAppQuery(''); setAppStatus('all'); }}
+                          >
+                            Rensa filter
+                          </Button>
+                        )}
+                      </div>
                     ) : null}
                     {sortedApps.map((app: AdminApp) => (
                       <div key={app.id} className="flex flex-wrap items-center gap-x-3 gap-y-2 p-3 rounded-lg border hover:bg-muted/50 transition-colors">
