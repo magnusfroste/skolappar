@@ -75,12 +75,12 @@ type IdeaStatus = Parameters<ReturnType<typeof useUpdateIdeaStatus>['mutateAsync
 
 type AppSort = 'newest' | 'oldest' | 'title' | 'clicks' | 'upvotes' | 'comments';
 
-// Enhetsklassificering (Mobil/Platta/Desktop) visas inte i listan – ämne, typ och ålder räcker.
-const CATEGORY_PRIORITY: Record<string, number> = { subject: 0, app_type: 1, age: 2 };
+// Alla kategorier visas i listan: ämne, typ, ålder och enhet – i den ordningen.
+const CATEGORY_PRIORITY: Record<string, number> = { subject: 0, app_type: 1, age: 2, device: 3 };
 
 const appCategoryChips = (app: AdminApp) =>
   (app.categories ?? [])
-    .filter((c): c is NonNullable<typeof c> => !!c && c.type !== 'device')
+    .filter((c): c is NonNullable<typeof c> => !!c)
     .sort(
       (a, b) =>
         (CATEGORY_PRIORITY[a.type] ?? 9) - (CATEGORY_PRIORITY[b.type] ?? 9) ||
