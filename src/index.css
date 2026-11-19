@@ -211,3 +211,30 @@
     transform: rotate(3deg);
   }
 }
+
+/* iPad/iPhone: native-känsla vid helskärm och touch */
+html {
+  /* Ingen "dra för att ladda om" eller studs i kanterna */
+  overscroll-behavior-y: none;
+}
+
+body {
+  /* Ingen dubbelknack-zoom på iOS – snabbare tryck för barn */
+  touch-action: manipulation;
+  /* Ta bort grå blink vid tryck */
+  -webkit-tap-highlight-color: transparent;
+}
+
+img {
+  /* Ingen långtrycksmenya/"spara bild" på app-bilder */
+  -webkit-touch-callout: none;
+}
+
+/* I hemskärmsläge (standalone) ska innehållet aldrig hamna under
+   hemknappen eller skärmsensorn */
+@media (display-mode: standalone) {
+  body {
+    padding-top: env(safe-area-inset-top);
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+}

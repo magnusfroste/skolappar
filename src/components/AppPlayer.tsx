@@ -22,7 +22,18 @@ export function AppPlayer({ url, title, onClose }: AppPlayerProps) {
   }, [onClose]);
 
   return (
-    <div className="fixed inset-0 z-[100] flex flex-col bg-background" role="dialog" aria-modal="true" aria-label={title}>
+    <div
+      className="fixed inset-0 z-[100] flex flex-col bg-background"
+      role="dialog"
+      aria-modal="true"
+      aria-label={title}
+      style={{
+        paddingTop: "env(safe-area-inset-top)",
+        paddingLeft: "env(safe-area-inset-left)",
+        paddingRight: "env(safe-area-inset-right)",
+        paddingBottom: "env(safe-area-inset-bottom)",
+      }}
+    >
       <div className="flex items-center gap-2 px-2 h-14 border-b border-border bg-card shrink-0">
         <Button
           variant="ghost"
