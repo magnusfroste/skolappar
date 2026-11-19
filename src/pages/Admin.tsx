@@ -75,6 +75,18 @@ type IdeaStatus = Parameters<ReturnType<typeof useUpdateIdeaStatus>['mutateAsync
 
 type AppSort = 'newest' | 'oldest' | 'title' | 'clicks' | 'upvotes' | 'comments';
 
+// Enhetsklassificering (Mobil/Platta/Desktop) visas inte i listan – ämne, typ och ålder räcker.
+const CATEGORY_PRIORITY: Record<string, number> = { subject: 0, app_type: 1, age: 2 };
+
+const appCategoryChips = (app: AdminApp) =>
+  (app.categories ?? [])
+    .filter((c): c is NonNullable<typeof c> => !!c && c.type !== 'device')
+    .sort(
+      (a, b) =>
+        (CATEGORY_PRIORITY[a.type] ?? 9) - (CATEGORY_PRIORITY[b.type] ?? 9) ||
+        a.name.localeCompare(b.name, 'sv')
+    );
+
 const APP_SORT_LABELS: Record<AppSort, string> = {
   newest: 'Senaste först',
   oldest: 'Äldst först',
@@ -174,7 +186,8 @@ export default function Admin() {
       if (!q) return true;
       return (
         app.title.toLowerCase().includes(q) ||
-        (app.profile?.display_name ?? '').toLowerCase().includes(q)
+        (app.profile?.display_name ?? '').toLowerCase().includes(q) ||
+        (app.categories ?? []).some((c) => (c?.name ?? '').toLowerCase().includes(q))
       );
     });
   }, [allApps, appQuery, appStatus]);
@@ -550,6 +563,25 @@ export default function Admin() {
                             <AppStatusBadge status={app.status} />
                           </div>
                           <p className="text-xs text-muted-foreground">{app.profile?.display_name || 'Okänd'}</p>
+                          {appCategoryChips(app).length > 0 && (
+                            <div className="mt-1.5 flex flex-wrap items-center gap-1">
+                              {appCategoryChips(app).slice(0, 3).map((cat) => (
+                                <Badge
+                                  key={cat.id}
+                                  variant="outline"
+                                  className="gap-1 px-1.5 py-0 text-[10px] font-normal"
+                                >
+                                  {cat.icon && <span aria-hidden>{cat.icon}</span>}
+                                  {cat.name}
+                                </Badge>
+                              ))}
+                              {appCategoryChips(app).length > 3 && (
+                                <span className="text-[10px] text-muted-foreground">
+                                  +{appCategoryChips(app).length - 3}
+                                </span>
+                              )}
+                            </div>
+                          )}
                           {app.status === 'delisted' && app.delist_reason && (
                             <p className="text-xs text-slate-500 mt-1 italic">📝 {app.delist_reason}</p>
                           )}
