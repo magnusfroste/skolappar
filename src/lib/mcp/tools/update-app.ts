@@ -19,7 +19,7 @@ export default defineTool({
     is_featured: z.boolean().optional(),
     delist_reason: z.string().trim().max(500).optional(),
     category_ids: z.array(z.string().uuid()).max(20).optional().describe(
-      "Ersätter appens samtliga kategorier. Appen ska ha exakt en av varje typ: subject (Matte, STEM, Språk, Samhälle, Kreativt), age (F–3, 4–6, 7–9+) och app_type (Spel, Öva, Verktyg). Hämta id:n med list_categories. Använd för att rätta appar där inlämnaren missat kategorier – utan dem syns inte appen i startsidans filter."
+      "Ersätter appens samtliga kategorier. Appen ska ha exakt en av varje typ: subject (Matte, STEM, Språk, Samhälle, Kreativt), age (F (4–6 år), FK–2, 3–6, 7–9) och app_type (Spel, Öva, Verktyg). Hämta id:n med list_categories. Använd för att rätta appar där inlämnaren missat kategorier – utan dem syns inte appen i startsidans filter."
     ),
   },
   annotations: { readOnlyHint: false, openWorldHint: false },
