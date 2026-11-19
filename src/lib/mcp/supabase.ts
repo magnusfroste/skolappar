@@ -53,6 +53,8 @@ function supabasePublishableKey(): string {
 
 /** Client bound to the verified caller — RLS runs as that signed-in user. */
 export function supabaseForUser(ctx: ToolContext) {
+  const keyClient = (ctx as { keyClient?: ReturnType<typeof createClient> }).keyClient;
+  if (keyClient) return keyClient;
   const token = ctx.getToken();
   if (!token) throw new Error("supabaseForUser requires a verified OAuth token");
   return createClient(supabaseProjectUrl(), supabasePublishableKey(), {

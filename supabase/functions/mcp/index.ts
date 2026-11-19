@@ -5,9 +5,8 @@
 // src/lib/mcp/index.ts
 import { auth, defineMcp } from "npm:@lovable.dev/mcp-js@2.0.2";
 
-// src/lib/mcp/tools/list-apps.ts
+// src/lib/mcp/tools/platform-stats.ts
 import { defineTool } from "npm:@lovable.dev/mcp-js@2.0.2";
-import { z } from "npm:zod@^3.25.76";
 
 // src/lib/mcp/supabase.ts
 import { createClient } from "npm:@supabase/supabase-js@^2.86.2";
@@ -50,6 +49,8 @@ function supabasePublishableKey() {
   throw new Error("SUPABASE_PUBLISHABLE_KEY, SUPABASE_PUBLISHABLE_KEYS, or SUPABASE_ANON_KEY is required");
 }
 function supabaseForUser(ctx) {
+  const keyClient = ctx.keyClient;
+  if (keyClient) return keyClient;
   const token = ctx.getToken();
   if (!token) throw new Error("supabaseForUser requires a verified OAuth token");
   return createClient(supabaseProjectUrl(), supabasePublishableKey(), {
@@ -70,603 +71,8 @@ function fail(message) {
   return { content: [{ type: "text", text: message }], isError: true };
 }
 
-// src/lib/mcp/tools/list-apps.ts
-var list_apps_default = defineTool({
-  name: "list_apps",
-  title: "Lista appar",
-  description: "Lista appar p\xE5 skolappar, med filter p\xE5 status, s\xF6kord och sortering.",
-  inputSchema: {
-    status: z.enum(["pending", "approved", "rejected", "featured", "delisted"]).optional(),
-    search: z.string().trim().min(1).optional().describe("Fritext i titel/beskrivning."),
-    limit: z.number().int().min(1).max(100).default(25),
-    order_by: z.enum(["created_at", "upvotes_count", "clicks_count", "comments_count"]).default("created_at")
-  },
-  annotations: { readOnlyHint: true, openWorldHint: false },
-  handler: async ({ status, search, limit, order_by }, ctx) => {
-    requireAuth(ctx);
-    let query = supabaseForUser(ctx).from("apps").select("id,title,description,url,image_url,status,is_featured,upvotes_count,comments_count,clicks_count,delist_reason,user_id,created_at").order(order_by, { ascending: false }).limit(limit);
-    if (status) query = query.eq("status", status);
-    if (search) query = query.or(`title.ilike.%${search}%,description.ilike.%${search}%`);
-    const { data, error } = await query;
-    return error ? fail(error.message) : ok(data);
-  }
-});
-
-// src/lib/mcp/tools/get-app.ts
-import { defineTool as defineTool2 } from "npm:@lovable.dev/mcp-js@2.0.2";
-import { z as z2 } from "npm:zod@^3.25.76";
-var get_app_default = defineTool2({
-  name: "get_app",
-  title: "H\xE4mta app",
-  description: "H\xE4mta en app med kategorier och kommentarer.",
-  inputSchema: { id: z2.string().uuid() },
-  annotations: { readOnlyHint: true, openWorldHint: false },
-  handler: async ({ id }, ctx) => {
-    requireAuth(ctx);
-    const supabase = supabaseForUser(ctx);
-    const [app, cats, comments] = await Promise.all([
-      supabase.from("apps").select("*").eq("id", id).maybeSingle(),
-      supabase.from("app_categories").select("category_id,categories(name,slug,type)").eq("app_id", id),
-      supabase.from("comments").select("id,user_id,content,created_at").eq("app_id", id).order("created_at", { ascending: false })
-    ]);
-    if (app.error) return fail(app.error.message);
-    if (!app.data) return fail("Appen hittades inte.");
-    return ok({ app: app.data, categories: cats.data ?? [], comments: comments.data ?? [] });
-  }
-});
-
-// src/lib/mcp/tools/create-app.ts
-import { defineTool as defineTool3 } from "npm:@lovable.dev/mcp-js@2.0.2";
-import { z as z3 } from "npm:zod@^3.25.76";
-var create_app_default = defineTool3({
-  name: "create_app",
-  title: "Skapa app",
-  description: "L\xE4gg till en ny app i galleriet, valfritt med kategorier.",
-  inputSchema: {
-    title: z3.string().trim().min(2).max(120),
-    description: z3.string().trim().min(5).max(500),
-    url: z3.string().url(),
-    long_description: z3.string().trim().max(1e4).optional(),
-    image_url: z3.string().url().optional().describe(
-      "Bild som visas p\xE5 app-korten. Korten besk\xE4r bilden till liggande 4:3-format \u2013 anv\xE4nd en attraktiv, ljus bild p\xE5 minst 800\xD7600 px med motivet centrerat. Bilden ska ge ett tydligt visuellt intryck av vad spelet/appen handlar om \u2013 ju b\xE4ttre man ser sj\xE4lva spelet, desto b\xE4ttre effekt. H\xE5ll den enkel: inte f\xF6r m\xE5nga detaljer, och l\xE4gg INTE in appens namn, \xE5lder eller kategori i bilden \u2013 det visas redan p\xE5 kortet under bilden. Utel\xE4mnas bilden skapas automatiskt en sk\xE4rmdump av appens url, s\xE5 l\xE4mna hellre tom \xE4n en bild i fel format."
-    ),
-    category_ids: z3.array(z3.string().uuid()).max(20).optional().describe(
-      "Appens kategorier. Ange exakt en av varje typ: subject (Matte, STEM, Spr\xE5k, Samh\xE4lle, Kreativt), age (F\u20133, 4\u20136, 7\u20139+) och app_type (Spel, \xD6va, Verktyg). H\xE4mta id:n med list_categories. Utan r\xE4tt kategorier syns inte appen i startsidans filter."
-    )
-  },
-  annotations: { readOnlyHint: false, openWorldHint: false },
-  handler: async ({ title, description, url, long_description, image_url, category_ids }, ctx) => {
-    requireAuth(ctx);
-    const supabase = supabaseForUser(ctx);
-    const { data, error } = await supabase.from("apps").insert({ user_id: ctx.getUserId(), title, description, url, long_description, image_url }).select().single();
-    if (error) return fail(error.message);
-    if (category_ids?.length) {
-      const { error: catError } = await supabase.from("app_categories").insert(category_ids.map((category_id) => ({ app_id: data.id, category_id })));
-      if (catError) return ok({ app: data, category_warning: catError.message });
-    }
-    return ok({ app: data });
-  }
-});
-
-// src/lib/mcp/tools/update-app.ts
-import { defineTool as defineTool4 } from "npm:@lovable.dev/mcp-js@2.0.2";
-import { z as z4 } from "npm:zod@^3.25.76";
-var update_app_default = defineTool4({
-  name: "update_app",
-  title: "Uppdatera app",
-  description: "Uppdatera en app: inneh\xE5ll, status (godk\xE4nn/avsl\xE5/utvald/avlista), utvald-flagga och kategorier.",
-  inputSchema: {
-    id: z4.string().uuid(),
-    title: z4.string().trim().min(2).max(120).optional(),
-    description: z4.string().trim().min(5).max(500).optional(),
-    long_description: z4.string().trim().max(1e4).optional(),
-    url: z4.string().url().optional(),
-    image_url: z4.string().url().optional().describe(
-      "Bild som visas p\xE5 app-korten. Korten besk\xE4r bilden till liggande 4:3-format \u2013 anv\xE4nd en attraktiv, ljus bild p\xE5 minst 800\xD7600 px med motivet centrerat. Bilden ska ge ett tydligt visuellt intryck av vad spelet/appen handlar om \u2013 ju b\xE4ttre man ser sj\xE4lva spelet, desto b\xE4ttre effekt. H\xE5ll den enkel: inte f\xF6r m\xE5nga detaljer, och l\xE4gg INTE in appens namn, \xE5lder eller kategori i bilden \u2013 det visas redan p\xE5 kortet under bilden. Utel\xE4mnas bilden skapas automatiskt en sk\xE4rmdump av appens url, s\xE5 l\xE4mna hellre tom \xE4n en bild i fel format."
-    ),
-    status: z4.enum(["pending", "approved", "rejected", "featured", "delisted"]).optional(),
-    is_featured: z4.boolean().optional(),
-    delist_reason: z4.string().trim().max(500).optional(),
-    category_ids: z4.array(z4.string().uuid()).max(20).optional().describe(
-      "Ers\xE4tter appens samtliga kategorier. Appen ska ha exakt en av varje typ: subject (Matte, STEM, Spr\xE5k, Samh\xE4lle, Kreativt), age (F\u20133, 4\u20136, 7\u20139+) och app_type (Spel, \xD6va, Verktyg). H\xE4mta id:n med list_categories. Anv\xE4nd f\xF6r att r\xE4tta appar d\xE4r inl\xE4mnaren missat kategorier \u2013 utan dem syns inte appen i startsidans filter."
-    )
-  },
-  annotations: { readOnlyHint: false, openWorldHint: false },
-  handler: async ({ id, category_ids, ...fields }, ctx) => {
-    requireAuth(ctx);
-    const supabase = supabaseForUser(ctx);
-    const patch = Object.fromEntries(Object.entries(fields).filter(([, v]) => v !== void 0));
-    let app = null;
-    if (Object.keys(patch).length) {
-      const { data, error } = await supabase.from("apps").update(patch).eq("id", id).select().maybeSingle();
-      if (error) return fail(error.message);
-      if (!data) return fail("Appen hittades inte eller saknar beh\xF6righet.");
-      app = data;
-    }
-    if (category_ids) {
-      await supabase.from("app_categories").delete().eq("app_id", id);
-      if (category_ids.length) {
-        const { error } = await supabase.from("app_categories").insert(category_ids.map((category_id) => ({ app_id: id, category_id })));
-        if (error) return fail(error.message);
-      }
-    }
-    return ok({ app, categories_updated: Boolean(category_ids) });
-  }
-});
-
-// src/lib/mcp/tools/delete-app.ts
-import { defineTool as defineTool5 } from "npm:@lovable.dev/mcp-js@2.0.2";
-import { z as z5 } from "npm:zod@^3.25.76";
-var delete_app_default = defineTool5({
-  name: "delete_app",
-  title: "Ta bort app",
-  description: "Radera en app permanent. \xD6verv\xE4g status 'delisted' ist\xE4llet f\xF6r att bevara historik.",
-  inputSchema: { id: z5.string().uuid() },
-  annotations: { readOnlyHint: false, destructiveHint: true, openWorldHint: false },
-  handler: async ({ id }, ctx) => {
-    requireAuth(ctx);
-    const { error } = await supabaseForUser(ctx).from("apps").delete().eq("id", id);
-    return error ? fail(error.message) : ok({ deleted: id });
-  }
-});
-
-// src/lib/mcp/tools/list-ideas.ts
-import { defineTool as defineTool6 } from "npm:@lovable.dev/mcp-js@2.0.2";
-import { z as z6 } from "npm:zod@^3.25.76";
-var list_ideas_default = defineTool6({
-  name: "list_ideas",
-  title: "Lista app-id\xE9er",
-  description: "Lista community-id\xE9er med status \xF6ppen/p\xE5b\xF6rjad/byggd.",
-  inputSchema: {
-    status: z6.enum(["open", "claimed", "built"]).optional(),
-    search: z6.string().trim().min(1).optional(),
-    limit: z6.number().int().min(1).max(100).default(25)
-  },
-  annotations: { readOnlyHint: true, openWorldHint: false },
-  handler: async ({ status, search, limit }, ctx) => {
-    requireAuth(ctx);
-    let query = supabaseForUser(ctx).from("ideas").select("id,title,description,status,target_age,target_subject,upvotes_count,comments_count,claimed_by,built_app_id,user_id,created_at").order("created_at", { ascending: false }).limit(limit);
-    if (status) query = query.eq("status", status);
-    if (search) query = query.or(`title.ilike.%${search}%,description.ilike.%${search}%`);
-    const { data, error } = await query;
-    return error ? fail(error.message) : ok(data);
-  }
-});
-
-// src/lib/mcp/tools/get-idea.ts
-import { defineTool as defineTool7 } from "npm:@lovable.dev/mcp-js@2.0.2";
-import { z as z7 } from "npm:zod@^3.25.76";
-var get_idea_default = defineTool7({
-  name: "get_idea",
-  title: "H\xE4mta app-id\xE9",
-  description: "H\xE4mta alla detaljer om en enskild app-id\xE9.",
-  inputSchema: { id: z7.string().uuid() },
-  annotations: { readOnlyHint: true, openWorldHint: false },
-  handler: async ({ id }, ctx) => {
-    requireAuth(ctx);
-    const { data, error } = await supabaseForUser(ctx).from("ideas").select("*").eq("id", id).maybeSingle();
-    if (error) return fail(error.message);
-    if (!data) return fail("Id\xE9n hittades inte.");
-    return ok(data);
-  }
-});
-
-// src/lib/mcp/tools/create-idea.ts
-import { defineTool as defineTool8 } from "npm:@lovable.dev/mcp-js@2.0.2";
-import { z as z8 } from "npm:zod@^3.25.76";
-var create_idea_default = defineTool8({
-  name: "create_idea",
-  title: "Skapa app-id\xE9",
-  description: "L\xE4gg till en ny app-id\xE9 i community-listan.",
-  inputSchema: {
-    title: z8.string().trim().min(2).max(120),
-    description: z8.string().trim().min(5).max(5e3),
-    target_age: z8.string().trim().max(60).optional(),
-    target_subject: z8.string().trim().max(60).optional(),
-    status: z8.enum(["open", "claimed", "built"]).optional()
-  },
-  annotations: { readOnlyHint: false, openWorldHint: false },
-  handler: async ({ title, description, target_age, target_subject, status }, ctx) => {
-    requireAuth(ctx);
-    const { data, error } = await supabaseForUser(ctx).from("ideas").insert({
-      title,
-      description,
-      target_age: target_age ?? null,
-      target_subject: target_subject ?? null,
-      status: status ?? "open",
-      user_id: ctx.getUserId()
-    }).select().maybeSingle();
-    if (error) return fail(error.message);
-    if (!data) return fail("Id\xE9n kunde inte skapas.");
-    return ok(data);
-  }
-});
-
-// src/lib/mcp/tools/update-idea.ts
-import { defineTool as defineTool9 } from "npm:@lovable.dev/mcp-js@2.0.2";
-import { z as z9 } from "npm:zod@^3.25.76";
-var update_idea_default = defineTool9({
-  name: "update_idea",
-  title: "Uppdatera app-id\xE9",
-  description: "Redigera en id\xE9 eller \xE4ndra dess status (\xF6ppen, p\xE5b\xF6rjad, byggd).",
-  inputSchema: {
-    id: z9.string().uuid(),
-    title: z9.string().trim().min(2).max(120).optional(),
-    description: z9.string().trim().min(5).max(5e3).optional(),
-    target_age: z9.string().trim().max(60).optional(),
-    target_subject: z9.string().trim().max(60).optional(),
-    status: z9.enum(["open", "claimed", "built"]).optional(),
-    built_app_id: z9.string().uuid().optional()
-  },
-  annotations: { readOnlyHint: false, openWorldHint: false },
-  handler: async ({ id, ...fields }, ctx) => {
-    requireAuth(ctx);
-    const patch = Object.fromEntries(Object.entries(fields).filter(([, v]) => v !== void 0));
-    if (!Object.keys(patch).length) return fail("Inget att uppdatera.");
-    const { data, error } = await supabaseForUser(ctx).from("ideas").update(patch).eq("id", id).select().maybeSingle();
-    if (error) return fail(error.message);
-    if (!data) return fail("Id\xE9n hittades inte eller saknar beh\xF6righet.");
-    return ok(data);
-  }
-});
-
-// src/lib/mcp/tools/claim-idea.ts
-import { defineTool as defineTool10 } from "npm:@lovable.dev/mcp-js@2.0.2";
-import { z as z10 } from "npm:zod@^3.25.76";
-var claim_idea_default = defineTool10({
-  name: "claim_idea",
-  title: "Ta an eller sl\xE4pp app-id\xE9",
-  description: "Markera en id\xE9 som p\xE5b\xF6rjad av den inloggade anv\xE4ndaren, eller sl\xE4pp den tillbaka som \xF6ppen.",
-  inputSchema: {
-    id: z10.string().uuid(),
-    release: z10.boolean().optional().describe("S\xE4tt true f\xF6r att sl\xE4ppa id\xE9n som \xF6ppen igen.")
-  },
-  annotations: { readOnlyHint: false, openWorldHint: false },
-  handler: async ({ id, release }, ctx) => {
-    requireAuth(ctx);
-    const patch = release ? { claimed_by: null, claimed_at: null, status: "open" } : { claimed_by: ctx.getUserId(), claimed_at: (/* @__PURE__ */ new Date()).toISOString(), status: "claimed" };
-    const { data, error } = await supabaseForUser(ctx).from("ideas").update(patch).eq("id", id).select().maybeSingle();
-    if (error) return fail(error.message);
-    if (!data) return fail("Id\xE9n hittades inte eller saknar beh\xF6righet.");
-    return ok(data);
-  }
-});
-
-// src/lib/mcp/tools/delete-idea.ts
-import { defineTool as defineTool11 } from "npm:@lovable.dev/mcp-js@2.0.2";
-import { z as z11 } from "npm:zod@^3.25.76";
-var delete_idea_default = defineTool11({
-  name: "delete_idea",
-  title: "Ta bort app-id\xE9",
-  description: "Radera en app-id\xE9 permanent.",
-  inputSchema: { id: z11.string().uuid() },
-  annotations: { readOnlyHint: false, destructiveHint: true, openWorldHint: false },
-  handler: async ({ id }, ctx) => {
-    requireAuth(ctx);
-    const { error } = await supabaseForUser(ctx).from("ideas").delete().eq("id", id);
-    return error ? fail(error.message) : ok({ deleted: id });
-  }
-});
-
-// src/lib/mcp/tools/list-resources.ts
-import { defineTool as defineTool12 } from "npm:@lovable.dev/mcp-js@2.0.2";
-import { z as z12 } from "npm:zod@^3.25.76";
-var list_resources_default = defineTool12({
-  name: "list_resources",
-  title: "Lista resurser",
-  description: "Lista kunskapsartiklar (resurser), inklusive opublicerade f\xF6r admin.",
-  inputSchema: {
-    category: z12.string().trim().min(1).optional(),
-    include_unpublished: z12.boolean().default(true),
-    with_content: z12.boolean().default(false),
-    limit: z12.number().int().min(1).max(200).default(50)
-  },
-  annotations: { readOnlyHint: true, openWorldHint: false },
-  handler: async ({ category, include_unpublished, with_content, limit }, ctx) => {
-    requireAuth(ctx);
-    const columns = with_content ? "id,title,slug,excerpt,content,category,icon,sort_order,is_published,updated_at" : "id,title,slug,excerpt,category,icon,sort_order,is_published,updated_at";
-    let query = supabaseForUser(ctx).from("resources").select(columns).order("sort_order").limit(limit);
-    if (category) query = query.eq("category", category);
-    if (!include_unpublished) query = query.eq("is_published", true);
-    const { data, error } = await query;
-    return error ? fail(error.message) : ok(data);
-  }
-});
-
-// src/lib/mcp/tools/upsert-resource.ts
-import { defineTool as defineTool13 } from "npm:@lovable.dev/mcp-js@2.0.2";
-import { z as z13 } from "npm:zod@^3.25.76";
-var upsert_resource_default = defineTool13({
-  name: "upsert_resource",
-  title: "Skapa eller uppdatera resurs",
-  description: "Skapa en ny kunskapsartikel, eller uppdatera en befintlig n\xE4r id anges. Inneh\xE5llet \xE4r Markdown.",
-  inputSchema: {
-    id: z13.string().uuid().optional().describe("Utel\xE4mna f\xF6r att skapa en ny resurs."),
-    title: z13.string().trim().min(2).max(160).optional(),
-    slug: z13.string().trim().regex(/^[a-z0-9-]+$/).max(160).optional(),
-    excerpt: z13.string().trim().max(400).optional(),
-    content: z13.string().trim().max(1e5).optional(),
-    category: z13.string().trim().min(1).max(60).optional(),
-    icon: z13.string().trim().max(60).optional(),
-    sort_order: z13.number().int().min(0).max(9999).optional(),
-    is_published: z13.boolean().optional()
-  },
-  annotations: { readOnlyHint: false, openWorldHint: false },
-  handler: async ({ id, ...fields }, ctx) => {
-    requireAuth(ctx);
-    const supabase = supabaseForUser(ctx);
-    const patch = Object.fromEntries(Object.entries(fields).filter(([, v]) => v !== void 0));
-    if (id) {
-      if (!Object.keys(patch).length) return fail("Inget att uppdatera.");
-      const { data: data2, error: error2 } = await supabase.from("resources").update(patch).eq("id", id).select().maybeSingle();
-      if (error2) return fail(error2.message);
-      if (!data2) return fail("Resursen hittades inte eller saknar beh\xF6righet.");
-      return ok(data2);
-    }
-    if (!fields.title || !fields.slug || !fields.content || !fields.category) {
-      return fail("title, slug, content och category kr\xE4vs f\xF6r en ny resurs.");
-    }
-    const { data, error } = await supabase.from("resources").insert(patch).select().single();
-    return error ? fail(error.message) : ok(data);
-  }
-});
-
-// src/lib/mcp/tools/delete-resource.ts
-import { defineTool as defineTool14 } from "npm:@lovable.dev/mcp-js@2.0.2";
-import { z as z14 } from "npm:zod@^3.25.76";
-var delete_resource_default = defineTool14({
-  name: "delete_resource",
-  title: "Ta bort resurs",
-  description: "Radera en kunskapsartikel permanent.",
-  inputSchema: { id: z14.string().uuid() },
-  annotations: { readOnlyHint: false, destructiveHint: true, openWorldHint: false },
-  handler: async ({ id }, ctx) => {
-    requireAuth(ctx);
-    const { error } = await supabaseForUser(ctx).from("resources").delete().eq("id", id);
-    return error ? fail(error.message) : ok({ deleted: id });
-  }
-});
-
-// src/lib/mcp/tools/list-categories.ts
-import { defineTool as defineTool15 } from "npm:@lovable.dev/mcp-js@2.0.2";
-import { z as z15 } from "npm:zod@^3.25.76";
-var list_categories_default = defineTool15({
-  name: "list_categories",
-  title: "Lista kategorier",
-  description: "Lista alla kategorier (\xE4mne, \xE5lder, typ, enhet) med id att anv\xE4nda vid app-uppdateringar.",
-  inputSchema: { type: z15.string().trim().min(1).optional() },
-  annotations: { readOnlyHint: true, openWorldHint: false },
-  handler: async ({ type }, ctx) => {
-    requireAuth(ctx);
-    let query = supabaseForUser(ctx).from("categories").select("id,name,slug,type,description,icon,color,sort_order").order("type").order("sort_order");
-    if (type) query = query.eq("type", type);
-    const { data, error } = await query;
-    return error ? fail(error.message) : ok(data);
-  }
-});
-
-// src/lib/mcp/tools/upsert-category.ts
-import { defineTool as defineTool16 } from "npm:@lovable.dev/mcp-js@2.0.2";
-import { z as z16 } from "npm:zod@^3.25.76";
-var upsert_category_default = defineTool16({
-  name: "upsert_category",
-  title: "Skapa eller uppdatera kategori",
-  description: "Skapa en ny kategori, eller uppdatera en befintlig n\xE4r id anges.",
-  inputSchema: {
-    id: z16.string().uuid().optional(),
-    name: z16.string().trim().min(1).max(60).optional(),
-    slug: z16.string().trim().regex(/^[a-z0-9-]+$/).max(60).optional(),
-    type: z16.string().trim().min(1).max(40).optional(),
-    description: z16.string().trim().max(300).optional(),
-    icon: z16.string().trim().max(60).optional(),
-    color: z16.string().trim().max(40).optional(),
-    sort_order: z16.number().int().min(0).max(9999).optional()
-  },
-  annotations: { readOnlyHint: false, openWorldHint: false },
-  handler: async ({ id, ...fields }, ctx) => {
-    requireAuth(ctx);
-    const supabase = supabaseForUser(ctx);
-    const patch = Object.fromEntries(Object.entries(fields).filter(([, v]) => v !== void 0));
-    if (id) {
-      if (!Object.keys(patch).length) return fail("Inget att uppdatera.");
-      const { data: data2, error: error2 } = await supabase.from("categories").update(patch).eq("id", id).select().maybeSingle();
-      if (error2) return fail(error2.message);
-      if (!data2) return fail("Kategorin hittades inte eller saknar beh\xF6righet.");
-      return ok(data2);
-    }
-    if (!fields.name || !fields.slug || !fields.type) return fail("name, slug och type kr\xE4vs f\xF6r en ny kategori.");
-    const { data, error } = await supabase.from("categories").insert(patch).select().single();
-    return error ? fail(error.message) : ok(data);
-  }
-});
-
-// src/lib/mcp/tools/delete-category.ts
-import { defineTool as defineTool17 } from "npm:@lovable.dev/mcp-js@2.0.2";
-import { z as z17 } from "npm:zod@^3.25.76";
-var delete_category_default = defineTool17({
-  name: "delete_category",
-  title: "Ta bort kategori",
-  description: "Radera en kategori permanent.",
-  inputSchema: { id: z17.string().uuid() },
-  annotations: { readOnlyHint: false, destructiveHint: true, openWorldHint: false },
-  handler: async ({ id }, ctx) => {
-    requireAuth(ctx);
-    const { error } = await supabaseForUser(ctx).from("categories").delete().eq("id", id);
-    return error ? fail(error.message) : ok({ deleted: id });
-  }
-});
-
-// src/lib/mcp/tools/list-comments.ts
-import { defineTool as defineTool18 } from "npm:@lovable.dev/mcp-js@2.0.2";
-import { z as z18 } from "npm:zod@^3.25.76";
-var list_comments_default = defineTool18({
-  name: "list_comments",
-  title: "Lista kommentarer",
-  description: "Lista de senaste kommentarerna p\xE5 appar och id\xE9er f\xF6r moderering.",
-  inputSchema: {
-    source: z18.enum(["apps", "ideas", "both"]).default("both"),
-    limit: z18.number().int().min(1).max(100).default(25)
-  },
-  annotations: { readOnlyHint: true, openWorldHint: false },
-  handler: async ({ source, limit }, ctx) => {
-    requireAuth(ctx);
-    const supabase = supabaseForUser(ctx);
-    const result = {};
-    if (source !== "ideas") {
-      const { data, error } = await supabase.from("comments").select("id,app_id,user_id,content,created_at").order("created_at", { ascending: false }).limit(limit);
-      if (error) return fail(error.message);
-      result.app_comments = data;
-    }
-    if (source !== "apps") {
-      const { data, error } = await supabase.from("idea_comments").select("id,idea_id,user_id,content,created_at").order("created_at", { ascending: false }).limit(limit);
-      if (error) return fail(error.message);
-      result.idea_comments = data;
-    }
-    return ok(result);
-  }
-});
-
-// src/lib/mcp/tools/delete-comment.ts
-import { defineTool as defineTool19 } from "npm:@lovable.dev/mcp-js@2.0.2";
-import { z as z19 } from "npm:zod@^3.25.76";
-var delete_comment_default = defineTool19({
-  name: "delete_comment",
-  title: "Ta bort kommentar",
-  description: "Moderera bort en kommentar p\xE5 en app eller en id\xE9.",
-  inputSchema: {
-    id: z19.string().uuid(),
-    source: z19.enum(["app", "idea"]).default("app")
-  },
-  annotations: { readOnlyHint: false, destructiveHint: true, openWorldHint: false },
-  handler: async ({ id, source }, ctx) => {
-    requireAuth(ctx);
-    const table = source === "idea" ? "idea_comments" : "comments";
-    const { error } = await supabaseForUser(ctx).from(table).delete().eq("id", id);
-    return error ? fail(error.message) : ok({ deleted: id, source });
-  }
-});
-
-// src/lib/mcp/tools/list-settings.ts
-import { defineTool as defineTool20 } from "npm:@lovable.dev/mcp-js@2.0.2";
-import { z as z20 } from "npm:zod@^3.25.76";
-var list_settings_default = defineTool20({
-  name: "list_settings",
-  title: "Lista inst\xE4llningar",
-  description: "L\xE4s plattformens inst\xE4llningar: varum\xE4rke, tema, typsnitt, SEO/AEO, analys och startsidans sektioner.",
-  inputSchema: { key_prefix: z20.string().trim().min(1).optional() },
-  annotations: { readOnlyHint: true, openWorldHint: false },
-  handler: async ({ key_prefix }, ctx) => {
-    requireAuth(ctx);
-    let query = supabaseForUser(ctx).from("settings").select("key,value,updated_at").order("key");
-    if (key_prefix) query = query.like("key", `${key_prefix}%`);
-    const { data, error } = await query;
-    return error ? fail(error.message) : ok(data);
-  }
-});
-
-// src/lib/mcp/tools/set-setting.ts
-import { defineTool as defineTool21 } from "npm:@lovable.dev/mcp-js@2.0.2";
-import { z as z21 } from "npm:zod@^3.25.76";
-var set_setting_default = defineTool21({
-  name: "set_setting",
-  title: "\xC4ndra inst\xE4llning",
-  description: "Skriv en plattformsinst\xE4llning (varum\xE4rke, tema, typsnitt, SEO/AEO, analys, startsidans sektioner). V\xE4rdet \xE4r JSON.",
-  inputSchema: {
-    key: z21.string().trim().min(1).max(120),
-    value: z21.union([z21.string(), z21.number(), z21.boolean(), z21.record(z21.unknown()), z21.array(z21.unknown()), z21.null()])
-  },
-  annotations: { readOnlyHint: false, openWorldHint: false },
-  handler: async ({ key, value }, ctx) => {
-    requireAuth(ctx);
-    const { data, error } = await supabaseForUser(ctx).from("settings").upsert({ key, value, updated_at: (/* @__PURE__ */ new Date()).toISOString() }).select().maybeSingle();
-    if (error) return fail(error.message);
-    return ok(data ?? { key, value });
-  }
-});
-
-// src/lib/mcp/tools/list-users.ts
-import { defineTool as defineTool22 } from "npm:@lovable.dev/mcp-js@2.0.2";
-import { z as z22 } from "npm:zod@^3.25.76";
-var list_users_default = defineTool22({
-  name: "list_users",
-  title: "Lista anv\xE4ndare",
-  description: "Lista profiler med deras roller (admin, moderator, user).",
-  inputSchema: {
-    search: z22.string().trim().min(1).optional().describe("S\xF6k i visningsnamn."),
-    limit: z22.number().int().min(1).max(200).default(50)
-  },
-  annotations: { readOnlyHint: true, openWorldHint: false },
-  handler: async ({ search, limit }, ctx) => {
-    requireAuth(ctx);
-    const supabase = supabaseForUser(ctx);
-    let query = supabase.from("profiles").select("id,display_name,avatar_url,bio,created_at").order("created_at", { ascending: false }).limit(limit);
-    if (search) query = query.ilike("display_name", `%${search}%`);
-    const { data: profiles, error } = await query;
-    if (error) return fail(error.message);
-    const { data: roles } = await supabase.from("user_roles").select("user_id,role");
-    const roleMap = /* @__PURE__ */ new Map();
-    for (const r of roles ?? []) {
-      roleMap.set(r.user_id, [...roleMap.get(r.user_id) ?? [], r.role]);
-    }
-    return ok((profiles ?? []).map((p) => ({ ...p, roles: roleMap.get(p.id) ?? [] })));
-  }
-});
-
-// src/lib/mcp/tools/admin-users.ts
-import { defineTool as defineTool23 } from "npm:@lovable.dev/mcp-js@2.0.2";
-import { z as z23 } from "npm:zod@^3.25.76";
-var admin_users_default = defineTool23({
-  name: "admin_users",
-  title: "Anv\xE4ndar\xF6versikt",
-  description: "Adminrapport: alla konton med e-post, inloggningsmetod (google eller email), roller, antal id\xE9er och personens appar med status, \xF6ppningar och r\xF6ster. Samma data som sidan Anv\xE4ndare i admin. E-postadresser \xE4r privata och visas bara h\xE4r.",
-  inputSchema: {
-    search: z23.string().trim().min(1).optional().describe("Filtrerar p\xE5 visningsnamn eller e-post.")
-  },
-  annotations: { readOnlyHint: true, idempotentHint: true, openWorldHint: false },
-  handler: async ({ search }, ctx) => {
-    requireAuth(ctx);
-    const supabase = supabaseForUser(ctx);
-    const { data, error } = await supabase.rpc("admin_user_overview");
-    if (error) return fail("Kunde inte l\xE4sa anv\xE4ndar\xF6versikten. Verktyget kr\xE4ver adminbeh\xF6righet.");
-    let users = data ?? [];
-    if (search) {
-      const q = search.toLowerCase();
-      users = users.filter(
-        (u) => `${u.display_name ?? ""} ${u.email ?? ""}`.toLowerCase().includes(q)
-      );
-    }
-    return ok(users);
-  }
-});
-
-// src/lib/mcp/tools/set-user-role.ts
-import { defineTool as defineTool24 } from "npm:@lovable.dev/mcp-js@2.0.2";
-import { z as z24 } from "npm:zod@^3.25.76";
-var set_user_role_default = defineTool24({
-  name: "set_user_role",
-  title: "Ge eller ta bort roll",
-  description: "Ge en anv\xE4ndare rollen admin/moderator/user, eller ta bort rollen. Kr\xE4ver adminbeh\xF6righet.",
-  inputSchema: {
-    user_id: z24.string().uuid(),
-    role: z24.enum(["admin", "moderator", "user"]),
-    action: z24.enum(["grant", "revoke"]).default("grant")
-  },
-  annotations: { readOnlyHint: false, destructiveHint: true, openWorldHint: false },
-  handler: async ({ user_id, role, action }, ctx) => {
-    requireAuth(ctx);
-    const supabase = supabaseForUser(ctx);
-    if (action === "revoke") {
-      const { error: error2 } = await supabase.from("user_roles").delete().eq("user_id", user_id).eq("role", role);
-      return error2 ? fail(error2.message) : ok({ user_id, role, revoked: true });
-    }
-    const { data, error } = await supabase.from("user_roles").upsert({ user_id, role }, { onConflict: "user_id,role" }).select().maybeSingle();
-    return error ? fail(error.message) : ok(data ?? { user_id, role, granted: true });
-  }
-});
-
 // src/lib/mcp/tools/platform-stats.ts
-import { defineTool as defineTool25 } from "npm:@lovable.dev/mcp-js@2.0.2";
-var platform_stats_default = defineTool25({
+var platform_stats_default = defineTool({
   name: "platform_stats",
   title: "Plattforms\xF6versikt",
   description: "Nyckeltal: antal appar per status, id\xE9er, resurser, anv\xE4ndare, r\xF6ster och klick.",
@@ -706,30 +112,30 @@ var platform_stats_default = defineTool25({
 });
 
 // src/lib/mcp/tools/app-analytics.ts
-import { defineTool as defineTool26 } from "npm:@lovable.dev/mcp-js@2.0.2";
-import { z as z26 } from "npm:zod@^3.25.76";
+import { defineTool as defineTool2 } from "npm:@lovable.dev/mcp-js@2.0.2";
+import { z as z2 } from "npm:zod@^3.25.76";
 
 // src/lib/appAnalytics.ts
-import { z as z25 } from "npm:zod@^3.25.76";
-var reportSchema = z25.object({
-  period_days: z25.number(),
-  period_start: z25.string(),
-  period_end: z25.string(),
-  timezone: z25.string(),
-  tracking_since: z25.string(),
-  total_opens: z25.number(),
-  period_opens: z25.number(),
-  apps_opened: z25.number(),
-  apps: z25.array(z25.object({
-    id: z25.string(),
-    title: z25.string(),
-    status: z25.string(),
-    total_opens: z25.number(),
-    period_opens: z25.number(),
-    upvotes: z25.number(),
-    comments: z25.number()
+import { z } from "npm:zod@^3.25.76";
+var reportSchema = z.object({
+  period_days: z.number(),
+  period_start: z.string(),
+  period_end: z.string(),
+  timezone: z.string(),
+  tracking_since: z.string(),
+  total_opens: z.number(),
+  period_opens: z.number(),
+  apps_opened: z.number(),
+  apps: z.array(z.object({
+    id: z.string(),
+    title: z.string(),
+    status: z.string(),
+    total_opens: z.number(),
+    period_opens: z.number(),
+    upvotes: z.number(),
+    comments: z.number()
   })),
-  daily: z25.array(z25.object({ date: z25.string(), opens: z25.number() }))
+  daily: z.array(z.object({ date: z.string(), opens: z.number() }))
 });
 async function readAppAnalytics(client, days) {
   const { data, error } = await client.rpc("app_open_analytics", { period_days: days });
@@ -738,11 +144,11 @@ async function readAppAnalytics(client, days) {
 }
 
 // src/lib/mcp/tools/app-analytics.ts
-var app_analytics_default = defineTool26({
+var app_analytics_default = defineTool2({
   name: "app_analytics",
   title: "Apparnas \xF6ppningsstatistik",
   description: "Adminrapport: app\xF6ppningar f\xF6r 7, 30 eller 90 UTC-kalenderdagar, daglig utveckling och upp till 100 appar sorterade efter \xF6ppningar. Samma rapport som Statistik i admin. \xD6ppningar \xE4r inte unika bes\xF6kare eller sidvisningar. \xC4ldre klick ing\xE5r bara i total_opens; tidsserien b\xF6rjar 18 november 2026. Lovables bes\xF6ksanalys och Google Analytics ing\xE5r inte.",
-  inputSchema: { days: z26.union([z26.literal(7), z26.literal(30), z26.literal(90)]).default(7).describe("Antal UTC-kalenderdagar inklusive idag.") },
+  inputSchema: { days: z2.union([z2.literal(7), z2.literal(30), z2.literal(90)]).default(7).describe("Antal UTC-kalenderdagar inklusive idag.") },
   annotations: { readOnlyHint: true, idempotentHint: true, openWorldHint: false },
   handler: async ({ days }, ctx) => {
     requireAuth(ctx);
@@ -753,6 +159,632 @@ var app_analytics_default = defineTool26({
     }
   }
 });
+
+// src/lib/mcp/tools/list-apps.ts
+import { defineTool as defineTool3 } from "npm:@lovable.dev/mcp-js@2.0.2";
+import { z as z3 } from "npm:zod@^3.25.76";
+var list_apps_default = defineTool3({
+  name: "list_apps",
+  title: "Lista appar",
+  description: "Lista appar p\xE5 skolappar, med filter p\xE5 status, s\xF6kord och sortering.",
+  inputSchema: {
+    status: z3.enum(["pending", "approved", "rejected", "featured", "delisted"]).optional(),
+    search: z3.string().trim().min(1).optional().describe("Fritext i titel/beskrivning."),
+    limit: z3.number().int().min(1).max(100).default(25),
+    order_by: z3.enum(["created_at", "upvotes_count", "clicks_count", "comments_count"]).default("created_at")
+  },
+  annotations: { readOnlyHint: true, openWorldHint: false },
+  handler: async ({ status, search, limit, order_by }, ctx) => {
+    requireAuth(ctx);
+    let query = supabaseForUser(ctx).from("apps").select("id,title,description,url,image_url,status,is_featured,upvotes_count,comments_count,clicks_count,delist_reason,user_id,created_at").order(order_by, { ascending: false }).limit(limit);
+    if (status) query = query.eq("status", status);
+    if (search) query = query.or(`title.ilike.%${search}%,description.ilike.%${search}%`);
+    const { data, error } = await query;
+    return error ? fail(error.message) : ok(data);
+  }
+});
+
+// src/lib/mcp/tools/get-app.ts
+import { defineTool as defineTool4 } from "npm:@lovable.dev/mcp-js@2.0.2";
+import { z as z4 } from "npm:zod@^3.25.76";
+var get_app_default = defineTool4({
+  name: "get_app",
+  title: "H\xE4mta app",
+  description: "H\xE4mta en app med kategorier och kommentarer.",
+  inputSchema: { id: z4.string().uuid() },
+  annotations: { readOnlyHint: true, openWorldHint: false },
+  handler: async ({ id }, ctx) => {
+    requireAuth(ctx);
+    const supabase = supabaseForUser(ctx);
+    const [app, cats, comments] = await Promise.all([
+      supabase.from("apps").select("*").eq("id", id).maybeSingle(),
+      supabase.from("app_categories").select("category_id,categories(name,slug,type)").eq("app_id", id),
+      supabase.from("comments").select("id,user_id,content,created_at").eq("app_id", id).order("created_at", { ascending: false })
+    ]);
+    if (app.error) return fail(app.error.message);
+    if (!app.data) return fail("Appen hittades inte.");
+    return ok({ app: app.data, categories: cats.data ?? [], comments: comments.data ?? [] });
+  }
+});
+
+// src/lib/mcp/tools/create-app.ts
+import { defineTool as defineTool5 } from "npm:@lovable.dev/mcp-js@2.0.2";
+import { z as z5 } from "npm:zod@^3.25.76";
+var create_app_default = defineTool5({
+  name: "create_app",
+  title: "Skapa app",
+  description: "L\xE4gg till en ny app i galleriet, valfritt med kategorier.",
+  inputSchema: {
+    title: z5.string().trim().min(2).max(120),
+    description: z5.string().trim().min(5).max(500),
+    url: z5.string().url(),
+    long_description: z5.string().trim().max(1e4).optional(),
+    image_url: z5.string().url().optional().describe(
+      "Bild som visas p\xE5 app-korten. Korten besk\xE4r bilden till liggande 4:3-format \u2013 anv\xE4nd en attraktiv, ljus bild p\xE5 minst 800\xD7600 px med motivet centrerat. Bilden ska ge ett tydligt visuellt intryck av vad spelet/appen handlar om \u2013 ju b\xE4ttre man ser sj\xE4lva spelet, desto b\xE4ttre effekt. H\xE5ll den enkel: inte f\xF6r m\xE5nga detaljer, och l\xE4gg INTE in appens namn, \xE5lder eller kategori i bilden \u2013 det visas redan p\xE5 kortet under bilden. Utel\xE4mnas bilden skapas automatiskt en sk\xE4rmdump av appens url, s\xE5 l\xE4mna hellre tom \xE4n en bild i fel format."
+    ),
+    category_ids: z5.array(z5.string().uuid()).max(20).optional().describe(
+      "Appens kategorier. Ange exakt en av varje typ: subject (Matte, STEM, Spr\xE5k, Samh\xE4lle, Kreativt), age (F\u20133, 4\u20136, 7\u20139+) och app_type (Spel, \xD6va, Verktyg). H\xE4mta id:n med list_categories. Utan r\xE4tt kategorier syns inte appen i startsidans filter."
+    )
+  },
+  annotations: { readOnlyHint: false, openWorldHint: false },
+  handler: async ({ title, description, url, long_description, image_url, category_ids }, ctx) => {
+    requireAuth(ctx);
+    const supabase = supabaseForUser(ctx);
+    const { data, error } = await supabase.from("apps").insert({ user_id: ctx.getUserId(), title, description, url, long_description, image_url }).select().single();
+    if (error) return fail(error.message);
+    if (category_ids?.length) {
+      const { error: catError } = await supabase.from("app_categories").insert(category_ids.map((category_id) => ({ app_id: data.id, category_id })));
+      if (catError) return ok({ app: data, category_warning: catError.message });
+    }
+    return ok({ app: data });
+  }
+});
+
+// src/lib/mcp/tools/update-app.ts
+import { defineTool as defineTool6 } from "npm:@lovable.dev/mcp-js@2.0.2";
+import { z as z6 } from "npm:zod@^3.25.76";
+var update_app_default = defineTool6({
+  name: "update_app",
+  title: "Uppdatera app",
+  description: "Uppdatera en app: inneh\xE5ll, status (godk\xE4nn/avsl\xE5/utvald/avlista), utvald-flagga och kategorier.",
+  inputSchema: {
+    id: z6.string().uuid(),
+    title: z6.string().trim().min(2).max(120).optional(),
+    description: z6.string().trim().min(5).max(500).optional(),
+    long_description: z6.string().trim().max(1e4).optional(),
+    url: z6.string().url().optional(),
+    image_url: z6.string().url().optional().describe(
+      "Bild som visas p\xE5 app-korten. Korten besk\xE4r bilden till liggande 4:3-format \u2013 anv\xE4nd en attraktiv, ljus bild p\xE5 minst 800\xD7600 px med motivet centrerat. Bilden ska ge ett tydligt visuellt intryck av vad spelet/appen handlar om \u2013 ju b\xE4ttre man ser sj\xE4lva spelet, desto b\xE4ttre effekt. H\xE5ll den enkel: inte f\xF6r m\xE5nga detaljer, och l\xE4gg INTE in appens namn, \xE5lder eller kategori i bilden \u2013 det visas redan p\xE5 kortet under bilden. Utel\xE4mnas bilden skapas automatiskt en sk\xE4rmdump av appens url, s\xE5 l\xE4mna hellre tom \xE4n en bild i fel format."
+    ),
+    status: z6.enum(["pending", "approved", "rejected", "featured", "delisted"]).optional(),
+    is_featured: z6.boolean().optional(),
+    delist_reason: z6.string().trim().max(500).optional(),
+    category_ids: z6.array(z6.string().uuid()).max(20).optional().describe(
+      "Ers\xE4tter appens samtliga kategorier. Appen ska ha exakt en av varje typ: subject (Matte, STEM, Spr\xE5k, Samh\xE4lle, Kreativt), age (F\u20133, 4\u20136, 7\u20139+) och app_type (Spel, \xD6va, Verktyg). H\xE4mta id:n med list_categories. Anv\xE4nd f\xF6r att r\xE4tta appar d\xE4r inl\xE4mnaren missat kategorier \u2013 utan dem syns inte appen i startsidans filter."
+    )
+  },
+  annotations: { readOnlyHint: false, openWorldHint: false },
+  handler: async ({ id, category_ids, ...fields }, ctx) => {
+    requireAuth(ctx);
+    const supabase = supabaseForUser(ctx);
+    const patch = Object.fromEntries(Object.entries(fields).filter(([, v]) => v !== void 0));
+    let app = null;
+    if (Object.keys(patch).length) {
+      const { data, error } = await supabase.from("apps").update(patch).eq("id", id).select().maybeSingle();
+      if (error) return fail(error.message);
+      if (!data) return fail("Appen hittades inte eller saknar beh\xF6righet.");
+      app = data;
+    }
+    if (category_ids) {
+      await supabase.from("app_categories").delete().eq("app_id", id);
+      if (category_ids.length) {
+        const { error } = await supabase.from("app_categories").insert(category_ids.map((category_id) => ({ app_id: id, category_id })));
+        if (error) return fail(error.message);
+      }
+    }
+    return ok({ app, categories_updated: Boolean(category_ids) });
+  }
+});
+
+// src/lib/mcp/tools/delete-app.ts
+import { defineTool as defineTool7 } from "npm:@lovable.dev/mcp-js@2.0.2";
+import { z as z7 } from "npm:zod@^3.25.76";
+var delete_app_default = defineTool7({
+  name: "delete_app",
+  title: "Ta bort app",
+  description: "Radera en app permanent. \xD6verv\xE4g status 'delisted' ist\xE4llet f\xF6r att bevara historik.",
+  inputSchema: { id: z7.string().uuid() },
+  annotations: { readOnlyHint: false, destructiveHint: true, openWorldHint: false },
+  handler: async ({ id }, ctx) => {
+    requireAuth(ctx);
+    const { error } = await supabaseForUser(ctx).from("apps").delete().eq("id", id);
+    return error ? fail(error.message) : ok({ deleted: id });
+  }
+});
+
+// src/lib/mcp/tools/list-ideas.ts
+import { defineTool as defineTool8 } from "npm:@lovable.dev/mcp-js@2.0.2";
+import { z as z8 } from "npm:zod@^3.25.76";
+var list_ideas_default = defineTool8({
+  name: "list_ideas",
+  title: "Lista app-id\xE9er",
+  description: "Lista community-id\xE9er med status \xF6ppen/p\xE5b\xF6rjad/byggd.",
+  inputSchema: {
+    status: z8.enum(["open", "claimed", "built"]).optional(),
+    search: z8.string().trim().min(1).optional(),
+    limit: z8.number().int().min(1).max(100).default(25)
+  },
+  annotations: { readOnlyHint: true, openWorldHint: false },
+  handler: async ({ status, search, limit }, ctx) => {
+    requireAuth(ctx);
+    let query = supabaseForUser(ctx).from("ideas").select("id,title,description,status,target_age,target_subject,upvotes_count,comments_count,claimed_by,built_app_id,user_id,created_at").order("created_at", { ascending: false }).limit(limit);
+    if (status) query = query.eq("status", status);
+    if (search) query = query.or(`title.ilike.%${search}%,description.ilike.%${search}%`);
+    const { data, error } = await query;
+    return error ? fail(error.message) : ok(data);
+  }
+});
+
+// src/lib/mcp/tools/get-idea.ts
+import { defineTool as defineTool9 } from "npm:@lovable.dev/mcp-js@2.0.2";
+import { z as z9 } from "npm:zod@^3.25.76";
+var get_idea_default = defineTool9({
+  name: "get_idea",
+  title: "H\xE4mta app-id\xE9",
+  description: "H\xE4mta alla detaljer om en enskild app-id\xE9.",
+  inputSchema: { id: z9.string().uuid() },
+  annotations: { readOnlyHint: true, openWorldHint: false },
+  handler: async ({ id }, ctx) => {
+    requireAuth(ctx);
+    const { data, error } = await supabaseForUser(ctx).from("ideas").select("*").eq("id", id).maybeSingle();
+    if (error) return fail(error.message);
+    if (!data) return fail("Id\xE9n hittades inte.");
+    return ok(data);
+  }
+});
+
+// src/lib/mcp/tools/create-idea.ts
+import { defineTool as defineTool10 } from "npm:@lovable.dev/mcp-js@2.0.2";
+import { z as z10 } from "npm:zod@^3.25.76";
+var create_idea_default = defineTool10({
+  name: "create_idea",
+  title: "Skapa app-id\xE9",
+  description: "L\xE4gg till en ny app-id\xE9 i community-listan.",
+  inputSchema: {
+    title: z10.string().trim().min(2).max(120),
+    description: z10.string().trim().min(5).max(5e3),
+    target_age: z10.string().trim().max(60).optional(),
+    target_subject: z10.string().trim().max(60).optional(),
+    status: z10.enum(["open", "claimed", "built"]).optional()
+  },
+  annotations: { readOnlyHint: false, openWorldHint: false },
+  handler: async ({ title, description, target_age, target_subject, status }, ctx) => {
+    requireAuth(ctx);
+    const { data, error } = await supabaseForUser(ctx).from("ideas").insert({
+      title,
+      description,
+      target_age: target_age ?? null,
+      target_subject: target_subject ?? null,
+      status: status ?? "open",
+      user_id: ctx.getUserId()
+    }).select().maybeSingle();
+    if (error) return fail(error.message);
+    if (!data) return fail("Id\xE9n kunde inte skapas.");
+    return ok(data);
+  }
+});
+
+// src/lib/mcp/tools/update-idea.ts
+import { defineTool as defineTool11 } from "npm:@lovable.dev/mcp-js@2.0.2";
+import { z as z11 } from "npm:zod@^3.25.76";
+var update_idea_default = defineTool11({
+  name: "update_idea",
+  title: "Uppdatera app-id\xE9",
+  description: "Redigera en id\xE9 eller \xE4ndra dess status (\xF6ppen, p\xE5b\xF6rjad, byggd).",
+  inputSchema: {
+    id: z11.string().uuid(),
+    title: z11.string().trim().min(2).max(120).optional(),
+    description: z11.string().trim().min(5).max(5e3).optional(),
+    target_age: z11.string().trim().max(60).optional(),
+    target_subject: z11.string().trim().max(60).optional(),
+    status: z11.enum(["open", "claimed", "built"]).optional(),
+    built_app_id: z11.string().uuid().optional()
+  },
+  annotations: { readOnlyHint: false, openWorldHint: false },
+  handler: async ({ id, ...fields }, ctx) => {
+    requireAuth(ctx);
+    const patch = Object.fromEntries(Object.entries(fields).filter(([, v]) => v !== void 0));
+    if (!Object.keys(patch).length) return fail("Inget att uppdatera.");
+    const { data, error } = await supabaseForUser(ctx).from("ideas").update(patch).eq("id", id).select().maybeSingle();
+    if (error) return fail(error.message);
+    if (!data) return fail("Id\xE9n hittades inte eller saknar beh\xF6righet.");
+    return ok(data);
+  }
+});
+
+// src/lib/mcp/tools/claim-idea.ts
+import { defineTool as defineTool12 } from "npm:@lovable.dev/mcp-js@2.0.2";
+import { z as z12 } from "npm:zod@^3.25.76";
+var claim_idea_default = defineTool12({
+  name: "claim_idea",
+  title: "Ta an eller sl\xE4pp app-id\xE9",
+  description: "Markera en id\xE9 som p\xE5b\xF6rjad av den inloggade anv\xE4ndaren, eller sl\xE4pp den tillbaka som \xF6ppen.",
+  inputSchema: {
+    id: z12.string().uuid(),
+    release: z12.boolean().optional().describe("S\xE4tt true f\xF6r att sl\xE4ppa id\xE9n som \xF6ppen igen.")
+  },
+  annotations: { readOnlyHint: false, openWorldHint: false },
+  handler: async ({ id, release }, ctx) => {
+    requireAuth(ctx);
+    const patch = release ? { claimed_by: null, claimed_at: null, status: "open" } : { claimed_by: ctx.getUserId(), claimed_at: (/* @__PURE__ */ new Date()).toISOString(), status: "claimed" };
+    const { data, error } = await supabaseForUser(ctx).from("ideas").update(patch).eq("id", id).select().maybeSingle();
+    if (error) return fail(error.message);
+    if (!data) return fail("Id\xE9n hittades inte eller saknar beh\xF6righet.");
+    return ok(data);
+  }
+});
+
+// src/lib/mcp/tools/delete-idea.ts
+import { defineTool as defineTool13 } from "npm:@lovable.dev/mcp-js@2.0.2";
+import { z as z13 } from "npm:zod@^3.25.76";
+var delete_idea_default = defineTool13({
+  name: "delete_idea",
+  title: "Ta bort app-id\xE9",
+  description: "Radera en app-id\xE9 permanent.",
+  inputSchema: { id: z13.string().uuid() },
+  annotations: { readOnlyHint: false, destructiveHint: true, openWorldHint: false },
+  handler: async ({ id }, ctx) => {
+    requireAuth(ctx);
+    const { error } = await supabaseForUser(ctx).from("ideas").delete().eq("id", id);
+    return error ? fail(error.message) : ok({ deleted: id });
+  }
+});
+
+// src/lib/mcp/tools/list-resources.ts
+import { defineTool as defineTool14 } from "npm:@lovable.dev/mcp-js@2.0.2";
+import { z as z14 } from "npm:zod@^3.25.76";
+var list_resources_default = defineTool14({
+  name: "list_resources",
+  title: "Lista resurser",
+  description: "Lista kunskapsartiklar (resurser), inklusive opublicerade f\xF6r admin.",
+  inputSchema: {
+    category: z14.string().trim().min(1).optional(),
+    include_unpublished: z14.boolean().default(true),
+    with_content: z14.boolean().default(false),
+    limit: z14.number().int().min(1).max(200).default(50)
+  },
+  annotations: { readOnlyHint: true, openWorldHint: false },
+  handler: async ({ category, include_unpublished, with_content, limit }, ctx) => {
+    requireAuth(ctx);
+    const columns = with_content ? "id,title,slug,excerpt,content,category,icon,sort_order,is_published,updated_at" : "id,title,slug,excerpt,category,icon,sort_order,is_published,updated_at";
+    let query = supabaseForUser(ctx).from("resources").select(columns).order("sort_order").limit(limit);
+    if (category) query = query.eq("category", category);
+    if (!include_unpublished) query = query.eq("is_published", true);
+    const { data, error } = await query;
+    return error ? fail(error.message) : ok(data);
+  }
+});
+
+// src/lib/mcp/tools/upsert-resource.ts
+import { defineTool as defineTool15 } from "npm:@lovable.dev/mcp-js@2.0.2";
+import { z as z15 } from "npm:zod@^3.25.76";
+var upsert_resource_default = defineTool15({
+  name: "upsert_resource",
+  title: "Skapa eller uppdatera resurs",
+  description: "Skapa en ny kunskapsartikel, eller uppdatera en befintlig n\xE4r id anges. Inneh\xE5llet \xE4r Markdown.",
+  inputSchema: {
+    id: z15.string().uuid().optional().describe("Utel\xE4mna f\xF6r att skapa en ny resurs."),
+    title: z15.string().trim().min(2).max(160).optional(),
+    slug: z15.string().trim().regex(/^[a-z0-9-]+$/).max(160).optional(),
+    excerpt: z15.string().trim().max(400).optional(),
+    content: z15.string().trim().max(1e5).optional(),
+    category: z15.string().trim().min(1).max(60).optional(),
+    icon: z15.string().trim().max(60).optional(),
+    sort_order: z15.number().int().min(0).max(9999).optional(),
+    is_published: z15.boolean().optional()
+  },
+  annotations: { readOnlyHint: false, openWorldHint: false },
+  handler: async ({ id, ...fields }, ctx) => {
+    requireAuth(ctx);
+    const supabase = supabaseForUser(ctx);
+    const patch = Object.fromEntries(Object.entries(fields).filter(([, v]) => v !== void 0));
+    if (id) {
+      if (!Object.keys(patch).length) return fail("Inget att uppdatera.");
+      const { data: data2, error: error2 } = await supabase.from("resources").update(patch).eq("id", id).select().maybeSingle();
+      if (error2) return fail(error2.message);
+      if (!data2) return fail("Resursen hittades inte eller saknar beh\xF6righet.");
+      return ok(data2);
+    }
+    if (!fields.title || !fields.slug || !fields.content || !fields.category) {
+      return fail("title, slug, content och category kr\xE4vs f\xF6r en ny resurs.");
+    }
+    const { data, error } = await supabase.from("resources").insert(patch).select().single();
+    return error ? fail(error.message) : ok(data);
+  }
+});
+
+// src/lib/mcp/tools/delete-resource.ts
+import { defineTool as defineTool16 } from "npm:@lovable.dev/mcp-js@2.0.2";
+import { z as z16 } from "npm:zod@^3.25.76";
+var delete_resource_default = defineTool16({
+  name: "delete_resource",
+  title: "Ta bort resurs",
+  description: "Radera en kunskapsartikel permanent.",
+  inputSchema: { id: z16.string().uuid() },
+  annotations: { readOnlyHint: false, destructiveHint: true, openWorldHint: false },
+  handler: async ({ id }, ctx) => {
+    requireAuth(ctx);
+    const { error } = await supabaseForUser(ctx).from("resources").delete().eq("id", id);
+    return error ? fail(error.message) : ok({ deleted: id });
+  }
+});
+
+// src/lib/mcp/tools/list-categories.ts
+import { defineTool as defineTool17 } from "npm:@lovable.dev/mcp-js@2.0.2";
+import { z as z17 } from "npm:zod@^3.25.76";
+var list_categories_default = defineTool17({
+  name: "list_categories",
+  title: "Lista kategorier",
+  description: "Lista alla kategorier (\xE4mne, \xE5lder, typ, enhet) med id att anv\xE4nda vid app-uppdateringar.",
+  inputSchema: { type: z17.string().trim().min(1).optional() },
+  annotations: { readOnlyHint: true, openWorldHint: false },
+  handler: async ({ type }, ctx) => {
+    requireAuth(ctx);
+    let query = supabaseForUser(ctx).from("categories").select("id,name,slug,type,description,icon,color,sort_order").order("type").order("sort_order");
+    if (type) query = query.eq("type", type);
+    const { data, error } = await query;
+    return error ? fail(error.message) : ok(data);
+  }
+});
+
+// src/lib/mcp/tools/upsert-category.ts
+import { defineTool as defineTool18 } from "npm:@lovable.dev/mcp-js@2.0.2";
+import { z as z18 } from "npm:zod@^3.25.76";
+var upsert_category_default = defineTool18({
+  name: "upsert_category",
+  title: "Skapa eller uppdatera kategori",
+  description: "Skapa en ny kategori, eller uppdatera en befintlig n\xE4r id anges.",
+  inputSchema: {
+    id: z18.string().uuid().optional(),
+    name: z18.string().trim().min(1).max(60).optional(),
+    slug: z18.string().trim().regex(/^[a-z0-9-]+$/).max(60).optional(),
+    type: z18.string().trim().min(1).max(40).optional(),
+    description: z18.string().trim().max(300).optional(),
+    icon: z18.string().trim().max(60).optional(),
+    color: z18.string().trim().max(40).optional(),
+    sort_order: z18.number().int().min(0).max(9999).optional()
+  },
+  annotations: { readOnlyHint: false, openWorldHint: false },
+  handler: async ({ id, ...fields }, ctx) => {
+    requireAuth(ctx);
+    const supabase = supabaseForUser(ctx);
+    const patch = Object.fromEntries(Object.entries(fields).filter(([, v]) => v !== void 0));
+    if (id) {
+      if (!Object.keys(patch).length) return fail("Inget att uppdatera.");
+      const { data: data2, error: error2 } = await supabase.from("categories").update(patch).eq("id", id).select().maybeSingle();
+      if (error2) return fail(error2.message);
+      if (!data2) return fail("Kategorin hittades inte eller saknar beh\xF6righet.");
+      return ok(data2);
+    }
+    if (!fields.name || !fields.slug || !fields.type) return fail("name, slug och type kr\xE4vs f\xF6r en ny kategori.");
+    const { data, error } = await supabase.from("categories").insert(patch).select().single();
+    return error ? fail(error.message) : ok(data);
+  }
+});
+
+// src/lib/mcp/tools/delete-category.ts
+import { defineTool as defineTool19 } from "npm:@lovable.dev/mcp-js@2.0.2";
+import { z as z19 } from "npm:zod@^3.25.76";
+var delete_category_default = defineTool19({
+  name: "delete_category",
+  title: "Ta bort kategori",
+  description: "Radera en kategori permanent.",
+  inputSchema: { id: z19.string().uuid() },
+  annotations: { readOnlyHint: false, destructiveHint: true, openWorldHint: false },
+  handler: async ({ id }, ctx) => {
+    requireAuth(ctx);
+    const { error } = await supabaseForUser(ctx).from("categories").delete().eq("id", id);
+    return error ? fail(error.message) : ok({ deleted: id });
+  }
+});
+
+// src/lib/mcp/tools/list-comments.ts
+import { defineTool as defineTool20 } from "npm:@lovable.dev/mcp-js@2.0.2";
+import { z as z20 } from "npm:zod@^3.25.76";
+var list_comments_default = defineTool20({
+  name: "list_comments",
+  title: "Lista kommentarer",
+  description: "Lista de senaste kommentarerna p\xE5 appar och id\xE9er f\xF6r moderering.",
+  inputSchema: {
+    source: z20.enum(["apps", "ideas", "both"]).default("both"),
+    limit: z20.number().int().min(1).max(100).default(25)
+  },
+  annotations: { readOnlyHint: true, openWorldHint: false },
+  handler: async ({ source, limit }, ctx) => {
+    requireAuth(ctx);
+    const supabase = supabaseForUser(ctx);
+    const result = {};
+    if (source !== "ideas") {
+      const { data, error } = await supabase.from("comments").select("id,app_id,user_id,content,created_at").order("created_at", { ascending: false }).limit(limit);
+      if (error) return fail(error.message);
+      result.app_comments = data;
+    }
+    if (source !== "apps") {
+      const { data, error } = await supabase.from("idea_comments").select("id,idea_id,user_id,content,created_at").order("created_at", { ascending: false }).limit(limit);
+      if (error) return fail(error.message);
+      result.idea_comments = data;
+    }
+    return ok(result);
+  }
+});
+
+// src/lib/mcp/tools/delete-comment.ts
+import { defineTool as defineTool21 } from "npm:@lovable.dev/mcp-js@2.0.2";
+import { z as z21 } from "npm:zod@^3.25.76";
+var delete_comment_default = defineTool21({
+  name: "delete_comment",
+  title: "Ta bort kommentar",
+  description: "Moderera bort en kommentar p\xE5 en app eller en id\xE9.",
+  inputSchema: {
+    id: z21.string().uuid(),
+    source: z21.enum(["app", "idea"]).default("app")
+  },
+  annotations: { readOnlyHint: false, destructiveHint: true, openWorldHint: false },
+  handler: async ({ id, source }, ctx) => {
+    requireAuth(ctx);
+    const table = source === "idea" ? "idea_comments" : "comments";
+    const { error } = await supabaseForUser(ctx).from(table).delete().eq("id", id);
+    return error ? fail(error.message) : ok({ deleted: id, source });
+  }
+});
+
+// src/lib/mcp/tools/list-settings.ts
+import { defineTool as defineTool22 } from "npm:@lovable.dev/mcp-js@2.0.2";
+import { z as z22 } from "npm:zod@^3.25.76";
+var list_settings_default = defineTool22({
+  name: "list_settings",
+  title: "Lista inst\xE4llningar",
+  description: "L\xE4s plattformens inst\xE4llningar: varum\xE4rke, tema, typsnitt, SEO/AEO, analys och startsidans sektioner.",
+  inputSchema: { key_prefix: z22.string().trim().min(1).optional() },
+  annotations: { readOnlyHint: true, openWorldHint: false },
+  handler: async ({ key_prefix }, ctx) => {
+    requireAuth(ctx);
+    let query = supabaseForUser(ctx).from("settings").select("key,value,updated_at").order("key");
+    if (key_prefix) query = query.like("key", `${key_prefix}%`);
+    const { data, error } = await query;
+    return error ? fail(error.message) : ok(data);
+  }
+});
+
+// src/lib/mcp/tools/set-setting.ts
+import { defineTool as defineTool23 } from "npm:@lovable.dev/mcp-js@2.0.2";
+import { z as z23 } from "npm:zod@^3.25.76";
+var set_setting_default = defineTool23({
+  name: "set_setting",
+  title: "\xC4ndra inst\xE4llning",
+  description: "Skriv en plattformsinst\xE4llning (varum\xE4rke, tema, typsnitt, SEO/AEO, analys, startsidans sektioner). V\xE4rdet \xE4r JSON.",
+  inputSchema: {
+    key: z23.string().trim().min(1).max(120),
+    value: z23.union([z23.string(), z23.number(), z23.boolean(), z23.record(z23.unknown()), z23.array(z23.unknown()), z23.null()])
+  },
+  annotations: { readOnlyHint: false, openWorldHint: false },
+  handler: async ({ key, value }, ctx) => {
+    requireAuth(ctx);
+    const { data, error } = await supabaseForUser(ctx).from("settings").upsert({ key, value, updated_at: (/* @__PURE__ */ new Date()).toISOString() }).select().maybeSingle();
+    if (error) return fail(error.message);
+    return ok(data ?? { key, value });
+  }
+});
+
+// src/lib/mcp/tools/list-users.ts
+import { defineTool as defineTool24 } from "npm:@lovable.dev/mcp-js@2.0.2";
+import { z as z24 } from "npm:zod@^3.25.76";
+var list_users_default = defineTool24({
+  name: "list_users",
+  title: "Lista anv\xE4ndare",
+  description: "Lista profiler med deras roller (admin, moderator, user).",
+  inputSchema: {
+    search: z24.string().trim().min(1).optional().describe("S\xF6k i visningsnamn."),
+    limit: z24.number().int().min(1).max(200).default(50)
+  },
+  annotations: { readOnlyHint: true, openWorldHint: false },
+  handler: async ({ search, limit }, ctx) => {
+    requireAuth(ctx);
+    const supabase = supabaseForUser(ctx);
+    let query = supabase.from("profiles").select("id,display_name,avatar_url,bio,created_at").order("created_at", { ascending: false }).limit(limit);
+    if (search) query = query.ilike("display_name", `%${search}%`);
+    const { data: profiles, error } = await query;
+    if (error) return fail(error.message);
+    const { data: roles } = await supabase.from("user_roles").select("user_id,role");
+    const roleMap = /* @__PURE__ */ new Map();
+    for (const r of roles ?? []) {
+      roleMap.set(r.user_id, [...roleMap.get(r.user_id) ?? [], r.role]);
+    }
+    return ok((profiles ?? []).map((p) => ({ ...p, roles: roleMap.get(p.id) ?? [] })));
+  }
+});
+
+// src/lib/mcp/tools/admin-users.ts
+import { defineTool as defineTool25 } from "npm:@lovable.dev/mcp-js@2.0.2";
+import { z as z25 } from "npm:zod@^3.25.76";
+var admin_users_default = defineTool25({
+  name: "admin_users",
+  title: "Anv\xE4ndar\xF6versikt",
+  description: "Adminrapport: alla konton med e-post, inloggningsmetod (google eller email), roller, antal id\xE9er och personens appar med status, \xF6ppningar och r\xF6ster. Samma data som sidan Anv\xE4ndare i admin. E-postadresser \xE4r privata och visas bara h\xE4r.",
+  inputSchema: {
+    search: z25.string().trim().min(1).optional().describe("Filtrerar p\xE5 visningsnamn eller e-post.")
+  },
+  annotations: { readOnlyHint: true, idempotentHint: true, openWorldHint: false },
+  handler: async ({ search }, ctx) => {
+    requireAuth(ctx);
+    const supabase = supabaseForUser(ctx);
+    const { data, error } = await supabase.rpc("admin_user_overview");
+    if (error) return fail("Kunde inte l\xE4sa anv\xE4ndar\xF6versikten. Verktyget kr\xE4ver adminbeh\xF6righet.");
+    let users = data ?? [];
+    if (search) {
+      const q = search.toLowerCase();
+      users = users.filter(
+        (u) => `${u.display_name ?? ""} ${u.email ?? ""}`.toLowerCase().includes(q)
+      );
+    }
+    return ok(users);
+  }
+});
+
+// src/lib/mcp/tools/set-user-role.ts
+import { defineTool as defineTool26 } from "npm:@lovable.dev/mcp-js@2.0.2";
+import { z as z26 } from "npm:zod@^3.25.76";
+var set_user_role_default = defineTool26({
+  name: "set_user_role",
+  title: "Ge eller ta bort roll",
+  description: "Ge en anv\xE4ndare rollen admin/moderator/user, eller ta bort rollen. Kr\xE4ver adminbeh\xF6righet.",
+  inputSchema: {
+    user_id: z26.string().uuid(),
+    role: z26.enum(["admin", "moderator", "user"]),
+    action: z26.enum(["grant", "revoke"]).default("grant")
+  },
+  annotations: { readOnlyHint: false, destructiveHint: true, openWorldHint: false },
+  handler: async ({ user_id, role, action }, ctx) => {
+    requireAuth(ctx);
+    const supabase = supabaseForUser(ctx);
+    if (action === "revoke") {
+      const { error: error2 } = await supabase.from("user_roles").delete().eq("user_id", user_id).eq("role", role);
+      return error2 ? fail(error2.message) : ok({ user_id, role, revoked: true });
+    }
+    const { data, error } = await supabase.from("user_roles").upsert({ user_id, role }, { onConflict: "user_id,role" }).select().maybeSingle();
+    return error ? fail(error.message) : ok(data ?? { user_id, role, granted: true });
+  }
+});
+
+// src/lib/mcp/tools.ts
+var tools = [
+  platform_stats_default,
+  app_analytics_default,
+  list_apps_default,
+  get_app_default,
+  create_app_default,
+  update_app_default,
+  delete_app_default,
+  list_ideas_default,
+  get_idea_default,
+  create_idea_default,
+  update_idea_default,
+  claim_idea_default,
+  delete_idea_default,
+  list_resources_default,
+  upsert_resource_default,
+  delete_resource_default,
+  list_categories_default,
+  upsert_category_default,
+  delete_category_default,
+  list_comments_default,
+  delete_comment_default,
+  list_settings_default,
+  set_setting_default,
+  list_users_default,
+  admin_users_default,
+  set_user_role_default
+];
 
 // src/lib/mcp/index.ts
 var projectRef = "eruyrrjgdzmeugwubppw";
@@ -765,34 +797,7 @@ var mcp_default = defineMcp({
     issuer: `https://${projectRef}.supabase.co/auth/v1`,
     acceptedAudiences: "authenticated"
   }),
-  tools: [
-    platform_stats_default,
-    app_analytics_default,
-    list_apps_default,
-    get_app_default,
-    create_app_default,
-    update_app_default,
-    delete_app_default,
-    list_ideas_default,
-    get_idea_default,
-    create_idea_default,
-    update_idea_default,
-    claim_idea_default,
-    delete_idea_default,
-    list_resources_default,
-    upsert_resource_default,
-    delete_resource_default,
-    list_categories_default,
-    upsert_category_default,
-    delete_category_default,
-    list_comments_default,
-    delete_comment_default,
-    list_settings_default,
-    set_setting_default,
-    list_users_default,
-    admin_users_default,
-    set_user_role_default
-  ]
+  tools
 });
 
 // lovable-mcp-supabase-entry.ts

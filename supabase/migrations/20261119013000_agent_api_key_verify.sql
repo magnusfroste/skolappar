@@ -23,3 +23,11 @@ REVOKE ALL ON FUNCTION public.verify_agent_api_key(text) FROM PUBLIC, anon, auth
 GRANT EXECUTE ON FUNCTION public.verify_agent_api_key(text) TO service_role;
 GRANT EXECUTE ON FUNCTION public.create_agent_api_key(text, integer) TO authenticated;
 GRANT EXECUTE ON FUNCTION public.revoke_agent_api_key(uuid) TO authenticated;
+
+-- Key-authenticated agent endpoint runs as service_role after verify_agent_api_key.
+DO $$
+DECLARE f text;
+BEGIN
+  SELECT replace(pg_get_functiondef('public.admin_user_overview()'::regprocedure), 'IF NOT public.has_role(auth.uid(), ''admin'') THEN', 'IF NOT (public.has_role(auth.uid(), ''admin'') OR auth.role() = ''service_role'') THEN') INTO f; EXECUTE f;
+  SELECT replace(pg_get_functiondef('public.app_open_analytics(integer)'::regprocedure), 'IF NOT public.has_role(auth.uid(), ''admin''::public.app_role) THEN', 'IF NOT (public.has_role(auth.uid(), ''admin''::public.app_role) OR auth.role() = ''service_role'') THEN') INTO f; EXECUTE f;
+END $$;
