@@ -50,32 +50,6 @@ export type Database = {
         }
         Relationships: []
       }
-      agent_key_sessions: {
-        Row: {
-          access_token: string
-          expires_at: string
-          key_id: string
-        }
-        Insert: {
-          access_token: string
-          expires_at: string
-          key_id: string
-        }
-        Update: {
-          access_token?: string
-          expires_at?: string
-          key_id?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "agent_key_sessions_key_id_fkey"
-            columns: ["key_id"]
-            isOneToOne: true
-            referencedRelation: "agent_api_keys"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
       app_categories: {
         Row: {
           app_id: string
@@ -581,6 +555,7 @@ export type Database = {
       }
       increment_clicks: { Args: { app_id: string }; Returns: undefined }
       revoke_agent_api_key: { Args: { key_id: string }; Returns: undefined }
+      verify_agent_api_key: { Args: { raw_key: string }; Returns: string }
     }
     Enums: {
       app_role: "admin" | "moderator" | "user"
