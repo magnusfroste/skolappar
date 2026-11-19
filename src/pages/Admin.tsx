@@ -87,6 +87,25 @@ const appCategoryChips = (app: AdminApp) =>
         a.name.localeCompare(b.name, 'sv')
     );
 
+const AppCategoryChips = ({ app }: { app: AdminApp }) => {
+  const chips = appCategoryChips(app);
+  if (chips.length === 0) return null;
+  return (
+    <div className="mt-1.5 flex flex-wrap items-center gap-1">
+      {chips.map((cat) => (
+        <Badge
+          key={cat.id}
+          variant="outline"
+          className="gap-1 px-1.5 py-0 text-[10px] font-normal"
+        >
+          {cat.icon && <span aria-hidden>{cat.icon}</span>}
+          {cat.name}
+        </Badge>
+      ))}
+    </div>
+  );
+};
+
 const APP_SORT_LABELS: Record<AppSort, string> = {
   newest: 'Senaste först',
   oldest: 'Äldst först',
@@ -563,25 +582,7 @@ export default function Admin() {
                             <AppStatusBadge status={app.status} />
                           </div>
                           <p className="text-xs text-muted-foreground">{app.profile?.display_name || 'Okänd'}</p>
-                          {appCategoryChips(app).length > 0 && (
-                            <div className="mt-1.5 flex flex-wrap items-center gap-1">
-                              {appCategoryChips(app).slice(0, 3).map((cat) => (
-                                <Badge
-                                  key={cat.id}
-                                  variant="outline"
-                                  className="gap-1 px-1.5 py-0 text-[10px] font-normal"
-                                >
-                                  {cat.icon && <span aria-hidden>{cat.icon}</span>}
-                                  {cat.name}
-                                </Badge>
-                              ))}
-                              {appCategoryChips(app).length > 3 && (
-                                <span className="text-[10px] text-muted-foreground">
-                                  +{appCategoryChips(app).length - 3}
-                                </span>
-                              )}
-                            </div>
-                          )}
+                          <AppCategoryChips app={app} />
                           {app.status === 'delisted' && app.delist_reason && (
                             <p className="text-xs text-slate-500 mt-1 italic">📝 {app.delist_reason}</p>
                           )}
