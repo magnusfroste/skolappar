@@ -457,6 +457,9 @@ export default function Admin() {
                               <SelectItem value="delisted">Avlistad</SelectItem>
                             </SelectContent>
                           </Select>
+                          <Button asChild variant="ghost" size="icon" className="h-8 w-8" aria-label="Redigera app">
+                            <Link to={`/min-sida/app/${app.id}`}><Edit2 className="h-4 w-4" /></Link>
+                          </Button>
                           <AlertDialog>
                             <AlertDialogTrigger asChild>
                               <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive">
