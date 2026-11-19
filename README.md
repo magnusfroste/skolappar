@@ -96,3 +96,5 @@ GitHub Action `.github/workflows/app-health.yml` kör samma koll varje måndag o
 ## License
 
 MIT
+
+<!-- agentbuild preview test 2026-11-19T15:47:34Z -->
