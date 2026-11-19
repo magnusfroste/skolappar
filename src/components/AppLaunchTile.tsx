@@ -1,5 +1,6 @@
 import { Link } from "react-router-dom";
 import { AppThumbnail } from "@/components/AppThumbnail";
+import { CategoryIcon } from "@/components/CategoryIcon";
 
 interface AppLaunchTileProps {
   id: string;
@@ -41,7 +42,7 @@ export function AppLaunchTile({ id, title, url, imageUrl, age, ageIcon, ageColor
               style={subjectColor ? { backgroundColor: `${subjectColor}33` } : undefined}
               aria-hidden
             >
-              {subjectIcon}
+              <CategoryIcon icon={subjectIcon} />
             </span>
           )}
           {typeIcon && (
@@ -50,7 +51,7 @@ export function AppLaunchTile({ id, title, url, imageUrl, age, ageIcon, ageColor
               style={typeColor ? { backgroundColor: `${typeColor}33` } : undefined}
               aria-hidden
             >
-              {typeIcon}
+              <CategoryIcon icon={typeIcon} />
             </span>
           )}
           {age && (

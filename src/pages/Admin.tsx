@@ -36,6 +36,7 @@ import {
   AlertDialogTrigger,
 } from '@/components/ui/alert-dialog';
 import { AppStatusBadge } from '@/components/AppStatusBadge';
+import { CategoryIcon } from '@/components/CategoryIcon';
 import { AuthenticatedLayout } from '@/components/AuthenticatedLayout';
 import {
   useIsAdmin,
@@ -98,7 +99,7 @@ const AppCategoryChips = ({ app }: { app: AdminApp }) => {
           variant="outline"
           className="gap-1 px-1.5 py-0 text-[10px] font-normal"
         >
-          {cat.icon && <span aria-hidden>{cat.icon}</span>}
+          <CategoryIcon icon={cat.icon} className="h-3 w-3" />
           {cat.name}
         </Badge>
       ))}
@@ -449,8 +450,8 @@ export default function Admin() {
                             </div>
                             <div className="flex gap-1 mt-2 flex-wrap">
                               {app.categories?.slice(0, 5).map((cat) => (
-                                <Badge key={cat.id} variant="outline" className="text-xs">
-                                  {cat.icon} {cat.name}
+                                <Badge key={cat.id} variant="outline" className="gap-1 text-xs">
+                                  <CategoryIcon icon={cat.icon} /> {cat.name}
                                 </Badge>
                               ))}
                             </div>
@@ -1481,7 +1482,7 @@ function CategoryRow({ category, onEdit, onDelete }: { category: AdminCategory; 
   return (
     <div className="flex items-center justify-between p-3 rounded-lg border hover:bg-muted/50 transition-colors">
       <div className="flex items-center gap-3">
-        <span className="text-xl">{category.icon || '📁'}</span>
+        <span className="text-xl">{category.icon ? <CategoryIcon icon={category.icon} className="h-5 w-5" /> : '📁'}</span>
         <div>
           <p className="font-medium">{category.name}</p>
           <p className="text-xs text-muted-foreground">{category.slug}</p>

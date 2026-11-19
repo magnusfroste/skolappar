@@ -7,6 +7,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { PublicNav } from "@/components/PublicNav";
 import { PublicFooter } from "@/components/PublicFooter";
 import { AppLaunchTile } from "@/components/AppLaunchTile";
+import { CategoryIcon } from "@/components/CategoryIcon";
 import { AppPlayer } from "@/components/AppPlayer";
 import { useTrackClick } from "@/hooks/useTrackClick";
 import { TopIdeasSection } from "@/components/TopIdeasSection";
@@ -97,7 +98,7 @@ export default function Index() {
                 <Chip active={!subject} onClick={() => setSubject(null)}>Alla</Chip>
                 {subjects.map((s) => (
                   <Chip key={s.id} active={subject === s.slug} onClick={() => setSubject(subject === s.slug ? null : s.slug)}>
-                    {s.icon} {s.name}
+                    <CategoryIcon icon={s.icon} /> {s.name}
                   </Chip>
                 ))}
               </div>
@@ -107,7 +108,7 @@ export default function Index() {
                 <Chip active={!age} onClick={() => setAge(null)}>Alla årskurser</Chip>
                 {ages.map((a) => (
                   <Chip key={a.id} active={age === a.slug} onClick={() => setAge(age === a.slug ? null : a.slug)}>
-                    {a.icon} {a.name}
+                    <CategoryIcon icon={a.icon} /> {a.name}
                   </Chip>
                 ))}
               </div>
