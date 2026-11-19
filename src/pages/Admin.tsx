@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
 import { AgentAccessPanel } from '@/components/AgentAccessPanel';
 import { AppAnalyticsPanel } from '@/components/AppAnalyticsPanel';
@@ -73,6 +73,36 @@ type AdminIdea = NonNullable<ReturnType<typeof useAdminIdeas>['data']>[number];
 type AppStatus = Parameters<ReturnType<typeof useUpdateAppStatus>['mutateAsync']>[0]['status'];
 type IdeaStatus = Parameters<ReturnType<typeof useUpdateIdeaStatus>['mutateAsync']>[0]['status'];
 
+type AppSort = 'newest' | 'oldest' | 'title' | 'clicks' | 'upvotes' | 'comments';
+
+const APP_SORT_LABELS: Record<AppSort, string> = {
+  newest: 'Senaste först',
+  oldest: 'Äldst först',
+  title: 'Namn A–Ö',
+  clicks: 'Flest öppningar',
+  upvotes: 'Flest röster',
+  comments: 'Flest kommentarer',
+};
+
+const sortAdminApps = (apps: AdminApp[], sort: AppSort): AdminApp[] => {
+  const list = [...apps];
+  const num = (v: number | null | undefined) => v ?? 0;
+  switch (sort) {
+    case 'oldest':
+      return list.sort((a, b) => a.created_at.localeCompare(b.created_at));
+    case 'title':
+      return list.sort((a, b) => a.title.localeCompare(b.title, 'sv'));
+    case 'clicks':
+      return list.sort((a, b) => num(b.clicks_count) - num(a.clicks_count));
+    case 'upvotes':
+      return list.sort((a, b) => num(b.upvotes_count) - num(a.upvotes_count));
+    case 'comments':
+      return list.sort((a, b) => num(b.comments_count) - num(a.comments_count));
+    default:
+      return list.sort((a, b) => b.created_at.localeCompare(a.created_at));
+  }
+};
+
 export default function Admin() {
   const { data: isAdmin, isLoading: adminLoading } = useIsAdmin();
   const [searchParams, setSearchParams] = useSearchParams();
@@ -132,6 +162,15 @@ export default function Admin() {
   const [delistDialogOpen, setDelistDialogOpen] = useState(false);
   const [delistingAppId, setDelistingAppId] = useState<string | null>(null);
   const [delistReason, setDelistReason] = useState('');
+
+  // Sorting for the "Alla appar" list
+  const [appSort, setAppSort] = useState<AppSort>('newest');
+  const sortedApps = useMemo(() => sortAdminApps(allApps ?? [], appSort), [allApps, appSort]);
+  const appMetricValue = (app: AdminApp) =>
+    appSort === 'clicks' ? app.clicks_count ?? 0
+    : appSort === 'upvotes' ? app.upvotes_count ?? 0
+    : appSort === 'comments' ? app.comments_count ?? 0
+    : null;
 
   const handleStatusChange = async (appId: string, status: 'approved' | 'rejected' | 'featured' | 'pending' | 'delisted', reason?: string) => {
     // If changing to delisted, open dialog first
@@ -407,11 +446,25 @@ export default function Admin() {
           {/* All Apps Tab */}
           <TabsContent value="all">
             <Card>
-              <CardHeader>
-                <CardTitle>Alla appar</CardTitle>
-                <CardDescription>
-                  Översikt över alla appar i systemet
-                </CardDescription>
+              <CardHeader className="flex flex-row flex-wrap items-center justify-between gap-3">
+                <div className="space-y-1">
+                  <CardTitle>Alla appar</CardTitle>
+                  <CardDescription>
+                    {allApps?.length ?? 0} appar i systemet
+                  </CardDescription>
+                </div>
+                <Select value={appSort} onValueChange={(v) => setAppSort(v as AppSort)}>
+                  <SelectTrigger className="w-[190px] h-9 text-sm" aria-label="Sortera appar">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {(Object.keys(APP_SORT_LABELS) as AppSort[]).map((value) => (
+                      <SelectItem key={value} value={value}>
+                        {APP_SORT_LABELS[value]}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </CardHeader>
               <CardContent>
                 {allAppsLoading ? (
@@ -422,16 +475,19 @@ export default function Admin() {
                   </div>
                 ) : (
                   <div className="space-y-2">
-                    {allApps?.map((app: AdminApp) => (
-                      <div key={app.id} className="flex items-center gap-4 p-3 rounded-lg border hover:bg-muted/50 transition-colors">
+                    {sortedApps.length === 0 ? (
+                      <p className="py-8 text-center text-sm text-muted-foreground">Inga appar ännu.</p>
+                    ) : null}
+                    {sortedApps.map((app: AdminApp) => (
+                      <div key={app.id} className="flex flex-wrap items-center gap-x-3 gap-y-2 p-3 rounded-lg border hover:bg-muted/50 transition-colors">
                         {app.image_url ? (
-                          <img src={app.image_url} alt={app.title} className="h-12 w-12 rounded-lg object-cover" />
+                          <img src={app.image_url} alt={app.title} className="h-12 w-12 shrink-0 rounded-lg object-cover" />
                         ) : (
-                          <div className="h-12 w-12 rounded-lg bg-gradient-to-br from-primary/20 to-secondary/20 flex items-center justify-center">
+                          <div className="h-12 w-12 shrink-0 rounded-lg bg-gradient-to-br from-primary/20 to-secondary/20 flex items-center justify-center">
                             📱
                           </div>
                         )}
-                        <div className="flex-1 min-w-0">
+                        <div className="min-w-[10rem] flex-1">
                           <div className="flex items-center gap-2">
                             <span className="font-medium truncate">{app.title}</span>
                             <AppStatusBadge status={app.status} />
@@ -441,7 +497,12 @@ export default function Admin() {
                             <p className="text-xs text-slate-500 mt-1 italic">📝 {app.delist_reason}</p>
                           )}
                         </div>
-                        <div className="flex items-center gap-1">
+                        <div className="ml-auto flex shrink-0 items-center gap-1">
+                          {appMetricValue(app) !== null && (
+                            <span className="mr-1 text-xs tabular-nums text-muted-foreground">
+                              {appMetricValue(app)}
+                            </span>
+                          )}
                           <Select
                             value={app.status}
                             onValueChange={(value) => handleStatusChange(app.id, value as AppStatus)}
