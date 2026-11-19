@@ -104,7 +104,7 @@ export default function Index() {
             )}
             {ages.length > 0 && (
               <div className="flex gap-2 overflow-x-auto scrollbar-none w-full md:w-auto md:ml-auto md:flex-wrap md:overflow-visible">
-                <Chip active={!age} onClick={() => setAge(null)}>Alla åldrar</Chip>
+                <Chip active={!age} onClick={() => setAge(null)}>Alla årskurser</Chip>
                 {ages.map((a) => (
                   <Chip key={a.id} active={age === a.slug} onClick={() => setAge(age === a.slug ? null : a.slug)}>
                     {a.icon} {a.name}

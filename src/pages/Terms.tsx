@@ -70,7 +70,7 @@ const Terms = () => {
                 <li>Du har rättigheter till allt innehåll i appen (bilder, ljud, text)</li>
                 <li>Appen följer svenska lagar och regler</li>
                 <li><strong className="text-foreground">Ditt namn eller pseudonym framgår tydligt i appen</strong></li>
-                <li>Innehållet är lämpligt för barn i angiven åldersgrupp</li>
+                <li>Innehållet är lämpligt för barn i angiven årskurs</li>
                 <li>Appen inte innehåller reklam, skadlig kod eller olämpligt material</li>
                 <li>Du uppdaterar appen om den slutar fungera eller behöver korrigeras</li>
               </ul>

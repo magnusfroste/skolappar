@@ -75,7 +75,7 @@ type IdeaStatus = Parameters<ReturnType<typeof useUpdateIdeaStatus>['mutateAsync
 
 type AppSort = 'newest' | 'oldest' | 'title' | 'clicks' | 'upvotes' | 'comments';
 
-// Alla kategorier visas i listan: ämne, typ, ålder och enhet – i den ordningen.
+// Alla kategorier visas i listan: ämne, typ, årskurs och enhet – i den ordningen.
 const CATEGORY_PRIORITY: Record<string, number> = { subject: 0, app_type: 1, age: 2, device: 3 };
 
 const appCategoryChips = (app: AdminApp) =>
@@ -869,7 +869,7 @@ export default function Admin() {
                           </SelectTrigger>
                           <SelectContent>
                             <SelectItem value="subject">Ämne</SelectItem>
-                            <SelectItem value="age">Ålder</SelectItem>
+                            <SelectItem value="age">Årskurs</SelectItem>
                             <SelectItem value="type">Apptyp</SelectItem>
                           </SelectContent>
                         </Select>
@@ -924,7 +924,7 @@ export default function Admin() {
 
                     {/* Age Categories */}
                     <div>
-                      <h3 className="font-semibold mb-3 text-sm text-muted-foreground uppercase tracking-wide">Åldrar</h3>
+                      <h3 className="font-semibold mb-3 text-sm text-muted-foreground uppercase tracking-wide">Årskurser</h3>
                       <div className="grid gap-2">
                         {ageCategories.map((cat) => (
                           <CategoryRow
@@ -987,7 +987,7 @@ export default function Admin() {
                             </SelectTrigger>
                             <SelectContent>
                               <SelectItem value="subject">Ämne</SelectItem>
-                              <SelectItem value="age">Ålder</SelectItem>
+                              <SelectItem value="age">Årskurs</SelectItem>
                               <SelectItem value="type">Apptyp</SelectItem>
                             </SelectContent>
                           </Select>

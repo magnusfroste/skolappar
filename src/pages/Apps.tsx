@@ -139,7 +139,7 @@ export default function Apps() {
         setSelected={setSelectedSubjects}
       />
       <FilterSection
-        title="Ålder"
+        title="Årskurs"
         items={ageCategories}
         selected={selectedAges}
         setSelected={setSelectedAges}
@@ -228,7 +228,7 @@ export default function Apps() {
                   <SheetHeader>
                     <SheetTitle>Filter</SheetTitle>
                     <SheetDescription>
-                      Filtrera appar efter ämne, ålder och typ
+                      Filtrera appar efter ämne, årskurs och typ
                     </SheetDescription>
                   </SheetHeader>
                   <div className="mt-6">

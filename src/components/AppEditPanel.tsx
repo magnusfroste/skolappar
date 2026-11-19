@@ -119,7 +119,7 @@ export function AppEditPanel({ appId }: AppEditPanelProps) {
 
   const typeLabels: Record<string, string> = {
     subject: 'Ämne',
-    age: 'Ålder',
+    age: 'Årskurs',
     app_type: 'Typ av app',
     device: 'Fungerar på',
     other: 'Övrigt',

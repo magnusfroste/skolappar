@@ -5,7 +5,7 @@ import { supabaseForUser, requireAuth, ok, fail } from "../supabase";
 export default defineTool({
   name: "list_categories",
   title: "Lista kategorier",
-  description: "Lista alla kategorier (ämne, ålder, typ, enhet) med id att använda vid app-uppdateringar.",
+  description: "Lista alla kategorier (ämne, årskurs, typ, enhet) med id att använda vid app-uppdateringar.",
   inputSchema: { type: z.string().trim().min(1).optional() },
   annotations: { readOnlyHint: true, openWorldHint: false },
   handler: async ({ type }, ctx) => {

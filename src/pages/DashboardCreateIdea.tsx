@@ -111,10 +111,10 @@ export default function DashboardCreateIdea() {
 
             <div className="grid gap-4 sm:grid-cols-2">
               <div className="space-y-2">
-                <Label>Målgrupp (ålder)</Label>
+                <Label>Målgrupp (årskurs)</Label>
                 <Select value={targetAge} onValueChange={setTargetAge}>
                   <SelectTrigger>
-                    <SelectValue placeholder="Välj åldersgrupp" />
+                    <SelectValue placeholder="Välj årskurs" />
                   </SelectTrigger>
                   <SelectContent>
                     {AGE_OPTIONS.map((opt) => (
