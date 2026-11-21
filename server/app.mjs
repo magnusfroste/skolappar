@@ -4,6 +4,8 @@ import http from 'node:http';
 import { createHash, timingSafeEqual } from 'node:crypto';
 import { resolve as resolvePath, dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { mkdirSync, accessSync, constants as fsConstants } from 'node:fs';
+import { tmpdir } from 'node:os';
 import { openDatabase, schemaVersion } from './db.mjs';
 import { createStore, APP_STATUSES, IDEA_STATUSES } from './store.mjs';
 import { createImageStore, MAX_IMAGE_BYTES, sniffImage } from './images.mjs';
@@ -41,7 +43,26 @@ function keyMatches(presented, expected) {
   return timingSafeEqual(digest(presented), digest(expected));
 }
 
+/**
+ * Returns a writable data directory: DATA_DIR if it can be written, otherwise a
+ * temporary one (e.g. a preview without a /data disk). Data in the fallback is
+ * lost on restart, so it is logged loudly.
+ */
+export function usableDataDir(dataDir, log = console) {
+  try {
+    mkdirSync(dataDir, { recursive: true });
+    accessSync(dataDir, fsConstants.W_OK);
+    return dataDir;
+  } catch (err) {
+    const fallback = join(tmpdir(), 'skolappar-data');
+    mkdirSync(fallback, { recursive: true });
+    log.warn(`DATA_DIR ${dataDir} is not writable (${err.code || err.message}); using ${fallback} – data will NOT survive a restart`);
+    return fallback;
+  }
+}
+
 export function createApp(config, { fetchImpl = globalThis.fetch, log = console } = {}) {
+  config.dataDir = usableDataDir(config.dataDir, log);
   const db = openDatabase(config.dataDir);
   const mailer = createMailer(config.env || {}, { fetchImpl, log });
   const store = createStore(db, { mailer, siteUrl: config.siteUrl, log });
