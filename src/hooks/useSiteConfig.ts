@@ -1,5 +1,4 @@
-import { useQuery } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
+import { useAllSettings, type SettingsMap } from "./useSettings";
 
 export interface SiteConfig {
   site_name: string;
@@ -31,30 +30,18 @@ const DEFAULTS: SiteConfig = {
   faq_items: [],
 };
 
+function pick(settings: SettingsMap): SiteConfig {
+  const config = { ...DEFAULTS };
+  for (const key of Object.keys(DEFAULTS) as (keyof SiteConfig)[]) {
+    if (settings[key] !== undefined && settings[key] !== null) {
+      (config as Record<keyof SiteConfig, unknown>)[key] = settings[key];
+    }
+  }
+  return config;
+}
+
 export function useSiteConfig(): SiteConfig {
-  const { data } = useQuery({
-    queryKey: ["site-config"],
-    queryFn: async () => {
-      const keys = Object.keys(DEFAULTS);
-      const { data, error } = await supabase
-        .from("settings")
-        .select("key, value")
-        .in("key", keys);
-
-      if (error) throw error;
-
-      const config = { ...DEFAULTS };
-      data?.forEach((row) => {
-        const key = row.key as keyof SiteConfig;
-        if (key in config) {
-          (config as Record<keyof SiteConfig, unknown>)[key] = row.value;
-        }
-      });
-      return config;
-    },
-    staleTime: 5 * 60 * 1000,
-  });
-
+  const { data } = useAllSettings(pick);
   return data || DEFAULTS;
 }
 

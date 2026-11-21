@@ -1,7 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import { Rocket, ChevronRight } from "lucide-react";
-import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { PublicNav } from "@/components/PublicNav";
@@ -28,7 +27,6 @@ const HOME_LIMIT = 12;
 const HOME_PAGE = 8;
 
 export default function Index() {
-  const { user } = useAuth();
   const config = useSiteConfig();
   const [playing, setPlaying] = useState<{ url: string; title: string } | null>(null);
   const trackClick = useTrackClick();
@@ -72,7 +70,6 @@ export default function Index() {
       window.removeEventListener("resize", loadMore);
     };
   }, [hasMore, totalApps]);
-  const shareHref = user ? "/min-sida/ny" : "/auth";
   const combinedSchema = [buildWebsiteSchema(config), buildOrganizationSchema(config), buildFaqSchema(config)].filter(Boolean);
 
 
@@ -168,10 +165,10 @@ export default function Index() {
       <section className="container mx-auto px-4 py-12 pb-20">
         <div className="max-w-3xl mx-auto rounded-3xl bg-card/80 shadow-playful p-8 text-center space-y-5">
           <h2 className="text-2xl md:text-3xl font-heading font-bold">Har du byggt en app?</h2>
-          <p className="text-muted-foreground">Dela den på en minut – länk och namn räcker.</p>
+          <p className="text-muted-foreground">Tipsa oss på en minut – en länk räcker.</p>
           <Button size="lg" className="h-12 gap-2 rounded-full shadow-playful-lg" asChild>
-            <Link to={shareHref}>
-              <Rocket className="w-5 h-5" /> Dela din app
+            <Link to="/tipsa">
+              <Rocket className="w-5 h-5" /> Tipsa om en app
             </Link>
           </Button>
           <div className="flex flex-wrap gap-2 justify-center pt-2">

@@ -1,36 +1,30 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
-import type { Json } from "@/integrations/supabase/types";
+import { api, adminApi } from "@/lib/api";
+
+export type SettingsMap = Record<string, unknown>;
+
+/** All settings in one request (they are small and public), shared by every hook below. */
+export const useAllSettings = <T = SettingsMap>(select?: (s: SettingsMap) => T) =>
+  useQuery({
+    queryKey: ["settings"],
+    queryFn: () => api.get<SettingsMap>("/api/settings"),
+    staleTime: 5 * 60 * 1000,
+    select,
+  });
 
 export const useSetting = (key: string) => {
-  return useQuery({
-    queryKey: ["setting", key],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from("settings")
-        .select("value")
-        .eq("key", key)
-        .maybeSingle();
-
-      if (error) throw error;
-      return data?.value ?? null;
-    },
-  });
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  return useAllSettings<any>((s) => (key in s ? s[key] : null));
 };
 
 export const useUpdateSetting = () => {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async ({ key, value }: { key: string; value: unknown }) => {
-      const { error } = await supabase
-        .from("settings")
-        .upsert({ key, value: value as Json, updated_at: new Date().toISOString() });
-
-      if (error) throw error;
-    },
-    onSuccess: (_, { key }) => {
-      queryClient.invalidateQueries({ queryKey: ["setting", key] });
+    mutationFn: ({ key, value }: { key: string; value: unknown }) =>
+      adminApi.put(`/api/admin/settings/${encodeURIComponent(key)}`, { value: (value ?? null) as never }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["settings"] });
     },
   });
 };

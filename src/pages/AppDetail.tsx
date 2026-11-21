@@ -1,6 +1,6 @@
 import { AppThumbnail } from '@/components/AppThumbnail';
 import { useParams, Link, useNavigate } from 'react-router-dom';
-import { ArrowLeft, ExternalLink, ChevronUp, MessageCircle, Trash2, Send, Eye, Monitor, Tablet, Smartphone, Layers, Play } from 'lucide-react';
+import { ArrowLeft, ExternalLink, ChevronUp, Eye, Monitor, Tablet, Smartphone, Layers, Play } from 'lucide-react';
 import { AppPlayer } from '@/components/AppPlayer';
 import { useState } from 'react';
 import { format } from 'date-fns';
@@ -8,8 +8,6 @@ import { sv } from 'date-fns/locale';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Textarea } from '@/components/ui/textarea';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { ShareButton } from '@/components/ShareButton';
@@ -18,11 +16,9 @@ import { PublicNav } from '@/components/PublicNav';
 import { PublicFooter } from '@/components/PublicFooter';
 import { SEO, createAppSchema } from '@/components/SEO';
 import { useSiteConfig } from '@/hooks/useSiteConfig';
-import { useAppDetails, useAppComments, useAddComment, useDeleteComment } from '@/hooks/useAppDetails';
+import { useAppDetails } from '@/hooks/useAppDetails';
 import { useToggleUpvote, useUserUpvotes } from '@/hooks/useApps';
 import { useTrackClick } from '@/hooks/useTrackClick';
-import { useAuth } from '@/hooks/useAuth';
-import { toast } from 'sonner';
 
 const deviceConfig: Record<string, { icon: React.ReactNode; label: string }> = {
   desktop: { icon: <Monitor className="h-4 w-4" />, label: 'Desktop' },
@@ -34,56 +30,18 @@ const deviceConfig: Record<string, { icon: React.ReactNode; label: string }> = {
 export default function AppDetail() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  const { user } = useAuth();
-  const [commentText, setCommentText] = useState('');
   const [playing, setPlaying] = useState(false);
   const config = useSiteConfig();
 
   const { data: app, isLoading: appLoading } = useAppDetails(id);
-  const { data: comments, isLoading: commentsLoading } = useAppComments(id);
   const { data: userUpvotes } = useUserUpvotes();
   const toggleUpvote = useToggleUpvote();
   const trackClick = useTrackClick();
-  const addComment = useAddComment();
-  const deleteComment = useDeleteComment();
 
   const hasUpvoted = userUpvotes?.includes(id || '');
 
   const handleUpvote = () => {
-    if (!user) {
-      toast.error('Du måste vara inloggad för att gilla');
-      return;
-    }
     if (id) toggleUpvote.mutate({ appId: id, hasUpvoted: !!hasUpvoted });
-  };
-
-  const handleSubmitComment = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!commentText.trim()) return;
-    if (!user) {
-      toast.error('Du måste vara inloggad för att kommentera');
-      return;
-    }
-    addComment.mutate(
-      { appId: id!, content: commentText.trim() },
-      {
-        onSuccess: () => {
-          setCommentText('');
-          toast.success('Kommentar tillagd');
-        },
-        onError: () => toast.error('Kunde inte lägga till kommentar'),
-      }
-    );
-  };
-
-  const handleDeleteComment = (commentId: string) => {
-    deleteComment.mutate(
-      { commentId, appId: id! },
-      {
-        onSuccess: () => toast.success('Kommentar borttagen'),
-        onError: () => toast.error('Kunde inte ta bort kommentar'),
-      }
-    );
   };
 
   if (appLoading) {
@@ -162,12 +120,12 @@ export default function AppDetail() {
           <div className="min-w-0 flex-1">
             <h1 className="font-heading text-2xl sm:text-3xl font-bold line-clamp-2">{app.title}</h1>
             <div className="flex items-center gap-2 mt-1 text-sm text-muted-foreground">
-              {app.profile && (
-                <Link to={`/profil/${app.user_id}`} className="hover:text-foreground transition-colors">
-                  {app.profile.display_name || 'Anonym'}
-                </Link>
+              {app.profile?.display_name && (
+                <>
+                  <span>{app.profile.display_name}</span>
+                  <span>•</span>
+                </>
               )}
-              <span>•</span>
               <span>{format(new Date(app.created_at), 'd MMM yyyy', { locale: sv })}</span>
             </div>
           </div>
@@ -271,93 +229,10 @@ export default function AppDetail() {
           </Button>
           <ShareButton appId={app.id} appTitle={app.title} />
           <span className="flex items-center gap-1.5 text-sm text-muted-foreground">
-            <MessageCircle className="w-4 h-4" />
-            {app.comments_count}
-          </span>
-          <span className="flex items-center gap-1.5 text-sm text-muted-foreground">
             <Eye className="w-4 h-4" />
             {app.clicks_count || 0}
           </span>
         </div>
-
-        {/* Comments section */}
-        <section id="kommentarer" className="space-y-4 pt-4">
-          <h2 className="font-heading text-xl font-bold">Kommentarer</h2>
-
-          {/* Comment form */}
-          {user ? (
-            <form onSubmit={handleSubmitComment} className="space-y-3">
-              <Textarea
-                placeholder="Skriv en kommentar..."
-                value={commentText}
-                onChange={(e) => setCommentText(e.target.value)}
-                className="min-h-[80px] resize-none"
-              />
-              <Button type="submit" size="sm" disabled={!commentText.trim() || addComment.isPending} className="gap-2">
-                <Send className="w-4 h-4" />
-                Skicka
-              </Button>
-            </form>
-          ) : (
-            <Card className="p-4 bg-muted/50 text-center">
-              <p className="text-sm text-muted-foreground">
-                <Link to="/auth" className="text-primary hover:underline">
-                  Logga in
-                </Link>{' '}
-                för att skriva en kommentar
-              </p>
-            </Card>
-          )}
-
-          {/* Comments list */}
-          {commentsLoading ? (
-            <div className="space-y-4">
-              {[1, 2].map((i) => (
-                <Skeleton key={i} className="h-20 w-full rounded-xl" />
-              ))}
-            </div>
-          ) : comments && comments.length > 0 ? (
-            <div className="space-y-3">
-              {comments.map((comment) => (
-                <Card key={comment.id} className="p-4 bg-card/80 backdrop-blur-sm">
-                  <div className="flex items-start gap-3">
-                    <Avatar className="w-8 h-8">
-                      <AvatarImage src={comment.profile?.avatar_url || undefined} />
-                      <AvatarFallback className="text-xs bg-primary/10">
-                        {comment.profile?.display_name?.[0]?.toUpperCase() || '?'}
-                      </AvatarFallback>
-                    </Avatar>
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-2 text-sm">
-                        <span className="font-medium truncate">
-                          {comment.profile?.display_name || 'Anonym'}
-                        </span>
-                        <span className="text-muted-foreground">
-                          {format(new Date(comment.created_at), 'd MMM', { locale: sv })}
-                        </span>
-                      </div>
-                      <p className="text-sm mt-1 whitespace-pre-wrap">{comment.content}</p>
-                    </div>
-                    {user?.id === comment.user_id && (
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        className="h-8 w-8 text-muted-foreground hover:text-destructive"
-                        onClick={() => handleDeleteComment(comment.id)}
-                      >
-                        <Trash2 className="w-4 h-4" />
-                      </Button>
-                    )}
-                  </div>
-                </Card>
-              ))}
-            </div>
-          ) : (
-            <p className="text-sm text-muted-foreground text-center py-8">
-              Inga kommentarer än. Bli först att kommentera!
-            </p>
-          )}
-        </section>
 
         {/* Related Apps */}
         <RelatedApps 

@@ -28,14 +28,10 @@ import { CompactAppCard } from '@/components/CompactAppCard';
 import { PublicNav } from '@/components/PublicNav';
 import { PublicFooter } from '@/components/PublicFooter';
 import { SEO } from '@/components/SEO';
-import { useAuth } from '@/hooks/useAuth';
 import { useApps, useCategories, useUserUpvotes, useToggleUpvote } from '@/hooks/useApps';
 import { useSetting } from '@/hooks/useSettings';
-import { useToast } from '@/hooks/use-toast';
 
 export default function Apps() {
-  const { user } = useAuth();
-  const { toast } = useToast();
   const { data: showFilters } = useSetting('show_filters');
   
   const [search, setSearch] = useState('');
@@ -69,15 +65,6 @@ export default function Apps() {
     : apps;
 
   const handleUpvote = (appId: string) => {
-    if (!user) {
-      toast({
-        title: 'Logga in för att rösta',
-        description: 'Du behöver ett konto för att rösta på appar.',
-        variant: 'destructive',
-      });
-      return;
-    }
-
     const hasUpvoted = userUpvotes.includes(appId);
     toggleUpvote.mutate({ appId, hasUpvoted });
   };
@@ -244,7 +231,6 @@ export default function Apps() {
                 <SelectContent>
                   <SelectItem value="popular">Populärast</SelectItem>
                   <SelectItem value="newest">Nyast</SelectItem>
-                  <SelectItem value="comments">Mest diskuterade</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -352,7 +338,6 @@ export default function Apps() {
                       upvotesCount={app.upvotes_count}
                       commentsCount={app.comments_count}
                       clicksCount={app.clicks_count}
-                      creatorId={app.user_id}
                       creatorName={app.profile?.display_name || undefined}
                       categories={app.categories}
                       hasUpvoted={userUpvotes.includes(app.id)}
@@ -383,7 +368,7 @@ export default function Apps() {
                 <p className="text-muted-foreground mb-6">
                   {search || activeFiltersCount > 0
                     ? 'Prova att ändra dina filter eller sökord'
-                    : 'Bli först med att dela en app!'
+                    : 'Bli först med att tipsa om en app!'
                   }
                 </p>
                 {(search || activeFiltersCount > 0) ? (
@@ -392,8 +377,8 @@ export default function Apps() {
                   </Button>
                 ) : (
                   <Button asChild>
-                    <Link to={user ? "/min-sida/ny" : "/auth"}>
-                      Dela din första app
+                    <Link to="/tipsa">
+                      Tipsa om en app
                       <ArrowRight className="w-4 h-4 ml-1" />
                     </Link>
                   </Button>

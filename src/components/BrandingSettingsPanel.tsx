@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Palette, Upload, Loader2 } from 'lucide-react';
 import { useSetting, useUpdateSetting } from '@/hooks/useSettings';
 import { BRANDING_DEFAULTS } from '@/hooks/useBranding';
-import { supabase } from '@/integrations/supabase/client';
+import { adminApi } from '@/lib/api';
 import { toast } from '@/hooks/use-toast';
 
 export function BrandingSettingsPanel() {
@@ -46,23 +46,7 @@ export function BrandingSettingsPanel() {
   const handleUpload = async (file: File, type: 'logo' | 'favicon') => {
     setUploading(type);
     try {
-      const ext = file.name.split('.').pop();
-      const path = `${type}.${ext}`;
-
-      // Remove old file first
-      await supabase.storage.from('branding').remove([path]);
-
-      const { error } = await supabase.storage
-        .from('branding')
-        .upload(path, file, { upsert: true });
-
-      if (error) throw error;
-
-      const { data: urlData } = supabase.storage
-        .from('branding')
-        .getPublicUrl(path);
-
-      const url = `${urlData.publicUrl}?v=${Date.now()}`;
+      const { url } = await adminApi.post<{ url: string }>('/api/admin/upload', file);
       const key = type === 'logo' ? 'brand_logo_url' : 'brand_favicon_url';
       setForm(prev => ({ ...prev, [key]: url }));
       toast({ title: `${type === 'logo' ? 'Logotyp' : 'Favicon'} uppladdad!` });

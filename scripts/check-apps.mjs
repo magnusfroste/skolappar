@@ -2,7 +2,7 @@
 /**
  * Hälsokoll av alla publicerade appar på skolappar.com.
  *
- * Läser listan över godkända appar via Supabase REST (publik anon-nyckel)
+ * Läser listan över publicerade appar från sajtens eget API (/api/apps)
  * och gör en HTTP-förfrågan mot varje app-URL. Skriver en tabell till stdout,
  * en Markdown-rapport till app-health-report.md och avslutar med exit-kod 1
  * om någon app inte svarar.
@@ -10,45 +10,25 @@
  * Körs lokalt:   node scripts/check-apps.mjs
  * Körs i CI:     .github/workflows/app-health.yml (varje måndag)
  *
- * Miljövariabler (valfria, annars läses .env i repo-roten):
- *   VITE_SUPABASE_URL, VITE_SUPABASE_PUBLISHABLE_KEY, HEALTH_REPORT
+ * Miljövariabler (valfria): SITE_URL (standard https://www.skolappar.com), HEALTH_REPORT
  */
-import { readFileSync, writeFileSync } from 'node:fs';
+import { writeFileSync } from 'node:fs';
 import { resolve, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), '..');
-
-function loadEnv() {
-  const env = { ...process.env };
-  try {
-    for (const line of readFileSync(resolve(root, '.env'), 'utf8').split('\n')) {
-      const m = line.match(/^\s*([A-Z_]+)\s*=\s*"?([^"\n]*)"?\s*$/);
-      if (m && !env[m[1]]) env[m[1]] = m[2];
-    }
-  } catch {
-    /* .env saknas – lita på process.env */
-  }
-  return env;
-}
-
-const env = loadEnv();
-const SUPABASE_URL = env.VITE_SUPABASE_URL;
-const SUPABASE_KEY = env.VITE_SUPABASE_PUBLISHABLE_KEY ?? env.VITE_SUPABASE_ANON_KEY;
-if (!SUPABASE_URL || !SUPABASE_KEY) {
-  console.error('Saknar VITE_SUPABASE_URL / VITE_SUPABASE_PUBLISHABLE_KEY');
-  process.exit(2);
-}
+const env = process.env;
+const SITE_URL = (env.SITE_URL || 'https://www.skolappar.com').replace(/\/+$/, '');
 
 const TIMEOUT_MS = 20_000;
 const UA =
   'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/128.0 Safari/537.36 skolappar-healthcheck';
 
 async function fetchApps() {
-  const url = `${SUPABASE_URL}/rest/v1/apps?select=id,title,url,status,image_url&status=in.(approved,featured)&order=title.asc`;
-  const res = await fetch(url, { headers: { apikey: SUPABASE_KEY, Authorization: `Bearer ${SUPABASE_KEY}` } });
+  const res = await fetch(`${SITE_URL}/api/apps?sort=newest`, { headers: { Accept: 'application/json' } });
   if (!res.ok) throw new Error(`Kunde inte hämta appar: ${res.status} ${await res.text()}`);
-  return res.json();
+  const apps = await res.json();
+  return apps.sort((a, b) => a.title.localeCompare(b.title, 'sv'));
 }
 
 async function probe(url) {

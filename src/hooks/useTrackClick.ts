@@ -1,18 +1,15 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { supabase } from '@/integrations/supabase/client';
+import { api } from '@/lib/api';
 
+/** Count an app opening (increment_clicks): only listed apps count. */
 export function useTrackClick() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async (appId: string) => {
-      const { error } = await supabase.rpc('increment_clicks', { app_id: appId });
-      if (error) throw error;
-    },
+    mutationFn: (appId: string) => api.post(`/api/apps/${encodeURIComponent(appId)}/click`),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['apps'] });
       queryClient.invalidateQueries({ queryKey: ['app'] });
-      queryClient.invalidateQueries({ queryKey: ['my-apps'] });
     },
   });
 }

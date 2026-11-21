@@ -7,12 +7,8 @@ import { PublicNav } from '@/components/PublicNav';
 import { PublicFooter } from '@/components/PublicFooter';
 import { IdeaStatusBadge } from '@/components/IdeaStatusBadge';
 import { IdeaUpvoteButton } from '@/components/IdeaUpvoteButton';
-import { ClaimIdeaButton } from '@/components/ClaimIdeaButton';
-import { MarkIdeaAsBuiltButton } from '@/components/MarkIdeaAsBuiltButton';
-import { IdeaCommentSection } from '@/components/IdeaCommentSection';
 import { SEO } from '@/components/SEO';
 import { useIdeaDetails, useUserIdeaUpvotes, useToggleIdeaUpvote } from '@/hooks/useIdeas';
-import { useAuth } from '@/hooks/useAuth';
 import { formatDistanceToNow } from 'date-fns';
 import { sv } from 'date-fns/locale';
 import { ArrowLeft, User, ExternalLink, Hammer } from 'lucide-react';
@@ -21,7 +17,6 @@ import { useNavigate } from 'react-router-dom';
 
 export default function IdeaDetail() {
   const { id } = useParams<{ id: string }>();
-  const { user } = useAuth();
   const navigate = useNavigate();
   const { data: idea, isLoading } = useIdeaDetails(id || '');
   const { data: userUpvotes } = useUserIdeaUpvotes();
@@ -30,11 +25,6 @@ export default function IdeaDetail() {
   const hasUpvoted = userUpvotes?.includes(id || '') || false;
 
   const handleUpvote = () => {
-    if (!user) {
-      navigate('/auth');
-      return;
-    }
-
     toggleUpvote.mutate(
       { ideaId: id!, hasUpvoted },
       {
@@ -185,24 +175,12 @@ export default function IdeaDetail() {
               </div>
             )}
 
-            {/* Action buttons */}
-            <div className="flex justify-end gap-2 mb-6">
-              <MarkIdeaAsBuiltButton
-                ideaId={idea.id}
-                status={idea.status}
-                claimedBy={idea.claimed_by}
-              />
-              <ClaimIdeaButton
-                ideaId={idea.id}
-                status={idea.status}
-                claimedBy={idea.claimed_by}
-              />
-            </div>
-
             <Separator className="my-6" />
 
-            {/* Comments */}
-            <IdeaCommentSection ideaId={idea.id} />
+            <p className="text-sm text-muted-foreground">
+              Vill du bygga den här appen? <Link to="/tipsa" className="text-primary hover:underline">Tipsa oss</Link> när
+              den är klar, så länkar vi den hit.
+            </p>
           </Card>
         </div>
       </main>

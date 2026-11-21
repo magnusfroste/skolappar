@@ -1,5 +1,4 @@
-import { useQuery } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
+import { useAllSettings, type SettingsMap } from "./useSettings";
 
 export interface BrandingConfig {
   brand_name: string;
@@ -19,30 +18,18 @@ const DEFAULTS: BrandingConfig = {
   brand_primary_emoji: "📱",
 };
 
+function pick(settings: SettingsMap): BrandingConfig {
+  const config = { ...DEFAULTS };
+  for (const key of Object.keys(DEFAULTS) as (keyof BrandingConfig)[]) {
+    if (settings[key] !== undefined && settings[key] !== null) {
+      (config as Record<keyof BrandingConfig, unknown>)[key] = settings[key];
+    }
+  }
+  return config;
+}
+
 export function useBranding(): BrandingConfig {
-  const { data } = useQuery({
-    queryKey: ["branding-config"],
-    queryFn: async () => {
-      const keys = Object.keys(DEFAULTS);
-      const { data, error } = await supabase
-        .from("settings")
-        .select("key, value")
-        .in("key", keys);
-
-      if (error) throw error;
-
-      const config = { ...DEFAULTS };
-      data?.forEach((row) => {
-        const key = row.key as keyof BrandingConfig;
-        if (key in config) {
-          (config as Record<keyof BrandingConfig, unknown>)[key] = row.value;
-        }
-      });
-      return config;
-    },
-    staleTime: 5 * 60 * 1000,
-  });
-
+  const { data } = useAllSettings(pick);
   return data || DEFAULTS;
 }
 

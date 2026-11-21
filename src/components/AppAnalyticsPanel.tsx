@@ -2,8 +2,7 @@ import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { RefreshCw, ExternalLink, MousePointer2, TrendingUp, LayoutGrid } from 'lucide-react';
 import { ResponsiveContainer, BarChart, Bar, XAxis, YAxis, Tooltip } from 'recharts';
-import { useAppAnalytics } from '@/hooks/useAppAnalytics';
-import type { AnalyticsPeriod } from '@/lib/appAnalytics';
+import { useAppAnalytics, type AnalyticsPeriod } from '@/hooks/useAdmin';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
 
@@ -49,8 +48,8 @@ export function AppAnalyticsPanel() {
         <div className="overflow-x-auto">
           <table className="w-full text-sm">
             <caption className="text-left font-semibold pb-3">Mest öppnade appar</caption>
-            <thead><tr className="border-b text-muted-foreground"><th className="text-left py-3">App</th><th className="text-right px-3 whitespace-nowrap">{days} dagar</th><th className="text-right px-3">Totalt</th><th className="text-right px-3">Gilla</th><th className="text-right pl-3">Kommentarer</th></tr></thead>
-            <tbody>{data.apps.map(app => <tr key={app.id} className="border-b"><td className="py-2"><Link to={`/app/${app.id}`} className="flex items-center gap-2 min-h-12 min-w-32 font-medium hover:text-primary"><span>{app.title}</span><ExternalLink className="h-3.5 w-3.5 shrink-0" /></Link></td><td className="text-right px-3 tabular-nums">{number(app.period_opens)}</td><td className="text-right px-3 tabular-nums">{number(app.total_opens)}</td><td className="text-right px-3 tabular-nums">{number(app.upvotes)}</td><td className="text-right pl-3 tabular-nums">{number(app.comments)}</td></tr>)}</tbody>
+            <thead><tr className="border-b text-muted-foreground"><th className="text-left py-3">App</th><th className="text-right px-3 whitespace-nowrap">{days} dagar</th><th className="text-right px-3">Totalt</th><th className="text-right pl-3">Gilla</th></tr></thead>
+            <tbody>{data.apps.map(app => <tr key={app.id} className="border-b"><td className="py-2"><Link to={`/app/${app.id}`} className="flex items-center gap-2 min-h-12 min-w-32 font-medium hover:text-primary"><span>{app.title}</span><ExternalLink className="h-3.5 w-3.5 shrink-0" /></Link></td><td className="text-right px-3 tabular-nums">{number(app.period_opens)}</td><td className="text-right px-3 tabular-nums">{number(app.total_opens)}</td><td className="text-right pl-3 tabular-nums">{number(app.upvotes)}</td></tr>)}</tbody>
           </table>
           {data.apps.length === 0 && <p className="py-6 text-muted-foreground">Inga appar ännu.</p>}
         </div>

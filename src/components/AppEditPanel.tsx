@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ArrowLeft, ExternalLink, Trash2, Loader2 } from 'lucide-react';
 import { useForm } from 'react-hook-form';
@@ -28,19 +28,32 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from '@/components/ui/alert-dialog';
-import { useApp, useUpdateApp } from '@/hooks/useEditApp';
-import { useDeleteApp } from '@/hooks/useMyApps';
+import { Switch } from '@/components/ui/switch';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { ImageUploader } from '@/components/ImageUploader';
+import { useAdminApp, useUpdateAppAdmin, useDeleteAppAdmin, useSetAppImageFromUrl, type AppStatus } from '@/hooks/useAdmin';
 import { useCategories } from '@/hooks/useApps';
 import { toast } from 'sonner';
 
 const formSchema = z.object({
   title: z.string().min(2, 'Titeln måste vara minst 2 tecken'),
   url: z.string().url('Ange en giltig URL'),
-  description: z.string().min(10, 'Beskrivningen måste vara minst 10 tecken').max(150, 'Max 150 tecken'),
+  description: z.string().min(5, 'Beskrivningen måste vara minst 5 tecken').max(500, 'Max 500 tecken'),
   long_description: z.string().optional(),
   image_url: z.string().optional(),
-  categories: z.array(z.string()).min(1, 'Välj minst en kategori'),
+  creator_name: z.string().max(120).optional(),
+  status: z.enum(['pending', 'approved', 'rejected', 'featured', 'delisted']),
+  is_featured: z.boolean(),
+  categories: z.array(z.string()),
 });
+
+const STATUS_LABELS: Record<AppStatus, string> = {
+  pending: 'Väntar på granskning',
+  approved: 'Godkänd (publicerad)',
+  featured: 'Utvald (publicerad)',
+  rejected: 'Avvisad',
+  delisted: 'Avlistad',
+};
 
 type FormValues = z.infer<typeof formSchema>;
 
@@ -50,10 +63,13 @@ interface AppEditPanelProps {
 
 export function AppEditPanel({ appId }: AppEditPanelProps) {
   const navigate = useNavigate();
-  const { data: app, isLoading, error } = useApp(appId);
+  const { data: app, isLoading, error } = useAdminApp(appId);
   const { data: categories } = useCategories();
-  const updateApp = useUpdateApp();
-  const deleteApp = useDeleteApp();
+  const updateApp = useUpdateAppAdmin();
+  const deleteApp = useDeleteAppAdmin();
+  const imageFromUrl = useSetAppImageFromUrl();
+  const [remoteImage, setRemoteImage] = useState('');
+  const back = () => navigate('/admin?tab=all');
 
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
@@ -63,6 +79,9 @@ export function AppEditPanel({ appId }: AppEditPanelProps) {
       description: '',
       long_description: '',
       image_url: '',
+      creator_name: '',
+      status: 'pending',
+      is_featured: false,
       categories: [],
     },
   });
@@ -75,7 +94,10 @@ export function AppEditPanel({ appId }: AppEditPanelProps) {
         description: app.description,
         long_description: app.long_description || '',
         image_url: app.image_url || '',
-        categories: app.categories || [],
+        creator_name: app.creator_name || '',
+        status: app.status,
+        is_featured: !!app.is_featured,
+        categories: (app.categories || []).map((c) => c.id),
       });
     }
   }, [app, form]);
@@ -84,13 +106,16 @@ export function AppEditPanel({ appId }: AppEditPanelProps) {
     try {
       await updateApp.mutateAsync({
         appId,
-        data: {
+        patch: {
           title: values.title,
           url: values.url,
           description: values.description,
-          long_description: values.long_description,
-          image_url: values.image_url,
-          categories: values.categories,
+          long_description: values.long_description || null,
+          image_url: values.image_url || null,
+          creator_name: values.creator_name || null,
+          status: values.status,
+          is_featured: values.is_featured,
+          category_ids: values.categories,
         },
       });
 
@@ -104,7 +129,7 @@ export function AppEditPanel({ appId }: AppEditPanelProps) {
     try {
       await deleteApp.mutateAsync(appId);
       toast.success('Appen har tagits bort');
-      navigate('/min-sida');
+      back();
     } catch (error) {
       toast.error('Kunde inte ta bort appen');
     }
@@ -141,7 +166,7 @@ export function AppEditPanel({ appId }: AppEditPanelProps) {
         <p className="text-muted-foreground">
           {error?.message || 'Kunde inte hitta appen'}
         </p>
-        <Button variant="outline" onClick={() => navigate('/min-sida')}>
+        <Button variant="outline" onClick={back}>
           Tillbaka
         </Button>
       </div>
@@ -153,7 +178,7 @@ export function AppEditPanel({ appId }: AppEditPanelProps) {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-3">
-          <Button variant="ghost" size="icon" onClick={() => navigate('/min-sida')}>
+          <Button variant="ghost" size="icon" onClick={back}>
             <ArrowLeft className="h-5 w-5" />
           </Button>
           <div>
@@ -218,7 +243,7 @@ export function AppEditPanel({ appId }: AppEditPanelProps) {
                   />
                 </FormControl>
                 <p className="text-xs text-muted-foreground text-right">
-                  {field.value?.length || 0}/150
+                  {field.value?.length || 0}/500
                 </p>
                 <FormMessage />
               </FormItem>
@@ -242,6 +267,101 @@ export function AppEditPanel({ appId }: AppEditPanelProps) {
               </FormItem>
             )}
           />
+
+          <FormField
+            control={form.control}
+            name="image_url"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Bild (visas i 4:3 på korten)</FormLabel>
+                <ImageUploader value={field.value || undefined} onChange={(url) => field.onChange(url || '')} />
+                <div className="flex gap-2">
+                  <Input
+                    placeholder="…eller hämta en bild från en URL"
+                    value={remoteImage}
+                    onChange={(e) => setRemoteImage(e.target.value)}
+                  />
+                  <Button
+                    type="button"
+                    variant="outline"
+                    disabled={!remoteImage.trim() || imageFromUrl.isPending}
+                    onClick={async () => {
+                      try {
+                        const { app: updated } = await imageFromUrl.mutateAsync({ appId, url: remoteImage.trim() });
+                        field.onChange(updated.image_url || '');
+                        setRemoteImage('');
+                        toast.success('Bilden har hämtats och sparats');
+                      } catch {
+                        toast.error('Kunde inte hämta bilden');
+                      }
+                    }}
+                  >
+                    {imageFromUrl.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : 'Hämta'}
+                  </Button>
+                </div>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
+          <FormField
+            control={form.control}
+            name="creator_name"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Skapare (visas på sajten, valfritt)</FormLabel>
+                <FormControl>
+                  <Input placeholder="T.ex. Magnus" {...field} />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
+          <div className="grid gap-4 sm:grid-cols-2">
+            <FormField
+              control={form.control}
+              name="status"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Status</FormLabel>
+                  <Select value={field.value} onValueChange={field.onChange}>
+                    <FormControl>
+                      <SelectTrigger><SelectValue /></SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      {(Object.keys(STATUS_LABELS) as AppStatus[]).map((s) => (
+                        <SelectItem key={s} value={s}>{STATUS_LABELS[s]}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="is_featured"
+              render={({ field }) => (
+                <FormItem className="flex items-center gap-3 pt-8">
+                  <FormControl>
+                    <Switch checked={field.value} onCheckedChange={field.onChange} />
+                  </FormControl>
+                  <FormLabel className="!mt-0">Utvald</FormLabel>
+                </FormItem>
+              )}
+            />
+          </div>
+
+          {app.submitter_email && (
+            <div className="rounded-lg border p-3 text-sm space-y-1">
+              <p>
+                <span className="font-medium">Tips från:</span> {app.submitter_email}{' '}
+                <span className="text-muted-foreground">{app.email_confirmed ? '(bekräftad)' : '(ej bekräftad)'}</span>
+              </p>
+              {app.submitter_note && <p className="whitespace-pre-wrap text-muted-foreground">{app.submitter_note}</p>}
+            </div>
+          )}
 
           {/* Categories */}
           <FormField
@@ -335,7 +455,7 @@ export function AppEditPanel({ appId }: AppEditPanelProps) {
               <Button
                 type="button"
                 variant="outline"
-                onClick={() => navigate('/min-sida')}
+                onClick={back}
               >
                 Avbryt
               </Button>

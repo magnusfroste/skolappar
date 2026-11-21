@@ -7,7 +7,7 @@ Sitemap: https://www.skolappar.com/sitemap.xml
 
 # LLMs.txt för AI-sökmotorer
 # https://llmstxt.org
-LLMsTxt: https://eruyrrjgdzmeugwubppw.supabase.co/functions/v1/llms-txt
+LLMsTxt: https://www.skolappar.com/llms.txt
 
 # Crawl-delay for polite crawling
 Crawl-delay: 1
@@ -27,6 +27,6 @@ Allow: /
 
 # Disallow admin and auth pages from indexing
 User-agent: *
-Disallow: /min-sida/
-Disallow: /auth
+Disallow: /bekrafta/
+Disallow: /api/
 Disallow: /admin

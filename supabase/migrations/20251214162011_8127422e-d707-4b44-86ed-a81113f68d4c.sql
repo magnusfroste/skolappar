@@ -1,1 +1,0 @@
-ALTER TABLE public.apps ADD COLUMN delist_reason text;
