@@ -7,7 +7,8 @@ const app = createApp(config);
 app.server.listen(config.port, () => {
   console.info(`skolappar listening on :${config.port} (data ${config.dataDir}, site ${config.siteUrl})`);
   if (!config.adminKey) console.warn('ADMIN_KEY not set – admin API, /admin and /mcp are disabled');
-  if (!app.mailer.configured) console.info('mail not configured – messages are only logged');
+  if (app.mailer.problem) console.warn(`mail: ${app.mailer.problem} – messages are only logged`);
+  else console.info(app.mailer.configured ? `mail via ${app.mailer.provider}` : 'mail not configured – messages are only logged');
 });
 
 let stopping = false;

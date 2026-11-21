@@ -21,7 +21,7 @@ user accounts; the site is administered at `/admin` and by an AI agent over MCP 
 | `server/store.mjs` | all reads and writes (shared by API, admin and MCP) |
 | `server/mcp.mjs` | MCP endpoint and tools (JSON-RPC 2.0, plain JSON responses) |
 | `server/importer.mjs` | one-shot import of the old Supabase data (`POST /api/admin/import`) |
-| `server/mailer.mjs` | outgoing mail (only logs until a mail API is configured) |
+| `server/mailer.mjs` | outgoing mail behind one interface: Cloudflare, Brevo, a Resend-compatible API or a logging stub |
 
 ## Configuration (environment variables)
 
@@ -31,8 +31,40 @@ user accounts; the site is administered at `/admin` and by an AI agent over MCP 
 | `PORT` | no | default 8080 |
 | `DATA_DIR` | no | default `./data`; a persistent disk in production (`/data`) |
 | `SITE_URL` | no | absolute URLs in llms.txt, sitemap and mails; default `https://www.skolappar.com` |
-| `MAIL_API_URL`, `MAIL_API_KEY`, `MAIL_FROM` | no | an HTTP mail API with a Resend-compatible JSON body. Unset: mails are only logged. |
+| `MAIL_PROVIDER` | no | `cloudflare`, `brevo`, `resend` or `stub` (see [Mail](#mail)). Default: `resend` if `MAIL_API_URL` is set, else `stub` (mails are only logged). |
+| `MAIL_FROM` | for mail | sender, e.g. `Skolappar <hej@skolappar.com>` |
+| `MAIL_API_KEY` | for mail (secret) | the provider's API token or key |
+| `MAIL_CLOUDFLARE_ACCOUNT_ID` | for `cloudflare` | the Cloudflare account that owns the sending domain |
+| `MAIL_API_URL` | for `resend` | endpoint of a Resend-compatible API |
 | `SUBMIT_RATE_LIMIT` | no | submissions and ideas per IP and hour (default 5) |
+
+## Mail
+
+The server sends two mails: the confirmation link after a suggestion (`POST /api/submissions`) and a note
+when a confirmed suggestion is published. Both go through `createMailer()` in `server/mailer.mjs`; the
+provider is chosen by `MAIL_PROVIDER`. If a provider lacks a setting the server logs a warning at start and
+falls back to the stub, so the site keeps working. Each send logs `mail "<subject>" sent via <provider>` or
+the failure reason (never the recipient).
+
+**Cloudflare (current).** [Email Sending](https://developers.cloudflare.com/email-service/) REST API, which
+reaches any recipient. Needs the Workers Paid plan on the account (3,000 mails a month included) and
+`skolappar.com` onboarded under *Compute → Email Service → Email Sending* (that adds the `cf-bounce` SPF/DKIM
+records and DMARC). Settings: `MAIL_PROVIDER=cloudflare`, `MAIL_FROM`, `MAIL_CLOUDFLARE_ACCOUNT_ID`, and
+`MAIL_API_KEY` = an account API token with only **Email Sending: Edit**.
+
+**Switch to Brevo.** In Brevo, verify the sender domain `skolappar.com` (it adds its own DKIM/DMARC TXT
+records; add them in Cloudflare DNS) and create an API key (*SMTP & API → API keys*). Then, on Shipholm
+(tenant `wm7w6gke`, app `skolappar`):
+
+```bash
+./agentbuild env set --app skolappar wm7w6gke MAIL_PROVIDER brevo
+./agentbuild env set --app skolappar --secret wm7w6gke MAIL_API_KEY      # paste the Brevo key on stdin
+./agentbuild env unset --app skolappar wm7w6gke MAIL_CLOUDFLARE_ACCOUNT_ID
+```
+
+(or `set_env` over the Shipholm MCP API), commit and push the platform repo. `MAIL_FROM` stays. No code
+change is needed; to add another provider, add an entry to `PROVIDERS` in `server/mailer.mjs` with a test in
+`server/test/mailer.test.mjs`.
 
 ## Run locally
 
