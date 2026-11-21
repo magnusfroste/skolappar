@@ -1,12 +1,16 @@
 import { test, describe, before, after } from 'node:test';
 import assert from 'node:assert/strict';
+import { createHash } from 'node:crypto';
 import { mkdtempSync, rmSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { openDatabase, schemaVersion, LATEST_SCHEMA_VERSION } from '../db.mjs';
+import { parseKeyHashes } from '../app.mjs';
 import { startServer, startImageServer, api, samplePayload, CAT, APP1, APP2, PENDING, IDEA1, PNG } from './helpers.mjs';
 
 const KEY = 'test-admin-key';
+const AGENT_KEY = 'skol_test-agent-key';
+const AGENT_HASH = createHash('sha256').update(AGENT_KEY).digest('hex');
 
 describe('schema', () => {
   test('creates the latest schema and is stable when reopened', () => {
@@ -69,7 +73,7 @@ describe('with ADMIN_KEY', () => {
 
   before(async () => {
     images = await startImageServer();
-    s = await startServer({ adminKey: KEY });
+    s = await startServer({ adminKey: KEY, agentKeyHashes: parseKeyHashes(` ${AGENT_HASH.toUpperCase()}, not-a-hash`) });
     admin = api(s.base, { key: KEY });
     pub = api(s.base);
     importResult = await admin('POST', '/api/admin/import', samplePayload(images.base));
@@ -84,6 +88,15 @@ describe('with ADMIN_KEY', () => {
     assert.equal((await api(s.base, { key: 'wrong' })('GET', '/api/admin/check')).status, 401);
     assert.equal((await admin('GET', '/api/admin/check')).status, 200);
     assert.equal((await api(s.base, { key: 'wrong' })('POST', '/mcp', { jsonrpc: '2.0', id: 1, method: 'tools/list' })).status, 401);
+  });
+
+  test('agent key: opens /mcp (Bearer or X-Api-Key) but not the admin API', async () => {
+    const list = { jsonrpc: '2.0', id: 1, method: 'tools/list' };
+    assert.equal((await api(s.base, { key: AGENT_KEY })('POST', '/mcp', list)).status, 200);
+    const viaHeader = await fetch(`${s.base}/mcp`, { method: 'POST', headers: { 'Content-Type': 'application/json', 'X-Api-Key': AGENT_KEY }, body: JSON.stringify(list) });
+    assert.equal(viaHeader.status, 200);
+    assert.equal((await api(s.base, { key: `${AGENT_KEY}x` })('POST', '/mcp', list)).status, 401);
+    assert.equal((await api(s.base, { key: AGENT_KEY })('GET', '/api/admin/check')).status, 401);
   });
 
   test('import stores rows and downloads images', async () => {

@@ -5,7 +5,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 export function AgentInfoPanel() {
   const endpoint = `${window.location.origin}/mcp`;
   const config = JSON.stringify(
-    { mcpServers: { skolappar: { type: 'http', url: endpoint, headers: { Authorization: 'Bearer <ADMIN_KEY>' } } } },
+    { mcpServers: { skolappar: { type: 'http', url: endpoint, headers: { Authorization: 'Bearer <nyckel>' } } } },
     null,
     2
   );
@@ -29,7 +29,8 @@ export function AgentInfoPanel() {
         <div>
           <p className="font-medium">Inloggning</p>
           <p className="text-muted-foreground">
-            Header <code>Authorization: Bearer &lt;ADMIN_KEY&gt;</code> – samma nyckel som för den här sidan.
+            Header <code>Authorization: Bearer &lt;nyckel&gt;</code> – agentens egen nyckel (<code>skol_…</code>, öppnar bara MCP)
+            eller samma nyckel som för den här sidan.
           </p>
         </div>
         <div>

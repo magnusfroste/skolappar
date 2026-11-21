@@ -28,6 +28,7 @@ user accounts; the site is administered at `/admin` and by an AI agent over MCP 
 | Variable | Required | Meaning |
 | --- | --- | --- |
 | `ADMIN_KEY` | yes (secret) | protects `/api/admin/*`, `/admin` and `/mcp` (`Authorization: Bearer …`). Without it they answer 503 and the public site still works. |
+| `AGENT_KEY_HASHES` | no | SHA-256 hashes (hex, comma separated) of agent keys that open `/mcp` only – as `Authorization: Bearer …` or `X-Api-Key`. Holds the hash of the `skol_…` key the agent had on Supabase, so it keeps its key. New key: `openssl rand -hex 24`, hash it with `printf %s "$KEY" \| sha256sum`. |
 | `PORT` | no | default 8080 |
 | `DATA_DIR` | no | default `./data`; a persistent disk in production (`/data`) |
 | `SITE_URL` | no | absolute URLs in llms.txt, sitemap and mails; default `https://www.skolappar.com` |
@@ -93,7 +94,7 @@ npm test            # node --test: server tests in server/test/
 - `/admin` asks for the admin key (kept in `sessionStorage` for the tab) and shows pending submissions,
   all apps (edit, status, image, categories), statistics, ideas, categories, resources and the
   branding/theme/font/SEO/AEO settings.
-- MCP: `POST /mcp` with `Authorization: Bearer $ADMIN_KEY`. Tools: `list_submissions`, `resend_mail`, `list_apps`, `get_app`,
+- MCP: `POST /mcp` with `Authorization: Bearer $ADMIN_KEY` (or an agent key, see `AGENT_KEY_HASHES`). Tools: `list_submissions`, `resend_mail`, `list_apps`, `get_app`,
   `create_app`, `update_app`, `set_app_image`, `delete_app`, ideas, resources, categories, settings,
   `platform_stats` and `app_analytics`.
 
