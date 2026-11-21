@@ -341,3 +341,36 @@ describe('with ADMIN_KEY', () => {
     assert.equal((await pub('DELETE', '/api/apps')).status, 405);
   });
 });
+
+describe('apex redirects to www', () => {
+  let srv;
+  before(async () => { srv = await startServer({ siteUrl: 'https://www.skolappar.test' }); });
+  after(() => srv.stop());
+
+  async function get(host, path, method = 'GET') {
+    const http = await import('node:http');
+    const { port } = srv.app.server.address();
+    return new Promise((resolve, reject) => {
+      const req = http.request({ host: '127.0.0.1', port, path, method, headers: { Host: host } }, (res) => {
+        res.resume();
+        res.on('end', () => resolve(res));
+      });
+      req.on('error', reject);
+      req.end();
+    });
+  }
+
+  test('the bare domain gets a permanent redirect with path and query', async () => {
+    const res = await get('skolappar.test', '/app/abc?x=1');
+    assert.equal(res.statusCode, 301);
+    assert.equal(res.headers.location, 'https://www.skolappar.test/app/abc?x=1');
+    assert.equal((await get('SKOLAPPAR.test:443', '/')).statusCode, 301);
+    assert.equal((await get('skolappar.test', '/api/ideas', 'POST')).statusCode, 308);
+  });
+
+  test('www, other hosts and the health check are served', async () => {
+    assert.equal((await get('www.skolappar.test', '/')).statusCode, 200);
+    assert.equal((await get('skolappar.shipholm.dev', '/')).statusCode, 200);
+    assert.equal((await get('skolappar.test', '/healthz')).statusCode, 200);
+  });
+});
