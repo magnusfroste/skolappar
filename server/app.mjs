@@ -28,6 +28,7 @@ export function loadConfig(env = process.env) {
     distDir: resolvePath(env.STATIC_DIR || join(here, '..', 'dist')),
     siteUrl: (env.SITE_URL || 'https://www.skolappar.com').replace(/\/+$/, ''),
     adminKey: env.ADMIN_KEY || '',
+    agentKeyHashes: parseKeyHashes(env.AGENT_KEY_HASHES),
     submitLimit: Number(env.SUBMIT_RATE_LIMIT) || 5,
     voteLimit: Number(env.VOTE_RATE_LIMIT) || 120,
     env,
@@ -41,6 +42,11 @@ function digest(s) {
 /** Constant-time comparison of a presented key with the configured one. */
 function keyMatches(presented, expected) {
   return timingSafeEqual(digest(presented), digest(expected));
+}
+
+/** SHA-256 hashes (hex) of agent keys, from a comma or space separated list. */
+export function parseKeyHashes(value) {
+  return String(value || '').toLowerCase().split(/[\s,]+/).filter((h) => /^[0-9a-f]{64}$/.test(h));
 }
 
 /**
@@ -80,6 +86,23 @@ export function createApp(config, { fetchImpl = globalThis.fetch, log = console 
     if (!config.adminKey) throw new HttpError(503, 'ADMIN_KEY not set');
     const m = /^Bearer\s+(\S+)\s*$/i.exec(String(req.headers.authorization || ''));
     if (!m || !keyMatches(m[1], config.adminKey)) throw new HttpError(401, 'Unauthorized');
+  }
+
+  /**
+   * /mcp also accepts an agent key (Authorization: Bearer or X-Api-Key) whose
+   * SHA-256 is listed in AGENT_KEY_HASHES. Agent keys open nothing but /mcp.
+   */
+  function requireAgent(req) {
+    const hashes = config.agentKeyHashes || [];
+    if (!config.adminKey && !hashes.length) throw new HttpError(503, 'ADMIN_KEY not set');
+    const m = /^Bearer\s+(\S+)\s*$/i.exec(String(req.headers.authorization || ''));
+    const key = m ? m[1] : String(req.headers['x-api-key'] || '').trim();
+    if (!key) throw new HttpError(401, 'Unauthorized');
+    if (config.adminKey && keyMatches(key, config.adminKey)) return;
+    const presented = digest(key);
+    let ok = false;
+    for (const h of hashes) if (timingSafeEqual(presented, Buffer.from(h, 'hex'))) ok = true;
+    if (!ok) throw new HttpError(401, 'Unauthorized');
   }
 
   function limit(limiter, req) {
@@ -362,7 +385,7 @@ export function createApp(config, { fetchImpl = globalThis.fetch, log = console 
       res.end();
       return;
     }
-    requireAdmin(req);
+    requireAgent(req);
     const type = String(req.headers['content-type'] || '').toLowerCase();
     if (!type.startsWith('application/json')) throw new HttpError(415, 'Content-Type must be application/json');
     let body;
