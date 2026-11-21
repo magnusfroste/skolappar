@@ -389,9 +389,21 @@ a{display:inline-block;margin-top:16px;padding:12px 20px;border-radius:999px;bac
 <body><main><h1>${escapeHtml(title)}</h1><p>${escapeHtml(text)}</p><a href="/">Till Skolappar</a></main></body></html>`;
   }
 
+  // When the site lives on www.<domain>, the bare <domain> redirects there (one address for
+  // visitors and search engines). Other hosts – <app>.shipholm.dev, previews – are served as is.
+  const canonicalHost = new URL(config.siteUrl).host.toLowerCase();
+  const apexHost = canonicalHost.startsWith('www.') ? canonicalHost.slice(4) : null;
+
   async function handle(req, res) {
     const url = new URL(req.url || '/', 'http://localhost');
     const path = url.pathname;
+
+    const host = String(req.headers.host || '').toLowerCase().replace(/:\d+$/, '');
+    if (apexHost && host === apexHost && path !== '/healthz') {
+      const status = req.method === 'GET' || req.method === 'HEAD' ? 301 : 308;
+      res.writeHead(status, { Location: config.siteUrl + (req.url || '/'), 'Cache-Control': 'public, max-age=86400' });
+      return res.end();
+    }
 
     if (path === '/healthz') {
       db.prepare('SELECT 1').get();
