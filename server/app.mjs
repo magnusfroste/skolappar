@@ -11,7 +11,7 @@ import { createStore, APP_STATUSES, IDEA_STATUSES } from './store.mjs';
 import { createImageStore, MAX_IMAGE_BYTES, sniffImage } from './images.mjs';
 import { createImporter, ImportError } from './importer.mjs';
 import { createMcpHandler } from './mcp.mjs';
-import { createMailer, confirmSubmissionMail } from './mailer.mjs';
+import { createMailer } from './mailer.mjs';
 import { createRateLimiter } from './ratelimit.mjs';
 import { createStatic } from './static.mjs';
 import { buildLlmsTxt, buildSitemap, injectAppMeta } from './seo.mjs';
@@ -257,9 +257,9 @@ export function createApp(config, { fetchImpl = globalThis.fetch, log = console 
     if (body.website) return { status: 201, body: { ok: true } };
     const listed = db.prepare(`SELECT id FROM apps WHERE url = ? AND status IN ('approved','featured') LIMIT 1`).get(body.url);
     if (listed) throw new HttpError(409, 'This app is already listed', { app_id: listed.id });
-    const { id, token } = store.createSubmission(body);
+    const { id } = store.createSubmission(body);
     log.info?.(`submission created ${id}`);
-    mailer.send({ to: body.email, ...confirmSubmissionMail({ siteUrl: config.siteUrl, token, appUrl: body.url }) }).catch(() => {});
+    store.sendConfirmation(id).catch(() => {});
     return { status: 201, body: { ok: true } };
   });
 
@@ -291,6 +291,12 @@ export function createApp(config, { fetchImpl = globalThis.fetch, log = console 
     checkImageUrl(body.image_url);
     const { category_ids, ...fields } = body;
     return found(store.updateApp(needId(params.id), fields, category_ids), 'App not found');
+  });
+  admin('POST', '/api/admin/apps/:id/resend-mail', async ({ req, params }) => {
+    const body = check({ type: 'object', properties: { kind: { type: 'string', enum: ['confirm', 'published'] } }, required: ['kind'], additionalProperties: false }, await readJson(req));
+    const out = found(await store.resendMail(needId(params.id), body.kind), 'App not found');
+    if (out.error) throw new HttpError(409, `Cannot send this mail: ${out.error}`, { reason: out.error });
+    return out;
   });
   admin('DELETE', '/api/admin/apps/:id', ({ params }) => ({ deleted: found(store.deleteApp(needId(params.id)), 'App not found') && params.id }));
   admin('POST', '/api/admin/apps/:id/image', async ({ req, params }) => {

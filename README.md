@@ -46,6 +46,11 @@ provider is chosen by `MAIL_PROVIDER`. If a provider lacks a setting the server 
 falls back to the stub, so the site keeps working. Each send logs `mail "<subject>" sent via <provider>` or
 the failure reason (never the recipient).
 
+The outcome of the last confirmation and published mail is stored per submission (`confirm_mail`,
+`published_mail` and their times on `apps`) and shown in `/admin` (review list and app editor) with a
+**Skicka igen** button; the API is `POST /api/admin/apps/:id/resend-mail` `{kind: "confirm"|"published"}`
+and the MCP tool `resend_mail`. Full delivery history lives in Cloudflare (Email Sending → Activity log).
+
 **Cloudflare (current).** [Email Sending](https://developers.cloudflare.com/email-service/) REST API, which
 reaches any recipient. Needs the Workers Paid plan on the account (3,000 mails a month included) and
 `skolappar.com` onboarded under *Compute → Email Service → Email Sending* (that adds the `cf-bounce` SPF/DKIM
@@ -88,7 +93,7 @@ npm test            # node --test: server tests in server/test/
 - `/admin` asks for the admin key (kept in `sessionStorage` for the tab) and shows pending submissions,
   all apps (edit, status, image, categories), statistics, ideas, categories, resources and the
   branding/theme/font/SEO/AEO settings.
-- MCP: `POST /mcp` with `Authorization: Bearer $ADMIN_KEY`. Tools: `list_submissions`, `list_apps`, `get_app`,
+- MCP: `POST /mcp` with `Authorization: Bearer $ADMIN_KEY`. Tools: `list_submissions`, `resend_mail`, `list_apps`, `get_app`,
   `create_app`, `update_app`, `set_app_image`, `delete_app`, ideas, resources, categories, settings,
   `platform_stats` and `app_analytics`.
 

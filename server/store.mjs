@@ -2,7 +2,7 @@
 // public API, the admin API and the MCP tools share one set of rules.
 import { randomUUID, randomBytes, createHash } from 'node:crypto';
 import { transaction, serverSecret } from './db.mjs';
-import { appPublishedMail } from './mailer.mjs';
+import { appPublishedMail, confirmSubmissionMail } from './mailer.mjs';
 
 export const APP_STATUSES = ['pending', 'approved', 'rejected', 'featured', 'delisted'];
 export const PUBLIC_STATUSES = ['approved', 'featured'];
@@ -22,6 +22,13 @@ function parseJson(text) {
   } catch {
     return null;
   }
+}
+
+/** 'sent' | 'not_configured' | 'failed:<reason>' (+ time) -> {status, reason, at} or null. */
+function mailState(value, at) {
+  if (!value) return null;
+  const [status, ...rest] = value.split(':');
+  return { status, reason: rest.join(':') || null, at };
 }
 
 function personOrNull(name) {
@@ -107,6 +114,10 @@ export function createStore(db, { mailer, siteUrl = 'https://www.skolappar.com',
       app.submitter_note = r.submitter_note;
       app.email_confirmed = Boolean(r.email_confirmed);
       app.published_notified_at = r.published_notified_at;
+      app.mail = {
+        confirm: mailState(r.confirm_mail, r.confirm_mail_at),
+        published: mailState(r.published_mail, r.published_mail_at),
+      };
     }
     return app;
   }
@@ -286,9 +297,62 @@ export function createStore(db, { mailer, siteUrl = 'https://www.skolappar.com',
     if (!PUBLIC_STATUSES.includes(row.status) || PUBLIC_STATUSES.includes(previousStatus)) return;
     if (!row.submitter_email || !row.email_confirmed || row.published_notified_at) return;
     db.prepare('UPDATE apps SET published_notified_at = ? WHERE id = ?').run(now(), row.id);
-    if (!mailer) return;
-    const mail = appPublishedMail({ siteUrl, appId: row.id, title: row.title });
-    mailer.send({ to: row.submitter_email, ...mail }).catch(() => {});
+    sendMail(row, 'published').catch(() => {});
+  }
+
+  // ---------- submission mails ----------
+
+  const MAIL_KINDS = {
+    confirm: (row) => confirmSubmissionMail({ siteUrl, token: row.confirm_token, appUrl: row.url }),
+    published: (row) => appPublishedMail({ siteUrl, appId: row.id, title: row.title }),
+  };
+
+  /** Send one of the submission mails and remember the outcome on the app. */
+  async function sendMail(row, kind) {
+    if (!mailer) return { sent: false, reason: 'not_configured' };
+    let result;
+    try {
+      result = await mailer.send({ to: row.submitter_email, ...MAIL_KINDS[kind](row) });
+    } catch {
+      result = { sent: false, reason: 'error' };
+    }
+    const value = result.sent ? 'sent' : result.reason === 'not_configured' ? 'not_configured' : `failed:${result.reason || 'error'}`;
+    db.prepare(`UPDATE apps SET ${kind}_mail = ?, ${kind}_mail_at = ? WHERE id = ?`).run(value, now(), row.id);
+    return result;
+  }
+
+  /** Why a mail cannot be (re)sent for this app, or null when it can. */
+  function mailBlocker(row, kind) {
+    if (!row.submitter_email) return 'no_submitter_email';
+    if (kind === 'confirm') {
+      if (row.email_confirmed) return 'already_confirmed';
+      if (!row.confirm_token) return 'no_confirm_token';
+    } else {
+      if (!row.email_confirmed) return 'email_not_confirmed';
+      if (!PUBLIC_STATUSES.includes(row.status)) return 'not_published';
+    }
+    return null;
+  }
+
+  /** Send the confirmation mail for a new submission (fire and forget from the API). */
+  function sendConfirmation(id) {
+    const row = db.prepare('SELECT * FROM apps WHERE id = ?').get(id);
+    if (!row || mailBlocker(row, 'confirm')) return Promise.resolve({ sent: false, reason: 'not_applicable' });
+    return sendMail(row, 'confirm');
+  }
+
+  /** Admin: send a submission mail again. null = no such app; {error} = not applicable. */
+  async function resendMail(id, kind) {
+    if (!MAIL_KINDS[kind]) return { error: 'unknown_kind' };
+    const row = db.prepare('SELECT * FROM apps WHERE id = ?').get(id);
+    if (!row) return null;
+    const blocker = mailBlocker(row, kind);
+    if (blocker) return { error: blocker };
+    if (kind === 'published' && !row.published_notified_at) {
+      db.prepare('UPDATE apps SET published_notified_at = ? WHERE id = ?').run(now(), id);
+    }
+    const result = await sendMail(row, kind);
+    return { result, app: getApp(id, { admin: true }) };
   }
 
   function deleteApp(id) {
@@ -642,7 +706,7 @@ export function createStore(db, { mailer, siteUrl = 'https://www.skolappar.com',
     listCategories, getCategory, createCategory, updateCategory, deleteCategory,
     listPublicApps, listAdminApps, getApp, topApps, recentApps, relatedApps,
     createApp, updateApp, deleteApp, setAppCategories, trackClick,
-    createSubmission, confirmEmail,
+    createSubmission, confirmEmail, sendConfirmation, resendMail,
     toggleUpvote, myUpvotes,
     listResources, getResource, getResourceBySlug, createResource, updateResource, deleteResource,
     allSettings, listSettings, getSetting, setSetting,

@@ -248,6 +248,14 @@ describe('with ADMIN_KEY', () => {
     assert.equal(pending.submitter_email, 'Tipsare@Example.se');
     assert.equal(pending.email_confirmed, false);
     assert.equal(pending.submitter_note, 'Min dotter älskar det');
+    assert.equal(pending.mail.confirm.status, 'not_configured');
+    assert.ok(pending.mail.confirm.at);
+    assert.equal(pending.mail.published, null);
+    const resent = await admin('POST', `/api/admin/apps/${pending.id}/resend-mail`, { kind: 'confirm' });
+    assert.equal(resent.status, 200, resent.text);
+    assert.equal(resent.json.result.reason, 'not_configured');
+    assert.equal((await admin('POST', `/api/admin/apps/${pending.id}/resend-mail`, { kind: 'published' })).json.reason, 'email_not_confirmed');
+    assert.equal((await admin('POST', `/api/admin/apps/${pending.id}/resend-mail`, { kind: 'other' })).status, 400);
     assert.equal((await pub('GET', `/api/apps/${pending.id}`)).status, 404);
 
     const { confirm_token: token } = s.app.db.prepare('SELECT confirm_token FROM apps WHERE id = ?').get(pending.id);
@@ -262,6 +270,13 @@ describe('with ADMIN_KEY', () => {
     assert.equal(approved.json.app.status, 'approved');
     assert.ok(approved.json.app.published_notified_at);
     assert.ok(s.log.lines.slice(before).some((l) => l.includes('would send "Nu finns')));
+    const afterApproval = (await admin('GET', `/api/admin/apps/${pending.id}`)).json;
+    assert.equal(afterApproval.mail.published.status, 'not_configured');
+    const again = await admin('POST', `/api/admin/apps/${pending.id}/resend-mail`, { kind: 'confirm' });
+    assert.equal(again.status, 409);
+    assert.equal(again.json.reason, 'already_confirmed');
+    assert.equal((await admin('POST', `/api/admin/apps/${pending.id}/resend-mail`, { kind: 'published' })).status, 200);
+    assert.equal((await admin('POST', '/api/admin/apps/00000000-0000-4000-8000-000000000000/resend-mail', { kind: 'confirm' })).status, 404);
 
     // Rate limit: 5 per hour per IP (this IP has used 1).
     for (let i = 0; i < 4; i++) {
@@ -290,7 +305,7 @@ describe('with ADMIN_KEY', () => {
 
     const list = await admin('POST', '/mcp', { jsonrpc: '2.0', id: 2, method: 'tools/list' });
     const names = list.json.result.tools.map((t) => t.name);
-    for (const n of ['list_submissions', 'list_apps', 'update_app', 'set_app_image', 'list_categories', 'set_setting', 'app_analytics', 'platform_stats']) {
+    for (const n of ['list_submissions', 'resend_mail', 'list_apps', 'update_app', 'set_app_image', 'list_categories', 'set_setting', 'app_analytics', 'platform_stats']) {
       assert.ok(names.includes(n), n);
     }
     for (const n of ['list_users', 'set_user_role', 'list_comments', 'delete_comment', 'admin_users']) assert.ok(!names.includes(n), n);
@@ -339,6 +354,35 @@ describe('with ADMIN_KEY', () => {
     assert.equal(nf.status, 404);
     assert.equal(nf.json.error, 'Not found');
     assert.equal((await pub('DELETE', '/api/apps')).status, 405);
+  });
+});
+
+describe('mail failures are recorded', () => {
+  let s;
+  let mailApi;
+  before(async () => {
+    mailApi = await startImageServer();
+    s = await startServer({ env: { MAIL_PROVIDER: 'resend', MAIL_API_URL: `${mailApi.base}/missing`, MAIL_API_KEY: 'k', MAIL_FROM: 'Skolappar <hej@skolappar.test>' } });
+  });
+  after(async () => { await s.stop(); await mailApi.stop(); });
+
+  test('a failed confirmation shows in the admin view and can be sent again', async () => {
+    const pub = api(s.base);
+    const admin = api(s.base, { key: KEY });
+    assert.equal((await pub('POST', '/api/submissions', { url: 'https://fail.example', email: 'x@example.se' })).status, 201);
+    let app;
+    for (let i = 0; i < 50 && !app?.mail?.confirm; i++) {
+      app = (await admin('GET', '/api/admin/apps?status=pending')).json.find((a) => a.url === 'https://fail.example');
+      if (!app.mail.confirm) await new Promise((r) => setTimeout(r, 20));
+    }
+    assert.deepEqual({ status: app.mail.confirm.status, reason: app.mail.confirm.reason }, { status: 'failed', reason: 'http_404' });
+    const hits = mailApi.hits;
+    const r = await admin('POST', `/api/admin/apps/${app.id}/resend-mail`, { kind: 'confirm' });
+    assert.equal(r.status, 200);
+    assert.equal(r.json.result.sent, false);
+    assert.equal(r.json.app.mail.confirm.reason, 'http_404');
+    assert.equal(mailApi.hits, hits + 1);
+    assert.ok(!s.log.lines.some((l) => l.includes('x@example.se')));
   });
 });
 

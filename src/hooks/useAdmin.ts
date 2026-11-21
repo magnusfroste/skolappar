@@ -6,6 +6,15 @@ import type { Resource } from './useResources';
 
 export type AppStatus = 'approved' | 'rejected' | 'featured' | 'pending' | 'delisted';
 
+export type MailKind = 'confirm' | 'published';
+
+/** Outcome of the last confirmation / published mail to the submitter. */
+export interface MailState {
+  status: 'sent' | 'failed' | 'not_configured';
+  reason: string | null;
+  at: string;
+}
+
 export interface AdminApp extends App {
   long_description?: string | null;
   delist_reason: string | null;
@@ -14,6 +23,7 @@ export interface AdminApp extends App {
   submitter_note: string | null;
   email_confirmed: boolean;
   published_notified_at: string | null;
+  mail?: { confirm: MailState | null; published: MailState | null };
 }
 
 export interface AdminIdea extends Idea {
@@ -104,6 +114,15 @@ export function useSetAppImageFromUrl() {
   return useMutation({
     mutationFn: ({ appId, url }: { appId: string; url: string }) =>
       adminApi.post<{ app: AdminApp }>(`/api/admin/apps/${appId}/image`, { url }),
+    onSuccess: () => invalidateApps(queryClient),
+  });
+}
+
+export function useResendMail() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({ appId, kind }: { appId: string; kind: MailKind }) =>
+      adminApi.post<{ result: { sent: boolean; reason?: string }; app: AdminApp }>(`/api/admin/apps/${appId}/resend-mail`, { kind }),
     onSuccess: () => invalidateApps(queryClient),
   });
 }

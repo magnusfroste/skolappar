@@ -134,6 +134,14 @@ const MIGRATIONS = [
     value TEXT NOT NULL
   );
   `,
+  // 2: the outcome of the last confirmation / published mail per submission
+  // ('sent', 'not_configured' or 'failed:<reason>'), shown in the admin view.
+  `
+  ALTER TABLE apps ADD COLUMN confirm_mail TEXT;
+  ALTER TABLE apps ADD COLUMN confirm_mail_at TEXT;
+  ALTER TABLE apps ADD COLUMN published_mail TEXT;
+  ALTER TABLE apps ADD COLUMN published_mail_at TEXT;
+  `,
 ];
 
 export function openDatabase(dataDir) {

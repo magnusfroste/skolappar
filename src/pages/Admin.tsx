@@ -35,6 +35,7 @@ import {
 } from '@/components/ui/alert-dialog';
 import { AppStatusBadge } from '@/components/AppStatusBadge';
 import { CategoryIcon } from '@/components/CategoryIcon';
+import { SubmissionMailStatus } from '@/components/SubmissionMailStatus';
 import { AdminLayout } from '@/components/AdminLayout';
 import { AgentInfoPanel } from '@/components/AgentInfoPanel';
 import {
@@ -434,6 +435,9 @@ function AdminContent() {
                                 <ExternalLink className="h-3 w-3" />
                                 Besök
                               </a>
+                            </div>
+                            <div className="mt-2">
+                              <SubmissionMailStatus app={app} />
                             </div>
                             <div className="flex gap-1 mt-2 flex-wrap">
                               {app.categories?.slice(0, 5).map((cat) => (

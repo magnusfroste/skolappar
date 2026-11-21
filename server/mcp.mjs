@@ -47,11 +47,27 @@ export function createTools({ store, images }) {
       title: 'Lista inskickade tips',
       description:
         'Appar som besökare tipsat om och som väntar på granskning (status pending), äldst först, med tipsarens e-post, ' +
-        'om adressen är bekräftad och tipsarens meddelande. Godkänn med update_app (status approved) efter att ha provat appen.',
+        'om adressen är bekräftad, tipsarens meddelande och mail (utfallet av bekräftelse- och publiceringsmejlet: ' +
+        'status sent, not_configured eller failed med reason och tid). Godkänn med update_app (status approved) efter att ha provat appen.',
       inputSchema: obj({ limit: { type: 'integer', minimum: 1, maximum: 200, default: 50 } }),
       annotations: RO,
       handler: ({ limit }) => store.listAdminApps({ status: 'pending', limit: 1000 })
         .sort((a, b) => a.created_at.localeCompare(b.created_at)).slice(0, limit),
+    },
+    {
+      name: 'resend_mail',
+      title: 'Skicka mejl till tipsaren igen',
+      description:
+        'Skicka bekräftelsemejlet (kind confirm, bara om adressen inte är bekräftad) eller publiceringsmejlet ' +
+        '(kind published, bara för publicerade appar med bekräftad adress) till tipsaren igen. Returnerar utfallet och appen.',
+      inputSchema: obj({ id: uuid, kind: { type: 'string', enum: ['confirm', 'published'] } }, ['id', 'kind']),
+      annotations: RW,
+      handler: async ({ id, kind }) => {
+        const out = await store.resendMail(id, kind);
+        if (!out) return fail('Appen hittades inte.');
+        if (out.error) return fail(`Mejlet kan inte skickas: ${out.error}`);
+        return out;
+      },
     },
     {
       name: 'list_apps',

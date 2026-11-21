@@ -31,6 +31,7 @@ import {
 import { Switch } from '@/components/ui/switch';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { ImageUploader } from '@/components/ImageUploader';
+import { SubmissionMailStatus } from '@/components/SubmissionMailStatus';
 import { useAdminApp, useUpdateAppAdmin, useDeleteAppAdmin, useSetAppImageFromUrl, type AppStatus } from '@/hooks/useAdmin';
 import { useCategories } from '@/hooks/useApps';
 import { toast } from 'sonner';
@@ -360,6 +361,7 @@ export function AppEditPanel({ appId }: AppEditPanelProps) {
                 <span className="text-muted-foreground">{app.email_confirmed ? '(bekräftad)' : '(ej bekräftad)'}</span>
               </p>
               {app.submitter_note && <p className="whitespace-pre-wrap text-muted-foreground">{app.submitter_note}</p>}
+              <SubmissionMailStatus app={app} />
             </div>
           )}
 
