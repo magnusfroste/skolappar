@@ -1,1 +1,0 @@
-ALTER TYPE app_status ADD VALUE 'delisted';

@@ -14,7 +14,6 @@ import { PublicFooter } from '@/components/PublicFooter';
 import { IdeaCard } from '@/components/IdeaCard';
 import { SEO } from '@/components/SEO';
 import { useIdeas, useUserIdeaUpvotes, useToggleIdeaUpvote } from '@/hooks/useIdeas';
-import { useAuth } from '@/hooks/useAuth';
 import { Lightbulb, Plus, Search } from 'lucide-react';
 import { toast } from 'sonner';
 import { useNavigate } from 'react-router-dom';
@@ -54,7 +53,6 @@ const SORT_OPTIONS = [
 ];
 
 export default function Ideas() {
-  const { user } = useAuth();
   const navigate = useNavigate();
   const [search, setSearch] = useState('');
   const [targetAge, setTargetAge] = useState('all');
@@ -74,11 +72,6 @@ export default function Ideas() {
   const toggleUpvote = useToggleIdeaUpvote();
 
   const handleUpvote = (ideaId: string) => {
-    if (!user) {
-      navigate('/auth');
-      return;
-    }
-
     const hasUpvoted = userUpvotes?.includes(ideaId) || false;
     toggleUpvote.mutate(
       { ideaId, hasUpvoted },
@@ -106,11 +99,11 @@ export default function Ideas() {
             </div>
             <h1 className="text-4xl font-bold mb-4">App-idéer</h1>
             <p className="text-muted-foreground text-lg max-w-2xl mx-auto mb-6">
-              Föreslå appar du behöver eller rösta på andras idéer. Vibe-coders
-              kan ta sig an idéer och bygga dem till verklighet.
+              Föreslå appar du behöver eller rösta på andras idéer. Föräldrar som
+              bygger appar kan ta sig an idéer och göra dem till verklighet.
             </p>
             <Button asChild size="lg" className="gap-2">
-              <Link to={user ? '/min-sida/ideer/ny' : '/auth'}>
+              <Link to="/ideer/ny">
                 <Plus className="h-5 w-5" />
                 Föreslå en app
               </Link>
@@ -209,7 +202,7 @@ export default function Ideas() {
                   : 'Var först med att föreslå en app-idé!'}
               </p>
               <Button asChild>
-                <Link to={user ? '/min-sida/ideer/ny' : '/auth'}>
+                <Link to="/ideer/ny">
                   Föreslå en app
                 </Link>
               </Button>

@@ -3,7 +3,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { IdeaStatusBadge } from './IdeaStatusBadge';
 import { IdeaUpvoteButton } from './IdeaUpvoteButton';
-import { MessageCircle, User } from 'lucide-react';
+import { User } from 'lucide-react';
 import type { Idea } from '@/hooks/useIdeas';
 
 interface IdeaCardProps {
@@ -63,10 +63,6 @@ export function IdeaCard({ idea, hasUpvoted, onUpvote, isUpvoting }: IdeaCardPro
             <span className="text-sm text-muted-foreground">{displayName}</span>
           </div>
 
-          <div className="flex items-center gap-1 text-muted-foreground">
-            <MessageCircle className="h-4 w-4" />
-            <span className="text-sm">{idea.comments_count}</span>
-          </div>
         </div>
       </CardContent>
     </Card>

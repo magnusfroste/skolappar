@@ -129,10 +129,6 @@ export function AppCardVisual({
                 <span className="truncate text-xs">{creatorName}</span>
               ) : null}
               <span className="flex items-center gap-1 text-xs group-hover:text-foreground/70 transition-colors">
-                <MessageCircle className="w-3 h-3" />
-                {commentsCount}
-              </span>
-              <span className="flex items-center gap-1 text-xs group-hover:text-foreground/70 transition-colors">
                 <Eye className="w-3 h-3" />
                 {clicksCount}
               </span>

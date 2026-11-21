@@ -3,26 +3,20 @@ import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { Suspense, lazy } from "react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
-import { AuthProvider } from "@/hooks/useAuth";
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { GoogleAnalytics } from "@/components/GoogleAnalytics";
 import { DynamicFavicon } from "@/components/DynamicFavicon";
 import { DynamicTheme } from "@/components/DynamicTheme";
 import { DynamicFont } from "@/components/DynamicFont";
 
 const Index = lazy(() => import("./pages/Index"));
-const Auth = lazy(() => import("./pages/Auth"));
-const ResetPassword = lazy(() => import("./pages/ResetPassword"));
 const Apps = lazy(() => import("./pages/Apps"));
-const Dashboard = lazy(() => import("./pages/Dashboard"));
-const DashboardEdit = lazy(() => import("./pages/DashboardEdit"));
-const DashboardCreate = lazy(() => import("./pages/DashboardCreate"));
-const DashboardCreateIdea = lazy(() => import("./pages/DashboardCreateIdea"));
 const Ideas = lazy(() => import("./pages/Ideas"));
 const IdeaDetail = lazy(() => import("./pages/IdeaDetail"));
 const Admin = lazy(() => import("./pages/Admin"));
-const Profile = lazy(() => import("./pages/Profile"));
-const EditProfile = lazy(() => import("./pages/EditProfile"));
+const AdminAppEdit = lazy(() => import("./pages/AdminAppEdit"));
+const SuggestApp = lazy(() => import("./pages/SuggestApp"));
+const NewIdea = lazy(() => import("./pages/NewIdea"));
 const AppDetail = lazy(() => import("./pages/AppDetail"));
 const Resources = lazy(() => import("./pages/Resources"));
 const ResourceList = lazy(() => import("./pages/ResourceList"));
@@ -32,7 +26,6 @@ const StarterDemo = lazy(() => import("./pages/StarterDemo"));
 const Terms = lazy(() => import("./pages/Terms"));
 const Privacy = lazy(() => import("./pages/Privacy"));
 const TestYourApp = lazy(() => import("./pages/TestYourApp"));
-const OAuthConsent = lazy(() => import("./pages/OAuthConsent"));
 
 
 const queryClient = new QueryClient({
@@ -41,7 +34,6 @@ const queryClient = new QueryClient({
 
 const App = () => (
   <QueryClientProvider client={queryClient}>
-    <AuthProvider>
       <TooltipProvider>
         <Toaster />
         <Sonner />
@@ -53,18 +45,13 @@ const App = () => (
           <Suspense fallback={<div className="min-h-screen" />}>
           <Routes>
             <Route path="/" element={<Index />} />
-            <Route path="/auth" element={<Auth />} />
-            <Route path="/reset-password" element={<ResetPassword />} />
             <Route path="/apps" element={<Apps />} />
-            <Route path="/min-sida" element={<Dashboard />} />
-            <Route path="/min-sida/app/:id" element={<DashboardEdit />} />
-            <Route path="/min-sida/ny" element={<DashboardCreate />} />
-            <Route path="/min-sida/ideer/ny" element={<DashboardCreateIdea />} />
+            <Route path="/tipsa" element={<SuggestApp />} />
             <Route path="/ideer" element={<Ideas />} />
+            <Route path="/ideer/ny" element={<NewIdea />} />
             <Route path="/ideer/:id" element={<IdeaDetail />} />
             <Route path="/admin" element={<Admin />} />
-            <Route path="/profil/:id" element={<Profile />} />
-            <Route path="/profil/redigera" element={<EditProfile />} />
+            <Route path="/admin/app/:id" element={<AdminAppEdit />} />
             <Route path="/app/:id" element={<AppDetail />} />
             <Route path="/resurser" element={<Resources />} />
             <Route path="/resurser/:category" element={<ResourceList />} />
@@ -73,7 +60,14 @@ const App = () => (
             <Route path="/villkor" element={<Terms />} />
             <Route path="/integritet" element={<Privacy />} />
             <Route path="/testa-din-app" element={<TestYourApp />} />
-            <Route path="/.lovable/oauth/consent" element={<OAuthConsent />} />
+
+            {/* Old account pages (there are no accounts any more) */}
+            <Route path="/min-sida/ny" element={<Navigate to="/tipsa" replace />} />
+            <Route path="/min-sida/ideer/ny" element={<Navigate to="/ideer/ny" replace />} />
+            <Route path="/min-sida/*" element={<Navigate to="/" replace />} />
+            <Route path="/auth" element={<Navigate to="/" replace />} />
+            <Route path="/reset-password" element={<Navigate to="/" replace />} />
+            <Route path="/profil/*" element={<Navigate to="/" replace />} />
 
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
@@ -81,7 +75,6 @@ const App = () => (
           </Suspense>
         </BrowserRouter>
       </TooltipProvider>
-    </AuthProvider>
   </QueryClientProvider>
 );
 

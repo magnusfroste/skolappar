@@ -1,8 +1,6 @@
 import { useMemo, useState } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
-import { AgentAccessPanel } from '@/components/AgentAccessPanel';
 import { AppAnalyticsPanel } from '@/components/AppAnalyticsPanel';
-import { AdminUsersPanel } from '@/components/AdminUsersPanel';
 import { ADMIN_SECTIONS } from '@/lib/adminSections';
 import { Check, X, Star, Clock, ExternalLink, Trash2, Plus, Edit2, Shield, Settings, FileText, Eye, EyeOff, Lightbulb, MessageSquare, ThumbsUp, TrendingUp, Search } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -37,9 +35,9 @@ import {
 } from '@/components/ui/alert-dialog';
 import { AppStatusBadge } from '@/components/AppStatusBadge';
 import { CategoryIcon } from '@/components/CategoryIcon';
-import { AuthenticatedLayout } from '@/components/AuthenticatedLayout';
+import { AdminLayout } from '@/components/AdminLayout';
+import { AgentInfoPanel } from '@/components/AgentInfoPanel';
 import {
-  useIsAdmin,
   usePendingApps,
   useAllApps,
   useUpdateAppStatus,
@@ -135,8 +133,7 @@ const sortAdminApps = (apps: AdminApp[], sort: AppSort): AdminApp[] => {
   }
 };
 
-export default function Admin() {
-  const { data: isAdmin, isLoading: adminLoading } = useIsAdmin();
+function AdminContent() {
   const [searchParams, setSearchParams] = useSearchParams();
   const tab = searchParams.get("tab") || "pending";
   const currentSection = ADMIN_SECTIONS.find((s) => s.tab === tab) ?? ADMIN_SECTIONS[0];
@@ -367,36 +364,13 @@ export default function Admin() {
     }
   };
 
-  if (adminLoading) {
-    return (
-      <AuthenticatedLayout>
-        <div className="flex-1 flex items-center justify-center">
-          <div className="animate-pulse text-primary">Laddar...</div>
-        </div>
-      </AuthenticatedLayout>
-    );
-  }
-
-  if (!isAdmin) {
-    return (
-      <AuthenticatedLayout>
-        <div className="flex-1 flex items-center justify-center">
-          <div className="text-center">
-            <Shield className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
-            <p className="text-muted-foreground">Du har inte behörighet att se denna sida</p>
-          </div>
-        </div>
-      </AuthenticatedLayout>
-    );
-  }
-
   const subjectCategories = categories?.filter(c => c.type === 'subject') || [];
   const ageCategories = categories?.filter(c => c.type === 'age') || [];
   const typeCategories = categories?.filter(c => c.type === 'app_type') || [];
   const deviceCategories = categories?.filter(c => c.type === 'device') || [];
 
   return (
-    <AuthenticatedLayout>
+    <>
       <div className="p-4 md:p-8 max-w-5xl mx-auto">
         <h1 className="sr-only">Admin – {currentSection.title}</h1>
 
@@ -440,8 +414,21 @@ export default function Admin() {
                               <AppStatusBadge status={app.status} />
                             </div>
                             <p className="text-sm text-muted-foreground line-clamp-2 mt-1">{app.description}</p>
-                            <div className="flex items-center gap-2 mt-2 text-xs text-muted-foreground">
-                              <span>Av: {app.profile?.display_name || 'Okänd'}</span>
+                            <p className="text-xs text-muted-foreground mt-1 break-all">{app.url}</p>
+                            {app.submitter_note && (
+                              <p className="text-sm mt-2 rounded-md bg-muted p-2 whitespace-pre-wrap">{app.submitter_note}</p>
+                            )}
+                            <div className="flex items-center gap-2 mt-2 text-xs flex-wrap text-muted-foreground">
+                              <span>
+                                {app.submitter_email
+                                  ? <>Tips från {app.submitter_email} {app.email_confirmed ? '(bekräftad)' : '(ej bekräftad)'}</>
+                                  : <>Av: {app.profile?.display_name || 'Okänd'}</>}
+                              </span>
+                              <span>•</span>
+                              <Link to={`/admin/app/${app.id}`} className="text-primary hover:underline flex items-center gap-1">
+                                <Edit2 className="h-3 w-3" />
+                                Redigera
+                              </Link>
                               <span>•</span>
                               <a href={app.url} target="_blank" rel="noopener noreferrer" className="text-primary hover:underline flex items-center gap-1">
                                 <ExternalLink className="h-3 w-3" />
@@ -611,7 +598,7 @@ export default function Admin() {
                             </SelectContent>
                           </Select>
                           <Button asChild variant="ghost" size="icon" className="h-8 w-8" aria-label="Redigera app">
-                            <Link to={`/min-sida/app/${app.id}`}><Edit2 className="h-4 w-4" /></Link>
+                            <Link to={`/admin/app/${app.id}`}><Edit2 className="h-4 w-4" /></Link>
                           </Button>
                           <AlertDialog>
                             <AlertDialogTrigger asChild>
@@ -1245,7 +1232,7 @@ export default function Admin() {
                             <Label>Kategori</Label>
                             <Select
                               value={editingResource.category}
-                              onValueChange={(value) => setEditingResource({ ...editingResource, category: value })}
+                              onValueChange={(value) => setEditingResource({ ...editingResource, category: value as AdminResource['category'] })}
                             >
                               <SelectTrigger>
                                 <SelectValue />
@@ -1312,11 +1299,7 @@ export default function Admin() {
           </TabsContent>
 
           <TabsContent value="agents">
-            <AgentAccessPanel />
-          </TabsContent>
-
-          <TabsContent value="users">
-            <AdminUsersPanel />
+            <AgentInfoPanel />
           </TabsContent>
 
           <TabsContent value="analytics">
@@ -1474,7 +1457,7 @@ export default function Admin() {
           </DialogContent>
         </Dialog>
       </div>
-    </AuthenticatedLayout>
+    </>
   );
 }
 
@@ -1595,5 +1578,13 @@ function ResourceRow({
         </AlertDialog>
       </div>
     </div>
+  );
+}
+
+export default function Admin() {
+  return (
+    <AdminLayout>
+      <AdminContent />
+    </AdminLayout>
   );
 }

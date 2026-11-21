@@ -23,3 +23,9 @@ dist-ssr
 *.sln
 *.sw?
 app-health-report.md
+
+# Local environment and server data
+.env
+.env.*
+!.env.example
+data/

@@ -73,9 +73,9 @@ export function ChecklistResult({ score, total }: ChecklistResultProps) {
       {percentage >= 60 && (
         <div className="mt-4 pt-4 border-t border-border/50">
           <Button asChild className="w-full gap-2">
-            <Link to="/min-sida/skapa">
+            <Link to="/tipsa">
               <Rocket className="h-4 w-4" />
-              Min app är redo – skicka in!
+              Min app är redo – tipsa oss!
             </Link>
           </Button>
         </div>

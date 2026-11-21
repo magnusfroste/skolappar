@@ -1,12 +1,8 @@
 import { useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { Sparkles, ArrowRight, Shield, Menu, X, User, BookOpen, LogOut, TestTube2, Lightbulb, Home } from 'lucide-react';
+import { Sparkles, Menu, BookOpen, TestTube2, Lightbulb, Home } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Skeleton } from '@/components/ui/skeleton';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
-import { NotificationBell } from '@/components/NotificationBell';
-import { useAuth } from '@/hooks/useAuth';
-import { useIsAdmin } from '@/hooks/useAdmin';
 import { cn } from '@/lib/utils';
 import { useBranding } from '@/hooks/useBranding';
 import { DarkModeToggle } from '@/components/DarkModeToggle';
@@ -17,8 +13,6 @@ interface PublicNavProps {
 }
 
 export function PublicNav({ variant = 'transparent' }: PublicNavProps) {
-  const { user, signOut, loading } = useAuth();
-  const { data: isAdmin } = useIsAdmin();
   const branding = useBranding();
   const logoImage = branding.brand_logo_url || logoFallback;
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -65,53 +59,21 @@ export function PublicNav({ variant = 'transparent' }: PublicNavProps) {
             <Button variant="ghost" size="sm" asChild className={cn(isActive('/resurser') && "bg-muted text-foreground")}>
               <Link to="/resurser">Resurser</Link>
             </Button>
-            {user && (
-              <Button variant="ghost" size="sm" asChild className={cn(isActive('/testa-din-app') && "bg-muted text-foreground")}>
-                <Link to="/testa-din-app">Testa app</Link>
-              </Button>
-            )}
-
-            {loading ? (
-              <Skeleton className="w-20 h-9" />
-            ) : user ? (
-              <>
-                {isAdmin && (
-                  <Button variant="ghost" size="sm" asChild className="gap-1">
-                    <Link to="/admin">
-                      <Shield className="w-4 h-4" />
-                      <span className="hidden md:inline">Admin</span>
-                    </Link>
-                  </Button>
-                )}
-                <NotificationBell />
-                <Button variant="ghost" size="sm" asChild>
-                  <Link to="/min-sida">Min sida</Link>
-                </Button>
-                <Button size="sm" asChild className="gap-1.5">
-                  <Link to="/min-sida/ny">
-                    <Sparkles className="w-4 h-4" />
-                    Lägg till
-                  </Link>
-                </Button>
-                <Button variant="outline" size="sm" onClick={signOut}>
-                  Logga ut
-                </Button>
-              </>
-            ) : (
-              <Button size="sm" asChild className="gap-1.5">
-                <Link to="/auth">
-                  Logga in
-                  <ArrowRight className="w-4 h-4" />
-                </Link>
-              </Button>
-            )}
+            <Button variant="ghost" size="sm" asChild className={cn(isActive('/testa-din-app') && "bg-muted text-foreground")}>
+              <Link to="/testa-din-app">Testa app</Link>
+            </Button>
+            <Button size="sm" asChild className="gap-1.5">
+              <Link to="/tipsa">
+                <Sparkles className="w-4 h-4" />
+                Tipsa om en app
+              </Link>
+            </Button>
             <DarkModeToggle />
           </div>
 
           {/* Mobile Navigation */}
           <div className="flex sm:hidden items-center gap-2">
             <DarkModeToggle />
-            {user && <NotificationBell />}
             
             <Sheet open={mobileMenuOpen} onOpenChange={setMobileMenuOpen}>
               <SheetTrigger asChild>
@@ -166,78 +128,28 @@ export function PublicNav({ variant = 'transparent' }: PublicNavProps) {
                     <span className="font-medium">Resurser</span>
                   </Link>
 
-                  {user && (
-                    <Link 
-                      to="/testa-din-app" 
-                      onClick={closeMobileMenu}
-                      className={cn(
-                        "flex items-center gap-3 px-3 py-3 rounded-xl transition-colors",
-                        isActive('/testa-din-app') ? "bg-primary/10 text-primary" : "text-foreground hover:bg-muted"
-                      )}
-                    >
-                      <TestTube2 className="w-5 h-5" />
-                      <span className="font-medium">Testa app</span>
-                    </Link>
-                  )}
+                  <Link 
+                    to="/testa-din-app" 
+                    onClick={closeMobileMenu}
+                    className={cn(
+                      "flex items-center gap-3 px-3 py-3 rounded-xl transition-colors",
+                      isActive('/testa-din-app') ? "bg-primary/10 text-primary" : "text-foreground hover:bg-muted"
+                    )}
+                  >
+                    <TestTube2 className="w-5 h-5" />
+                    <span className="font-medium">Testa app</span>
+                  </Link>
 
                   <div className="my-2 border-t border-border" />
 
-                  {loading ? (
-                    <Skeleton className="h-12 w-full rounded-xl" />
-                  ) : user ? (
-                    <>
-                      <Link 
-                        to="/min-sida" 
-                        onClick={closeMobileMenu}
-                        className="flex items-center gap-3 px-3 py-3 rounded-xl text-foreground hover:bg-muted transition-colors"
-                      >
-                        <User className="w-5 h-5 text-muted-foreground" />
-                        <span className="font-medium">Min sida</span>
-                      </Link>
-
-                      <Link 
-                        to="/min-sida/ny" 
-                        onClick={closeMobileMenu}
-                        className="flex items-center gap-3 px-3 py-3 rounded-xl bg-primary/10 text-primary hover:bg-primary/20 transition-colors"
-                      >
-                        <Sparkles className="w-5 h-5" />
-                        <span className="font-medium">Lägg till app</span>
-                      </Link>
-
-                      {isAdmin && (
-                        <Link 
-                          to="/admin" 
-                          onClick={closeMobileMenu}
-                          className="flex items-center gap-3 px-3 py-3 rounded-xl text-foreground hover:bg-muted transition-colors"
-                        >
-                          <Shield className="w-5 h-5 text-muted-foreground" />
-                          <span className="font-medium">Admin</span>
-                        </Link>
-                      )}
-
-                      <div className="my-2 border-t border-border" />
-
-                      <button 
-                        onClick={() => {
-                          signOut();
-                          closeMobileMenu();
-                        }}
-                        className="flex items-center gap-3 px-3 py-3 rounded-xl text-muted-foreground hover:bg-muted transition-colors w-full text-left"
-                      >
-                        <LogOut className="w-5 h-5" />
-                        <span className="font-medium">Logga ut</span>
-                      </button>
-                    </>
-                  ) : (
-                    <Link 
-                      to="/auth" 
-                      onClick={closeMobileMenu}
-                      className="flex items-center justify-center gap-2 px-4 py-3 rounded-xl bg-primary text-primary-foreground font-medium hover:bg-primary/90 transition-colors"
-                    >
-                      Logga in
-                      <ArrowRight className="w-4 h-4" />
-                    </Link>
-                  )}
+                  <Link 
+                    to="/tipsa" 
+                    onClick={closeMobileMenu}
+                    className="flex items-center justify-center gap-2 px-4 py-3 rounded-xl bg-primary text-primary-foreground font-medium hover:bg-primary/90 transition-colors"
+                  >
+                    <Sparkles className="w-4 h-4" />
+                    Tipsa om en app
+                  </Link>
                 </div>
               </SheetContent>
             </Sheet>

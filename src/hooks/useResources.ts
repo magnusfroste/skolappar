@@ -1,5 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
+import { api } from "@/lib/api";
 
 export type ResourceCategory = 'tips' | 'learn' | 'inspiration' | 'platforms';
 
@@ -20,38 +20,14 @@ export interface Resource {
 export function useResources(category?: ResourceCategory) {
   return useQuery({
     queryKey: ['resources', category],
-    queryFn: async () => {
-      let query = supabase
-        .from('resources')
-        .select('*')
-        .eq('is_published', true)
-        .order('sort_order', { ascending: true });
-
-      if (category) {
-        query = query.eq('category', category);
-      }
-
-      const { data, error } = await query;
-      if (error) throw error;
-      return data as Resource[];
-    },
+    queryFn: () => api.get<Resource[]>(`/api/resources${category ? `?category=${encodeURIComponent(category)}` : ''}`),
   });
 }
 
 export function useResource(slug: string) {
   return useQuery({
     queryKey: ['resource', slug],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from('resources')
-        .select('*')
-        .eq('slug', slug)
-        .eq('is_published', true)
-        .single();
-
-      if (error) throw error;
-      return data as Resource;
-    },
+    queryFn: () => api.get<Resource>(`/api/resources/${encodeURIComponent(slug)}`),
     enabled: !!slug,
   });
 }

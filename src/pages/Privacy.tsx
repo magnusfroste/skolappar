@@ -51,10 +51,9 @@ const Privacy = () => {
                 Vi samlar in följande personuppgifter:
               </p>
               <ul className="list-disc list-inside text-muted-foreground space-y-1.5 ml-2">
-                <li><strong className="text-foreground">E-postadress</strong> – för inloggning och kommunikation</li>
-                <li><strong className="text-foreground">Visningsnamn</strong> – för att visa vem som skapat appar</li>
-                <li><strong className="text-foreground">Profilbild</strong> (frivilligt) – för din offentliga profil</li>
-                <li><strong className="text-foreground">Inskickade appar</strong> – titel, beskrivning, URL och kategorier</li>
+                <li><strong className="text-foreground">E-postadress</strong> – när du tipsar om en app (och frivilligt när du föreslår en idé), för att kunna kontakta dig</li>
+                <li><strong className="text-foreground">Tips och idéer</strong> – länk, titel, beskrivning och ditt meddelande</li>
+                <li><strong className="text-foreground">Röster</strong> – en slumpmässig identitet som sparas i din webbläsare; vi lagrar bara ett hashvärde av den</li>
               </ul>
             </section>
 
@@ -64,10 +63,9 @@ const Privacy = () => {
                 Vi använder dina personuppgifter för att:
               </p>
               <ul className="list-disc list-inside text-muted-foreground space-y-1.5 ml-2">
-                <li>Möjliggöra inloggning och hantering av ditt konto</li>
-                <li>Visa ditt namn som upphovsman till appar du publicerat</li>
-                <li>Skicka notifikationer om dina appar (kommentarer, gillningar)</li>
-                <li>Kontakta dig vid frågor om dina appar eller ditt konto</li>
+                <li>Bekräfta din e-postadress och meddela dig när appen du tipsat om publiceras</li>
+                <li>Kontakta dig vid frågor om appen eller idén du skickat in</li>
+                <li>Förhindra missbruk (till exempel för många inskick på kort tid)</li>
                 <li>Förbättra och utveckla plattformen</li>
               </ul>
             </section>
@@ -78,9 +76,9 @@ const Privacy = () => {
                 Vi behandlar dina personuppgifter baserat på:
               </p>
               <ul className="list-disc list-inside text-muted-foreground space-y-1.5 ml-2">
-                <li><strong className="text-foreground">Avtal</strong> – för att tillhandahålla tjänsten du registrerat dig för</li>
+                <li><strong className="text-foreground">Avtal</strong> – för att hantera tips och idéer du skickar in</li>
                 <li><strong className="text-foreground">Berättigat intresse</strong> – för att förbättra plattformen och förhindra missbruk</li>
-                <li><strong className="text-foreground">Samtycke</strong> – för frivilliga funktioner som profilbild</li>
+                <li><strong className="text-foreground">Samtycke</strong> – för frivilliga uppgifter som e-post på idéer</li>
               </ul>
             </section>
 
@@ -91,8 +89,8 @@ const Privacy = () => {
                 Vi använder kryptering och säkra anslutningar för att skydda dina data.
               </p>
               <p className="text-muted-foreground leading-relaxed">
-                Vi behåller dina uppgifter så länge ditt konto är aktivt. Om du raderar 
-                ditt konto tas dina personuppgifter bort inom 30 dagar.
+                Vi behåller din e-postadress så länge appen eller idén du skickat in finns hos oss.
+                Hör av dig så tar vi bort den.
               </p>
             </section>
 
@@ -110,9 +108,9 @@ const Privacy = () => {
             <section className="space-y-3">
               <h2 className="text-xl font-semibold">7. Cookies</h2>
               <p className="text-muted-foreground leading-relaxed">
-                Vi använder endast nödvändiga cookies för att hantera din inloggning 
-                och säkerställa att plattformen fungerar korrekt. Vi använder inga 
-                spårnings- eller reklamcookies.
+                Det finns inga konton och inga inloggningscookies. Webbläsaren sparar
+                lokalt dina inställningar (till exempel mörkt läge) och en slumpmässig
+                identitet för dina röster. Vi använder inga reklamcookies.
               </p>
             </section>
 
@@ -160,8 +158,8 @@ const Privacy = () => {
             <section className="space-y-3">
               <h2 className="text-xl font-semibold">10. Ändringar</h2>
               <p className="text-muted-foreground leading-relaxed">
-                Vi kan uppdatera denna policy vid behov. Väsentliga ändringar meddelas 
-                via e-post till registrerade användare.
+                Vi kan uppdatera denna policy vid behov. Väsentliga ändringar
+                publiceras på den här sidan.
               </p>
             </section>
 

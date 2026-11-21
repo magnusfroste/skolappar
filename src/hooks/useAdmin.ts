@@ -1,90 +1,110 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { supabase } from '@/integrations/supabase/client';
-import { useAuth } from './useAuth';
+import { adminApi, ApiError, getAdminKey } from '@/lib/api';
+import type { App, Category } from './useApps';
+import type { Idea } from './useIdeas';
+import type { Resource } from './useResources';
 
-export function useIsAdmin() {
-  const { user } = useAuth();
+export type AppStatus = 'approved' | 'rejected' | 'featured' | 'pending' | 'delisted';
 
+export interface AdminApp extends App {
+  long_description?: string | null;
+  delist_reason: string | null;
+  updated_at: string;
+  submitter_email: string | null;
+  submitter_note: string | null;
+  email_confirmed: boolean;
+  published_notified_at: string | null;
+}
+
+export interface AdminIdea extends Idea {
+  submitter_email: string | null;
+  claimer_name: string | null;
+  profile: { display_name: string | null; avatar_url: string | null } | null;
+  claimer_profile: { display_name: string | null; avatar_url: string | null } | null;
+}
+
+/** Checks the admin key kept in sessionStorage. `error.status` 503 means ADMIN_KEY is not set on the server. */
+export function useIsAdmin(keyVersion = 0) {
+  // The key itself is part of the query key (memory only), so every page under
+  // /admin shares the result and a new key is checked again.
   return useQuery({
-    queryKey: ['is-admin', user?.id],
+    queryKey: ['is-admin', getAdminKey() ?? '', keyVersion],
     queryFn: async () => {
-      if (!user) return false;
-
-      const { data, error } = await supabase
-        .from('user_roles')
-        .select('role')
-        .eq('user_id', user.id)
-        .eq('role', 'admin')
-        .maybeSingle();
-
-      if (error) return false;
-      return !!data;
+      if (!getAdminKey()) return false;
+      try {
+        await adminApi.get('/api/admin/check');
+        return true;
+      } catch (err) {
+        if (err instanceof ApiError && err.status === 401) return false;
+        throw err;
+      }
     },
-    enabled: !!user
+    retry: false,
+    staleTime: Infinity,
   });
 }
 
-export function usePendingApps() {
+const invalidateApps = (qc: ReturnType<typeof useQueryClient>) => {
+  for (const key of ['pending-apps', 'all-apps-admin', 'apps', 'app', 'admin-app', 'top-apps-week', 'recent-apps']) {
+    qc.invalidateQueries({ queryKey: [key] });
+  }
+};
+
+export function usePendingApps(enabled = true) {
   return useQuery({
     queryKey: ['pending-apps'],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from('apps')
-        .select(`
-          *,
-          app_categories(category_id, categories(*))
-        `)
-        .eq('status', 'pending')
-        .order('created_at', { ascending: true });
-
-      if (error) throw error;
-
-      // Fetch profiles separately
-      const userIds = [...new Set(data.map(app => app.user_id))];
-      const { data: profiles } = await supabase
-        .from('profiles')
-        .select('id, display_name, avatar_url')
-        .in('id', userIds);
-
-      const profileMap = new Map(profiles?.map(p => [p.id, p]) || []);
-
-      return data.map(app => ({
-        ...app,
-        profile: profileMap.get(app.user_id) || null,
-        categories: app.app_categories?.map((ac) => ac.categories).filter(Boolean) || []
-      }));
-    }
+      const apps = await adminApi.get<AdminApp[]>('/api/admin/apps?status=pending');
+      return apps.sort((a, b) => a.created_at.localeCompare(b.created_at));
+    },
+    enabled,
   });
 }
 
-export function useAllApps() {
+export function useAllApps(enabled = true) {
   return useQuery({
     queryKey: ['all-apps-admin'],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from('apps')
-        .select(`
-          *,
-          app_categories(category_id, categories(*))
-        `)
-        .order('created_at', { ascending: false });
+    queryFn: () => adminApi.get<AdminApp[]>('/api/admin/apps'),
+    enabled,
+  });
+}
 
-      if (error) throw error;
+export function useAdminApp(appId: string | undefined) {
+  return useQuery({
+    queryKey: ['admin-app', appId],
+    queryFn: () => adminApi.get<AdminApp>(`/api/admin/apps/${appId}`),
+    enabled: !!appId,
+  });
+}
 
-      const userIds = [...new Set(data.map(app => app.user_id))];
-      const { data: profiles } = await supabase
-        .from('profiles')
-        .select('id, display_name, avatar_url')
-        .in('id', userIds);
+export interface AppPatch {
+  title?: string;
+  description?: string;
+  long_description?: string | null;
+  url?: string;
+  image_url?: string | null;
+  creator_name?: string | null;
+  status?: AppStatus;
+  is_featured?: boolean;
+  delist_reason?: string | null;
+  category_ids?: string[];
+}
 
-      const profileMap = new Map(profiles?.map(p => [p.id, p]) || []);
+export function useUpdateAppAdmin() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({ appId, patch }: { appId: string; patch: AppPatch }) =>
+      adminApi.patch<{ app: AdminApp }>(`/api/admin/apps/${appId}`, { ...patch }),
+    onSuccess: () => invalidateApps(queryClient),
+  });
+}
 
-      return data.map(app => ({
-        ...app,
-        profile: profileMap.get(app.user_id) || null,
-        categories: app.app_categories?.map((ac) => ac.categories).filter(Boolean) || []
-      }));
-    }
+export function useSetAppImageFromUrl() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({ appId, url }: { appId: string; url: string }) =>
+      adminApi.post<{ app: AdminApp }>(`/api/admin/apps/${appId}/image`, { url }),
+    onSuccess: () => invalidateApps(queryClient),
   });
 }
 
@@ -92,31 +112,13 @@ export function useUpdateAppStatus() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async ({ appId, status, delistReason }: { appId: string; status: 'approved' | 'rejected' | 'featured' | 'pending' | 'delisted'; delistReason?: string }) => {
-      const updates: { 
-        status: 'approved' | 'rejected' | 'featured' | 'pending' | 'delisted'; 
-        delist_reason?: string | null 
-      } = { status };
-      
-      // Set or clear delist_reason based on status
-      if (status === 'delisted' && delistReason) {
-        updates.delist_reason = delistReason;
-      } else if (status !== 'delisted') {
-        updates.delist_reason = null;
-      }
-
-      const { error } = await supabase
-        .from('apps')
-        .update(updates)
-        .eq('id', appId);
-
-      if (error) throw error;
+    mutationFn: ({ appId, status, delistReason }: { appId: string; status: AppStatus; delistReason?: string }) => {
+      const patch: AppPatch = { status };
+      if (status === 'delisted' && delistReason) patch.delist_reason = delistReason;
+      else if (status !== 'delisted') patch.delist_reason = null;
+      return adminApi.patch(`/api/admin/apps/${appId}`, { ...patch });
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['pending-apps'] });
-      queryClient.invalidateQueries({ queryKey: ['all-apps-admin'] });
-      queryClient.invalidateQueries({ queryKey: ['apps'] });
-    }
+    onSuccess: () => invalidateApps(queryClient),
   });
 }
 
@@ -124,65 +126,44 @@ export function useDeleteAppAdmin() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async (appId: string) => {
-      const { error } = await supabase
-        .from('apps')
-        .delete()
-        .eq('id', appId);
-
-      if (error) throw error;
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['pending-apps'] });
-      queryClient.invalidateQueries({ queryKey: ['all-apps-admin'] });
-      queryClient.invalidateQueries({ queryKey: ['apps'] });
-    }
+    mutationFn: (appId: string) => adminApi.delete(`/api/admin/apps/${appId}`),
+    onSuccess: () => invalidateApps(queryClient),
   });
 }
 
 // Category management
-export function useAdminCategories() {
+export function useAdminCategories(enabled = true) {
   return useQuery({
     queryKey: ['admin-categories'],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from('categories')
-        .select('*')
-        .order('type')
-        .order('sort_order');
-
-      if (error) throw error;
-      return data;
-    }
+    queryFn: () => adminApi.get<Category[]>('/api/admin/categories'),
+    enabled,
   });
 }
+
+type CategoryInput = {
+  name?: string;
+  slug?: string;
+  type?: string;
+  icon?: string | null;
+  color?: string | null;
+  description?: string | null;
+  sort_order?: number;
+};
+
+const pickCategory = (c: CategoryInput) => ({
+  name: c.name, slug: c.slug, type: c.type, icon: c.icon, color: c.color, description: c.description, sort_order: c.sort_order,
+});
 
 export function useCreateCategory() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async (category: {
-      name: string;
-      slug: string;
-      type: string;
-      icon?: string;
-      color?: string;
-      description?: string;
-      sort_order?: number;
-    }) => {
-      const { data, error } = await supabase
-        .from('categories')
-        .insert(category)
-        .select()
-        .single();
-
-      if (error) throw error;
-      return data;
-    },
+    mutationFn: (category: CategoryInput & { name: string; slug: string; type: string }) =>
+      adminApi.post<Category>('/api/admin/categories', pickCategory(category)),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['admin-categories'] });
       queryClient.invalidateQueries({ queryKey: ['categories'] });
-    }
+    },
   });
 }
 
@@ -190,27 +171,13 @@ export function useUpdateCategory() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async ({ id, ...updates }: {
-      id: string;
-      name?: string;
-      slug?: string;
-      type?: string;
-      icon?: string;
-      color?: string;
-      description?: string;
-      sort_order?: number;
-    }) => {
-      const { error } = await supabase
-        .from('categories')
-        .update(updates)
-        .eq('id', id);
-
-      if (error) throw error;
-    },
+    mutationFn: ({ id, ...updates }: CategoryInput & { id: string }) =>
+      adminApi.patch(`/api/admin/categories/${id}`, pickCategory(updates)),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['admin-categories'] });
       queryClient.invalidateQueries({ queryKey: ['categories'] });
-    }
+      queryClient.invalidateQueries({ queryKey: ['apps'] });
+    },
   });
 }
 
@@ -218,35 +185,37 @@ export function useDeleteCategory() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async (id: string) => {
-      const { error } = await supabase
-        .from('categories')
-        .delete()
-        .eq('id', id);
-
-      if (error) throw error;
-    },
+    mutationFn: (id: string) => adminApi.delete(`/api/admin/categories/${id}`),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['admin-categories'] });
       queryClient.invalidateQueries({ queryKey: ['categories'] });
-    }
+      queryClient.invalidateQueries({ queryKey: ['apps'] });
+    },
   });
 }
 
 // Resource management
-export function useAdminResources() {
+type ResourceInput = {
+  title?: string;
+  slug?: string;
+  excerpt?: string | null;
+  content?: string;
+  category?: string;
+  icon?: string | null;
+  sort_order?: number;
+  is_published?: boolean;
+};
+
+const pickResource = (r: ResourceInput) => ({
+  title: r.title, slug: r.slug, excerpt: r.excerpt, content: r.content, category: r.category,
+  icon: r.icon, sort_order: r.sort_order, is_published: r.is_published,
+});
+
+export function useAdminResources(enabled = true) {
   return useQuery({
     queryKey: ['admin-resources'],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from('resources')
-        .select('*')
-        .order('category')
-        .order('sort_order');
-
-      if (error) throw error;
-      return data;
-    }
+    queryFn: () => adminApi.get<Resource[]>('/api/admin/resources'),
+    enabled,
   });
 }
 
@@ -254,29 +223,12 @@ export function useCreateResource() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async (resource: {
-      title: string;
-      slug: string;
-      excerpt?: string;
-      content: string;
-      category: string;
-      icon?: string;
-      sort_order?: number;
-      is_published?: boolean;
-    }) => {
-      const { data, error } = await supabase
-        .from('resources')
-        .insert(resource)
-        .select()
-        .single();
-
-      if (error) throw error;
-      return data;
-    },
+    mutationFn: (resource: ResourceInput & { title: string; slug: string; content: string; category: string }) =>
+      adminApi.post<Resource>('/api/admin/resources', pickResource(resource)),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['admin-resources'] });
       queryClient.invalidateQueries({ queryKey: ['resources'] });
-    }
+    },
   });
 }
 
@@ -284,28 +236,13 @@ export function useUpdateResource() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async ({ id, ...updates }: {
-      id: string;
-      title?: string;
-      slug?: string;
-      excerpt?: string;
-      content?: string;
-      category?: string;
-      icon?: string;
-      sort_order?: number;
-      is_published?: boolean;
-    }) => {
-      const { error } = await supabase
-        .from('resources')
-        .update(updates)
-        .eq('id', id);
-
-      if (error) throw error;
-    },
+    mutationFn: ({ id, ...updates }: ResourceInput & { id: string }) =>
+      adminApi.patch(`/api/admin/resources/${id}`, pickResource(updates)),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['admin-resources'] });
       queryClient.invalidateQueries({ queryKey: ['resources'] });
-    }
+      queryClient.invalidateQueries({ queryKey: ['resource'] });
+    },
   });
 }
 
@@ -313,74 +250,31 @@ export function useDeleteResource() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async (id: string) => {
-      const { error } = await supabase
-        .from('resources')
-        .delete()
-        .eq('id', id);
-
-      if (error) throw error;
-    },
+    mutationFn: (id: string) => adminApi.delete(`/api/admin/resources/${id}`),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['admin-resources'] });
       queryClient.invalidateQueries({ queryKey: ['resources'] });
-    }
+    },
   });
 }
 
 // Idea management for admin
-export function useAdminIdeas() {
+export function useAdminIdeas(enabled = true) {
   return useQuery({
     queryKey: ['admin-ideas'],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from('ideas')
-        .select('*')
-        .order('created_at', { ascending: false });
-
-      if (error) throw error;
-
-      const userIds = [...new Set(data.flatMap(idea => [idea.user_id, idea.claimed_by].filter(Boolean)))];
-      const { data: profiles } = await supabase
-        .from('profiles')
-        .select('id, display_name, avatar_url')
-        .in('id', userIds);
-
-      const profileMap = new Map(profiles?.map(p => [p.id, p]) || []);
-
-      return data.map(idea => ({
-        ...idea,
-        profile: profileMap.get(idea.user_id) || null,
-        claimer_profile: idea.claimed_by ? profileMap.get(idea.claimed_by) || null : null
-      }));
-    }
+    queryFn: () => adminApi.get<AdminIdea[]>('/api/admin/ideas'),
+    enabled,
   });
 }
 
-export function useAdminIdeasStats() {
+export function useAdminIdeasStats(enabled = true) {
   return useQuery({
     queryKey: ['admin-ideas-stats'],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from('ideas')
-        .select('status, upvotes_count, comments_count');
-
-      if (error) throw error;
-
-      const stats = {
-        total: data.length,
-        open: data.filter(i => i.status === 'open').length,
-        claimed: data.filter(i => i.status === 'claimed').length,
-        built: data.filter(i => i.status === 'built').length,
-        totalUpvotes: data.reduce((sum, i) => sum + (i.upvotes_count || 0), 0),
-        totalComments: data.reduce((sum, i) => sum + (i.comments_count || 0), 0),
-        conversionRate: data.length > 0 
-          ? Math.round((data.filter(i => i.status === 'built').length / data.length) * 100) 
-          : 0
-      };
-
-      return stats;
-    }
+    queryFn: () => adminApi.get<{
+      total: number; open: number; claimed: number; built: number;
+      totalUpvotes: number; totalComments: number; conversionRate: number;
+    }>('/api/admin/ideas/stats'),
+    enabled,
   });
 }
 
@@ -388,27 +282,14 @@ export function useUpdateIdeaStatus() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async ({ ideaId, status }: { ideaId: string; status: 'open' | 'claimed' | 'built' }) => {
-      const updates: { status: typeof status; claimed_by?: string | null; claimed_at?: string | null } = { status };
-      
-      // Reset claim info if setting back to open
-      if (status === 'open') {
-        updates.claimed_by = null;
-        updates.claimed_at = null;
-      }
-
-      const { error } = await supabase
-        .from('ideas')
-        .update(updates)
-        .eq('id', ideaId);
-
-      if (error) throw error;
-    },
+    mutationFn: ({ ideaId, status }: { ideaId: string; status: 'open' | 'claimed' | 'built' }) =>
+      adminApi.patch(`/api/admin/ideas/${ideaId}`, { status }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['admin-ideas'] });
       queryClient.invalidateQueries({ queryKey: ['admin-ideas-stats'] });
       queryClient.invalidateQueries({ queryKey: ['ideas'] });
-    }
+      queryClient.invalidateQueries({ queryKey: ['idea'] });
+    },
   });
 }
 
@@ -416,18 +297,35 @@ export function useDeleteIdeaAdmin() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async (ideaId: string) => {
-      const { error } = await supabase
-        .from('ideas')
-        .delete()
-        .eq('id', ideaId);
-
-      if (error) throw error;
-    },
+    mutationFn: (ideaId: string) => adminApi.delete(`/api/admin/ideas/${ideaId}`),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['admin-ideas'] });
       queryClient.invalidateQueries({ queryKey: ['admin-ideas-stats'] });
       queryClient.invalidateQueries({ queryKey: ['ideas'] });
-    }
+    },
+  });
+}
+
+// Opening statistics
+export type AnalyticsPeriod = 7 | 30 | 90;
+
+export interface AppAnalytics {
+  period_days: number;
+  period_start: string;
+  period_end: string;
+  timezone: string;
+  tracking_since: string;
+  total_opens: number;
+  period_opens: number;
+  apps_opened: number;
+  apps: { id: string; title: string; status: string; total_opens: number; period_opens: number; upvotes: number; comments: number }[];
+  daily: { date: string; opens: number }[];
+}
+
+export function useAppAnalytics(days: AnalyticsPeriod) {
+  return useQuery({
+    queryKey: ['admin-app-analytics', days],
+    queryFn: () => adminApi.get<AppAnalytics>(`/api/admin/analytics?days=${days}`),
+    refetchInterval: 60_000,
   });
 }

@@ -1,8 +1,14 @@
 # Architecture rules
 
-- Admin and MCP must read app-opening reports through the same caller-scoped RPC and validated contract; timestamped events store no visitor identity and cannot reconstruct historical daily counts.
-
-- Reuse a shared app-thumbnail component across card variants so screenshot and fallback behavior stays consistent.
-- Keep password recovery on a public dedicated route and retain PASSWORD_RECOVERY state in the auth provider so lazy loading cannot lose the recovery event.
-- Profile reads must allow owners/admins and public contributors, not enumerate inactive accounts; retain recipient access to notification senders.
-- Agent API keys use a separate `mcp-key` edge function bundled from `src/lib/mcp` (scripts/build-mcp-key.mjs, run on Vite build) and share the same tool list; it acts as service_role only after `verify_agent_api_key` confirms an unrevoked, unexpired admin-owned key, because the MCP SDK only supports OAuth.
+- The site has no user accounts. Visitors suggest apps (`POST /api/submissions`, stored as `pending` with the
+  submitter's email) and post ideas anonymously; both are rate-limited per IP. Upvotes are anonymous: the
+  browser keeps a random id in localStorage and the server stores only sha256(id + server secret).
+- All data access goes through `server/store.mjs`, so the public API, the admin API and the MCP tools share
+  one set of rules. The frontend talks to the server only via `src/lib/api.ts`.
+- The server has no runtime npm dependencies (Node built-ins only, `node:sqlite`). Schema changes are new
+  entries appended to `MIGRATIONS` in `server/db.mjs` – never edit a released one.
+- Admin (`/api/admin/*`, `/admin`, `/mcp`) is protected by the `ADMIN_KEY` secret; without it these endpoints
+  answer 503 and the public site keeps working. Never log the admin key or email addresses.
+- Opening counts: `POST /api/apps/:id/click` counts only listed apps and logs a timestamped event without
+  visitor identity; the admin view and the `app_analytics` MCP tool read the same report.
+- Reuse a shared app-thumbnail component across card variants so screenshot and fallback behaviour stays consistent.

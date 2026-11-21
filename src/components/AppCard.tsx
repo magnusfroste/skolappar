@@ -134,10 +134,6 @@ export function AppCard({
                   <span className="truncate">av {creatorName}</span>
                 )}
                 <span className="flex items-center gap-1">
-                  <MessageCircle className="w-3.5 h-3.5" />
-                  {commentsCount}
-                </span>
-                <span className="flex items-center gap-1">
                   <MousePointerClick className="w-3.5 h-3.5" />
                   {clicksCount}
                 </span>
