@@ -37,6 +37,15 @@ export function PublicFooter() {
             <span className="text-muted-foreground"># Magnus Froste</span>
           </div>
         </div>
+        {/* What the gallery stands on – and where a parent can start */}
+        <p className="mt-4 text-center text-xs text-muted-foreground">
+          Byggs i{" "}
+          <a href="https://studio.shipholm.com/?utm_source=skolappar&utm_medium=referral" target="_blank" rel="noopener" className="underline underline-offset-4 hover:text-foreground">Shipholm Studio</a>
+          {" · "}körs på{" "}
+          <a href="https://shipholm.com/?utm_source=skolappar&utm_medium=referral" target="_blank" rel="noopener" className="underline underline-offset-4 hover:text-foreground">Shipholm</a>
+          {" · "}AI-kraft från{" "}
+          <a href="https://garageai.eu/?utm_source=skolappar&utm_medium=referral" target="_blank" rel="noopener" className="underline underline-offset-4 hover:text-foreground">GarageAI</a>
+        </p>
       </div>
     </footer>
   );

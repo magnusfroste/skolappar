@@ -244,6 +244,36 @@ Börja med att skapa mappstrukturen och de grundläggande komponenterna. Fokuser
 
 const platformInstructions = [
   {
+    name: "Shipholm Studio",
+    icon: "⛵",
+    instruction: "Klistra in som första meddelande – appen byggs direkt"
+  },
+  {
+    name: "Claude",
+    icon: "🟠",
+    instruction: "Klistra in i chatten, eller i Claude Code"
+  },
+  {
+    name: "ChatGPT",
+    icon: "💬",
+    instruction: "Klistra in i chatten"
+  },
+  {
+    name: "opencode",
+    icon: "⌨️",
+    instruction: "Klistra in som första uppgift"
+  },
+  {
+    name: "Kilo Code",
+    icon: "🧩",
+    instruction: "Klistra in som första uppgift"
+  },
+  {
+    name: "Google AI Studio",
+    icon: "✨",
+    instruction: "Klistra in under Build"
+  },
+  {
     name: "Lovable",
     icon: "💜",
     instruction: "Klistra in prompten direkt i chatten"

@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Link } from "react-router-dom";
-import { Rocket, ChevronRight } from "lucide-react";
+import { Rocket } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { PublicNav } from "@/components/PublicNav";
@@ -10,18 +10,10 @@ import { CategoryIcon } from "@/components/CategoryIcon";
 import { AppPlayer } from "@/components/AppPlayer";
 import { useTrackClick } from "@/hooks/useTrackClick";
 import { TopIdeasSection } from "@/components/TopIdeasSection";
+import { BuildYourOwn } from "@/components/BuildYourOwn";
 import { SEO, buildWebsiteSchema, buildOrganizationSchema, buildFaqSchema } from "@/components/SEO";
 import { useSiteConfig } from "@/hooks/useSiteConfig";
 import { useApps, useCategories } from "@/hooks/useApps";
-
-const AI_TOOLS = [
-  { name: "Lovable", slug: "lovable" },
-  { name: "Claude Code", slug: "claude-code" },
-  { name: "Google AI Studio", slug: "google-ai-studio" },
-  { name: "Bolt.new", slug: "bolt-new" },
-  { name: "Cursor", slug: "cursor" },
-  { name: "Replit", slug: "replit" },
-];
 
 const HOME_LIMIT = 12;
 const HOME_PAGE = 8;
@@ -86,6 +78,9 @@ export default function Index() {
             Skolappar av <span className="text-gradient">föräldrar</span>
           </h1>
           <p className="mt-3 text-lg text-muted-foreground">Gratis appar som gör lärande kul.</p>
+          <a href="#bygg-egen" className="mt-2 inline-block text-sm font-medium text-primary underline-offset-4 hover:underline">
+            Saknas en app? Bygg den själv ↓
+          </a>
         </div>
 
         {(subjects.length > 0 || ages.length > 0) && (
@@ -161,6 +156,9 @@ export default function Index() {
 
       <TopIdeasSection />
 
+      {/* Bygg en egen: Studio first, then the assistant you already have */}
+      <BuildYourOwn />
+
       {/* Dela din app */}
       <section className="container mx-auto px-4 py-12 pb-20">
         <div className="max-w-3xl mx-auto rounded-3xl bg-card/80 shadow-playful p-8 text-center space-y-5">
@@ -171,18 +169,6 @@ export default function Index() {
               <Rocket className="w-5 h-5" /> Tipsa om en app
             </Link>
           </Button>
-          <div className="flex flex-wrap gap-2 justify-center pt-2">
-            {AI_TOOLS.map((tool) => (
-              <Link
-                key={tool.slug}
-                to={`/resurser/plattformar/${tool.slug}`}
-                className="inline-flex items-center gap-1 px-3 py-1.5 rounded-full bg-muted text-sm hover:bg-primary hover:text-primary-foreground transition-colors"
-              >
-                {tool.name}
-                <ChevronRight className="w-3 h-3" />
-              </Link>
-            ))}
-          </div>
         </div>
       </section>
 
