@@ -4,8 +4,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { 
   Calculator, BookOpen, Grid3X3, Search, Move, 
-  Timer, Trophy, Flame, BarChart3, Copy, Check,
-  ExternalLink, ArrowRight, Rocket, Sparkles
+  Timer, Trophy, Flame, BarChart3, Copy, Check, ArrowRight, Rocket, Sparkles
 } from "lucide-react";
 import { toast } from "sonner";
 
@@ -244,11 +243,6 @@ Varje flik ska vara interaktiv och visa komponenten i aktion.
 Börja med att skapa mappstrukturen och de grundläggande komponenterna. Fokusera på att göra dem återanvändbara och konfiguerbara via props.`;
 
 const platformInstructions = [
-  {
-    name: "Lovable",
-    icon: "💜",
-    instruction: "Klistra in prompten direkt i chatten"
-  },
   {
     name: "Base44",
     icon: "🔵",
@@ -523,16 +517,6 @@ export function SkolpromptenTab() {
             Alla prompts
             <ArrowRight className="w-4 h-4" />
           </Link>
-        </Button>
-        <Button asChild variant="outline" className="gap-2">
-          <a 
-            href="https://lovable.dev/invite/YLXOX36" 
-            target="_blank" 
-            rel="noopener noreferrer"
-          >
-            Prova Lovable
-            <ExternalLink className="w-4 h-4" />
-          </a>
         </Button>
       </div>
     </div>

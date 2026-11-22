@@ -67,7 +67,7 @@ export default function TestYourApp() {
                   type="url"
                   value={url}
                   onChange={(e) => setUrl(e.target.value)}
-                  placeholder="https://din-app.lovable.app"
+                  placeholder="https://din-app.shipholm.dev"
                   className="pl-10 h-12 text-base"
                   required
                 />
