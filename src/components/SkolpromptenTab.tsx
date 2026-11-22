@@ -244,6 +244,11 @@ Börja med att skapa mappstrukturen och de grundläggande komponenterna. Fokuser
 
 const platformInstructions = [
   {
+    name: "Lovable",
+    icon: "💜",
+    instruction: "Klistra in prompten direkt i chatten"
+  },
+  {
     name: "Base44",
     icon: "🔵",
     instruction: "Lägg först i Custom Instructions, sedan i chatten"
