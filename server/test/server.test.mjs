@@ -586,7 +586,7 @@ describe('the open MCP: an agent submits an app and follows it', () => {
     const init = await rpc(pub, 'initialize', { protocolVersion: '2025-06-18', capabilities: {}, clientInfo: { name: 't', version: '1' } });
     assert.match(init.json.result.instructions, /submit_app/);
     const open = (await rpc(pub, 'tools/list')).json.result.tools.map((t) => t.name).sort();
-    assert.deepEqual(open, ['app_stats', 'app_status', 'check_app', 'get_app', 'get_curriculum', 'get_guide', 'get_skill', 'get_starter', 'list_apps', 'list_categories', 'list_ideas', 'list_resources', 'list_skills', 'set_my_app_image', 'submit_app', 'update_my_app', 'withdraw_my_app']);
+    assert.deepEqual(open, ['app_stats', 'app_status', 'check_app', 'get_app', 'get_curriculum', 'get_guide', 'get_skill', 'get_starter', 'list_apps', 'list_categories', 'list_ideas', 'list_resources', 'list_skills', 'publish_on_shipholm', 'set_my_app_image', 'submit_app', 'update_my_app', 'withdraw_my_app']);
     const keyed = (await rpc(admin, 'tools/list')).json.result.tools.map((t) => t.name);
     for (const name of ['update_app', 'list_submissions', 'submit_app', 'app_stats']) assert.ok(keyed.includes(name), name);
     assert.equal(keyed.length, new Set(keyed).size, 'no tool twice');

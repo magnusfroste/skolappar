@@ -155,7 +155,9 @@ export const GUIDE_SECTIONS = [
   {
     id: 'skicka-in',
     title: 'Skicka in appen',
-    body: `**Som förälder:** fyll i formuläret på skolappar.com/tipsa med appens adress och din e-postadress.
+    body: `**Ingen adress än?** Appen kan läggas ut på Shipholm, gratis för små appar och i Europa: \`publish_on_shipholm\` ger stegen. Föräldern godkänner i webbläsaren, och ingen nyckel behöver kopieras. Appen får \`<namn>.shipholm.dev\` direkt och \`<namn>.skolappar.com\` när den har godkänts. Alla andra värdar går lika bra.
+
+**Som förälder:** fyll i formuläret på skolappar.com/tipsa med appens adress och din e-postadress.
 
 **Som agent:** anslut till \`https://www.skolappar.com/mcp\` (MCP över HTTP, ingen nyckel) och gör så här:
 

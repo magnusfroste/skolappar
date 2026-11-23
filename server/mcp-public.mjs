@@ -116,6 +116,28 @@ export function createPublicTools({ store, images, checkApp, content, curriculum
       },
     },
     {
+      name: 'publish_on_shipholm',
+      title: 'Lägg ut appen på Shipholm',
+      description:
+        'Har appen ingen egen adress än? Så här lägger du ut den på Shipholm (europeisk drift, gratis för små appar) utan att föräldern behöver ' +
+        'kopiera någon nyckel. Svarar med stegen och kommandona. Appen får adressen <namn>.shipholm.dev direkt, och <namn>.skolappar.com när den har godkänts i katalogen.',
+      inputSchema: obj({ name: { type: 'string', pattern: '^[a-z0-9][a-z0-9-]{1,38}[a-z0-9]$', description: 'Önskat namn i adressen: små bokstäver, siffror och bindestreck, t.ex. klockjakten.' } }),
+      annotations: RO,
+      handler: ({ name = '<namn>' }) => ({
+        address_now: `https://${name}.shipholm.dev`,
+        address_when_listed: `https://${name}.skolappar.com`,
+        steps: [
+          'Bygg appen till en mapp med statiska filer (index.html överst). Startmallen är redan sådan.',
+          'Be om åtkomst: curl -s -X POST https://api.shipholm.com/agent/start -H "Content-Type: application/json" -d \'{"name": "<vad du är, t.ex. Claude Code hos Anna>"}\'',
+          'Visa föräldern verification_url och user_code ur svaret: "Öppna länken, logga in med Google eller e-post (första gången skapas ett gratis konto) och tryck Allow om koden stämmer."',
+          'Fråga efter nyckeln var femte sekund tills status är approved: curl -s -X POST https://api.shipholm.com/agent/token -H "Content-Type: application/json" -d \'{"device_code": "…"}\'. Spara token; den visas en gång.',
+          'Anslut till https://api.shipholm.com/mcp med Authorization: Bearer <token>. Hämta skillen shipholm-static-site (get_skill) och följ den: upload_site och sedan publish_site med appens namn.',
+          `Kontrollera adressen med check_app här, och skicka in med submit_app och url https://${name}.shipholm.dev. När appen godkänns byts adressen i katalogen till https://${name}.skolappar.com.`,
+        ],
+        note: 'Nyckeln gäller förälderns Shipholm-konto och kan dras tillbaka där under API keys. Lägg den aldrig i appens kod.',
+      }),
+    },
+    {
       name: 'list_categories',
       title: 'Lista kategorier',
       description: 'Ämnen (subject), årskurser (age), typer (app_type) och enheter (device) med id att ange i submit_app.',
@@ -205,7 +227,7 @@ export function createPublicTools({ store, images, checkApp, content, curriculum
         'Skicka in en app du har byggt och lagt ut på en egen https-adress. Den granskas (en gång om dagen) och publiceras sedan i katalogen. ' +
         'Kräver förälderns förnamn och e-postadress: föräldern får ett mejl med en länk att klicka på, och appen publiceras inte förrän det är gjort. ' +
         'Bara förnamnet visas; adressen visas aldrig. Svaret innehåller app_key – spara den, den visas bara nu – för update_my_app och withdraw_my_app. ' +
-        'Kortbild sätts efteråt med set_my_app_image.',
+        'Kortbild sätts efteråt med set_my_app_image. En app som ligger på Shipholm (<namn>.shipholm.dev) får adressen <namn>.skolappar.com när den godkänns.',
       inputSchema: obj({
         url: { type: 'string', format: 'uri', maxLength: 2048, description: 'Appens adress (https).' },
         title: { type: 'string', minLength: 2, maxLength: 120, description: 'Appens namn, två till fyra ord.' },
@@ -336,12 +358,14 @@ export function createPublicTools({ store, images, checkApp, content, curriculum
       description: 'Ta bort en app du skickat in, med dess app_key. En app som väntar raderas; en publicerad avlistas och försvinner ur katalogen.',
       inputSchema: obj({ id: uuid, app_key: { type: 'string', minLength: 10, maxLength: 100 } }, ['id', 'app_key']),
       annotations: { readOnlyHint: false, destructiveHint: true, openWorldHint: false },
-      handler: ({ id, app_key }) => {
+      handler: async ({ id, app_key }) => {
         const app = own({ id, app_key });
         if (['approved', 'featured'].includes(app.status)) {
           store.updateApp(id, { status: 'delisted', delist_reason: 'Tillbakadragen av skaparen' });
+          await store.syncAddress(id);   // an app on Shipholm goes back to the address it came with
           return { id, withdrawn: true, status: 'delisted' };
         }
+        await store.releaseAddress(id);
         store.deleteApp(id);
         return { id, withdrawn: true, status: 'deleted' };
       },

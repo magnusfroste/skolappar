@@ -35,7 +35,7 @@ function personOrNull(name) {
   return name ? { display_name: name, avatar_url: null } : null;
 }
 
-export function createStore(db, { mailer, curriculum, siteUrl = 'https://www.skolappar.com', log = console } = {}) {
+export function createStore(db, { mailer, curriculum, shipholm, siteUrl = 'https://www.skolappar.com', log = console } = {}) {
   const voterSalt = serverSecret(db);
 
   /** sha256(voter id + server secret) – the raw browser id is never stored. */
@@ -141,6 +141,8 @@ export function createStore(db, { mailer, curriculum, siteUrl = 'https://www.sko
     };
     if (admin) {
       app.check = checkSummary(r);
+      app.origin_url = r.origin_url;
+      app.address_note = r.address_note;
       app.submitter_email = r.submitter_email;
       app.submitter_note = r.submitter_note;
       app.email_confirmed = Boolean(r.email_confirmed);
@@ -369,6 +371,56 @@ export function createStore(db, { mailer, curriculum, siteUrl = 'https://www.sko
     return { app: getApp(id, { admin: true }), unknown_category_ids: unknown };
   }
 
+  // Names under skolappar.com that are never given to an app, whatever it is called on Shipholm.
+  const RESERVED_LABELS = new Set(['www', 'api', 'admin', 'app', 'apps', 'mail', 'mcp', 'bygg', 'starter', 'skills', 'images', 'cf-bounce',
+    'hermes', 'marre', 'skolappar', 'login', 'konto', 'help', 'hjalp', 'status', 'docs', 'blog', 'test', 'dev', 'staging', 'cdn', 'static']);
+
+  /**
+   * Make the app's address match its place in the catalogue. An app on Shipholm that is listed
+   * gets <name>.skolappar.com; when it leaves the catalogue it goes back to the address it came
+   * with. Safe to call at any time and more than once. Returns {url, changed, note}.
+   */
+  async function syncAddress(id) {
+    const r = db.prepare('SELECT id, url, status, origin_url FROM apps WHERE id = ?').get(id);
+    if (!r) return null;
+    const live = PUBLIC_STATUSES.includes(r.status);
+    const note = (text) => { db.prepare('UPDATE apps SET address_note = ? WHERE id = ?').run(text, id); return { url: r.url, changed: false, note: text }; };
+    if (live && !r.origin_url) {
+      const label = shipholm?.labelOf(r.url);
+      if (!label) return { url: r.url, changed: false, note: null };          // not on Shipholm: its own address stays
+      if (!shipholm.configured) return note('Ingen skolappar-adress: SHIPHOLM_API_KEY är inte satt.');
+      if (RESERVED_LABELS.has(label)) return note(`Ingen skolappar-adress: namnet "${label}" är reserverat.`);
+      try {
+        await shipholm.grant(label);
+      } catch (err) {
+        log.warn?.(`address for ${id}: ${err.message}`);
+        return note(`Ingen skolappar-adress: ${err.message}`);
+      }
+      const url = `https://${label}.${shipholm.ownDomain}/`;
+      db.prepare('UPDATE apps SET origin_url = url, url = ?, address_note = NULL, updated_at = ? WHERE id = ?').run(url, now(), id);
+      return { url, changed: true, note: null };
+    }
+    if (!live && r.origin_url) return releaseAddress(id);
+    return { url: r.url, changed: false, note: null };
+  }
+
+  /** Take the skolappar address back (before an app is deleted, or when it leaves the catalogue). */
+  async function releaseAddress(id) {
+    const r = db.prepare('SELECT url, origin_url FROM apps WHERE id = ?').get(id);
+    if (!r?.origin_url) return r ? { url: r.url, changed: false, note: null } : null;
+    const label = shipholm?.labelOf(r.origin_url);
+    let failed = null;
+    try {
+      if (label && shipholm.configured) await shipholm.revoke(label);
+    } catch (err) {
+      // the catalogue stops using the address either way; the note tells the reviewer it may still answer
+      failed = `Adressen ${r.url} kunde inte tas tillbaka hos Shipholm: ${err.message}`;
+      log.warn?.(`address for ${id}: ${err.message}`);
+    }
+    db.prepare('UPDATE apps SET url = origin_url, origin_url = NULL, address_note = ?, updated_at = ? WHERE id = ?').run(failed, now(), id);
+    return { url: r.origin_url, changed: true, note: failed };
+  }
+
   function maybeNotifyPublished(row, previousStatus) {
     if (!PUBLIC_STATUSES.includes(row.status) || PUBLIC_STATUSES.includes(previousStatus)) return;
     if (!row.submitter_email || !row.email_confirmed || row.published_notified_at) return;
@@ -482,7 +534,7 @@ export function createStore(db, { mailer, curriculum, siteUrl = 'https://www.sko
 
   /** Is a public app already listed at this address? */
   function listedAt(url) {
-    return db.prepare(`SELECT id FROM apps WHERE url = ? AND status IN ('approved','featured') LIMIT 1`).get(url)?.id || null;
+    return db.prepare(`SELECT id FROM apps WHERE (url = ? OR origin_url = ?) AND status IN ('approved','featured') LIMIT 1`).get(url, url)?.id || null;
   }
 
   /** Where a submitted app is in the review – open to anyone who has its id, nothing about the submitter. */
@@ -858,7 +910,7 @@ export function createStore(db, { mailer, curriculum, siteUrl = 'https://www.sko
     listPublicApps, listAdminApps, getApp, topApps, recentApps, relatedApps,
     createApp, updateApp, deleteApp, setAppCategories, trackClick,
     createSubmission, confirmEmail, sendConfirmation, resendMail,
-    appKeyMatches, saveCheck, setOwnImage, setCurriculum, curriculumUsed, listedAt, appStatus, appStats,
+    appKeyMatches, saveCheck, setOwnImage, setCurriculum, curriculumUsed, syncAddress, releaseAddress, listedAt, appStatus, appStats,
     toggleUpvote, myUpvotes,
     listResources, getResource, getResourceBySlug, createResource, updateResource, deleteResource,
     allSettings, listSettings, getSetting, setSetting,

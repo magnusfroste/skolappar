@@ -45,6 +45,7 @@ part, without a key, where a parent's agent submits the app it built and follows
 | `MAIL_CLOUDFLARE_ACCOUNT_ID` | for `cloudflare` | the Cloudflare account that owns the sending domain |
 | `MAIL_API_URL` | for `resend` | endpoint of a Resend-compatible API |
 | `SUBMIT_RATE_LIMIT` | no | submissions and ideas per IP and hour (default 5) |
+| `SHIPHOLM_API_KEY` | no (secret) | an API key of the Shipholm account that serves skolappar.com. With it an app at `<name>.shipholm.dev` gets `<name>.skolappar.com` when it is approved (Shipholm's `grant_subdomain`) and gives it back when it is delisted or deleted (`server/shipholm.mjs`, `syncAddress` in the store). Without it apps keep the address they came with |
 | `CHECK_RATE_LIMIT` | no | `check_app` calls without a key per IP and hour (default 30) |
 | `ALLOW_PRIVATE_FETCH` | no | `true` lets image downloads and `check_app` reach private addresses – local development only |
 
@@ -106,7 +107,7 @@ npm test            # node --test: server tests in server/test/
 - MCP, administration: `POST /mcp` with `Authorization: Bearer $ADMIN_KEY` (or an agent key, see `AGENT_KEY_HASHES`). Tools: `list_submissions`, `resend_mail`, `list_apps`, `get_app`,
   `create_app`, `update_app`, `set_app_image`, `delete_app`, ideas, resources, categories, settings,
   `platform_stats` and `app_analytics` – plus the open tools below. A wrong key is 401, never the open part.
-- MCP, open: `POST /mcp` without a key (`server/mcp-public.mjs`). Read: `get_guide`, `get_curriculum`, `get_starter`, `list_skills`, `get_skill`, `check_app`, `list_categories`, `list_apps`,
+- MCP, open: `POST /mcp` without a key (`server/mcp-public.mjs`). Read: `get_guide`, `publish_on_shipholm` (the steps to put an app on Shipholm: the parent allows it in the browser, no key to copy), `get_curriculum`, `get_starter`, `list_skills`, `get_skill`, `check_app`, `list_categories`, `list_apps`,
   `get_app`, `list_ideas`, `list_resources`, `app_status`, `app_stats` (openings and likes of any listed
   app; nothing about visitors). Write: `submit_app` (https address, title, description, the parent's first
   name and e-mail; same queue, confirmation mail and hourly limit per address as the form) answers with an
