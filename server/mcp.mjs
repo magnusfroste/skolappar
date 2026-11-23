@@ -48,7 +48,8 @@ export function createTools({ store, images }) {
       description:
         'Appar som besökare eller deras agenter skickat in och som väntar på granskning (status pending), äldst först, med tipsarens e-post, ' +
         'om adressen är bekräftad, tipsarens meddelande och mail (utfallet av bekräftelse- och publiceringsmejlet: ' +
-        'status sent, not_configured eller failed med reason och tid). Godkänn med update_app (status approved) efter att ha provat appen – ' +
+        'status sent, not_configured eller failed med reason och tid) och check (den automatiska kontrollen mot byggguiden: passed, failed, warnings; ' +
+        'kör om den med check_app och appens id). Godkänn med update_app (status approved) efter att ha provat appen – ' +
         'och bara när email_confirmed är true: en obekräftad adress betyder att föräldern inte har klickat på länken i mejlet än.',
       inputSchema: obj({ limit: { type: 'integer', minimum: 1, maximum: 200, default: 50 } }),
       annotations: RO,
@@ -368,9 +369,9 @@ function fail(message) {
   throw new ToolFailure(message);
 }
 
-export function createMcpHandler({ store, images, log = console }) {
+export function createMcpHandler({ store, images, checkApp, log = console }) {
   const adminTools = createTools({ store, images });
-  const publicTools = createPublicTools({ store, images, fail, imageHint: IMAGE_HINT, categoryHint: CATEGORY_HINT });
+  const publicTools = createPublicTools({ store, images, checkApp, fail, imageHint: IMAGE_HINT, categoryHint: CATEGORY_HINT });
   // With a key: the administration, plus the open tools it has no version of (submit_app, app_status …).
   const adminNames = new Set(adminTools.map((t) => t.name));
   const toolsFor = {

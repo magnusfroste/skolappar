@@ -1,6 +1,6 @@
 import { AppThumbnail } from '@/components/AppThumbnail';
 import { useParams, Link, useNavigate } from 'react-router-dom';
-import { ArrowLeft, ExternalLink, ChevronUp, Eye, Monitor, Tablet, Smartphone, Layers, Play } from 'lucide-react';
+import { BadgeCheck, ArrowLeft, ExternalLink, ChevronUp, Eye, Monitor, Tablet, Smartphone, Layers, Play } from 'lucide-react';
 import { AppPlayer } from '@/components/AppPlayer';
 import { useState } from 'react';
 import { format } from 'date-fns';
@@ -160,6 +160,16 @@ export default function AppDetail() {
         </div>
 
         {/* Categories & Device support */}
+        {app.guide_ok && (
+          <Link
+            to="/bygg"
+            title="Appens adress har kontrollerats mot guiden Så bygger du en skolapp"
+            className="inline-flex items-center gap-1.5 mb-4 rounded-full border border-primary/30 bg-primary/5 px-3 py-1 text-sm font-medium text-primary hover:bg-primary/10 transition-colors"
+          >
+            <BadgeCheck className="h-4 w-4" />
+            Följer guiden
+          </Link>
+        )}
         {app.categories.length > 0 && (
           <div className="space-y-3">
             {/* Regular categories */}

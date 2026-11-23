@@ -89,6 +89,21 @@ export function createStore(db, { mailer, siteUrl = 'https://www.skolappar.com',
 
   // ---------- apps ----------
 
+  /** The last automatic check, short: what failed and what was warned about. */
+  function checkSummary(r) {
+    if (!r.check_result) return null;
+    let result;
+    try { result = JSON.parse(r.check_result); } catch { return null; }
+    const of = (status) => (result.checks || []).filter((c) => c.status === status).map((c) => c.message);
+    return { passed: r.check_passed === 1, checked_at: r.checked_at, failed: of('fail'), warnings: of('warn') };
+  }
+
+  /** Keep the outcome of a check on the app. */
+  function saveCheck(id, result) {
+    db.prepare('UPDATE apps SET check_result = ?, check_passed = ?, checked_at = ? WHERE id = ?')
+      .run(JSON.stringify(result), result.passed ? 1 : 0, result.checked_at, id);
+  }
+
   function appRow(r, { admin = false } = {}) {
     const app = {
       id: r.id,
@@ -106,10 +121,13 @@ export function createStore(db, { mailer, siteUrl = 'https://www.skolappar.com',
       delist_reason: r.delist_reason,
       creator_name: r.creator_name,
       profile: personOrNull(r.creator_name),
+      // true when the last automatic check of the address found nothing that breaks the build guide
+      guide_ok: r.check_passed === 1,
       created_at: r.created_at,
       updated_at: r.updated_at,
     };
     if (admin) {
+      app.check = checkSummary(r);
       app.submitter_email = r.submitter_email;
       app.submitter_note = r.submitter_note;
       app.email_confirmed = Boolean(r.email_confirmed);
@@ -412,7 +430,7 @@ export function createStore(db, { mailer, siteUrl = 'https://www.skolappar.com',
 
   /** Where a submitted app is in the review – open to anyone who has its id, nothing about the submitter. */
   function appStatus(id) {
-    const r = db.prepare('SELECT id, title, url, status, email_confirmed, delist_reason, created_at, updated_at FROM apps WHERE id = ?').get(id);
+    const r = db.prepare('SELECT id, title, url, status, email_confirmed, delist_reason, created_at, updated_at, check_result, check_passed, checked_at FROM apps WHERE id = ?').get(id);
     if (!r) return null;
     const live = PUBLIC_STATUSES.includes(r.status);
     return {
@@ -420,6 +438,7 @@ export function createStore(db, { mailer, siteUrl = 'https://www.skolappar.com',
       email_confirmed: Boolean(r.email_confirmed),
       page: live ? `${siteUrl}/app/${r.id}` : null,
       reason: live ? null : r.delist_reason || null,
+      check: checkSummary(r),
       submitted_at: r.created_at, updated_at: r.updated_at,
     };
   }
@@ -782,7 +801,7 @@ export function createStore(db, { mailer, siteUrl = 'https://www.skolappar.com',
     listPublicApps, listAdminApps, getApp, topApps, recentApps, relatedApps,
     createApp, updateApp, deleteApp, setAppCategories, trackClick,
     createSubmission, confirmEmail, sendConfirmation, resendMail,
-    appKeyMatches, listedAt, appStatus, appStats,
+    appKeyMatches, saveCheck, listedAt, appStatus, appStats,
     toggleUpvote, myUpvotes,
     listResources, getResource, getResourceBySlug, createResource, updateResource, deleteResource,
     allSettings, listSettings, getSetting, setSetting,

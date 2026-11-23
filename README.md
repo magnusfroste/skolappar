@@ -22,6 +22,8 @@ part, without a key, where a parent's agent submits the app it built and follows
 | `server/store.mjs` | all reads and writes (shared by API, admin and MCP) |
 | `server/mcp.mjs` | MCP endpoint and the administration tools (JSON-RPC 2.0, plain JSON responses) |
 | `server/mcp-public.mjs` | the open MCP tools: read the catalogue, submit an app, follow it |
+| `server/check.mjs` | `check_app`: what an address shows about an app without a browser (https, no login, title, lang, viewport, icon, tracking, foreign scripts, links out, touch-action, weight), each finding pointing to a guide section. Run at `submit_app` and kept on the app (`check` for the reviewer and in `app_status`; `guide_ok` shows "Följer guiden" on the app's page) |
+| `server/safefetch.mjs` | fetches addresses given by visitors and agents (card images, `check_app`); refuses private, loopback and link-local addresses at every hop |
 | `server/guide.mjs` | the build guide "Så bygger du en skolapp": one text for the page `/bygg`, `/guide.md`, `/api/guide`, `llms.txt` and the MCP tool `get_guide` |
 | `server/importer.mjs` | one-shot import of the old Supabase data (`POST /api/admin/import`) |
 | `server/mailer.mjs` | outgoing mail behind one interface: Cloudflare, Brevo, a Resend-compatible API or a logging stub |
@@ -41,6 +43,8 @@ part, without a key, where a parent's agent submits the app it built and follows
 | `MAIL_CLOUDFLARE_ACCOUNT_ID` | for `cloudflare` | the Cloudflare account that owns the sending domain |
 | `MAIL_API_URL` | for `resend` | endpoint of a Resend-compatible API |
 | `SUBMIT_RATE_LIMIT` | no | submissions and ideas per IP and hour (default 5) |
+| `CHECK_RATE_LIMIT` | no | `check_app` calls without a key per IP and hour (default 30) |
+| `ALLOW_PRIVATE_FETCH` | no | `true` lets image downloads and `check_app` reach private addresses – local development only |
 
 ## Mail
 
@@ -100,7 +104,7 @@ npm test            # node --test: server tests in server/test/
 - MCP, administration: `POST /mcp` with `Authorization: Bearer $ADMIN_KEY` (or an agent key, see `AGENT_KEY_HASHES`). Tools: `list_submissions`, `resend_mail`, `list_apps`, `get_app`,
   `create_app`, `update_app`, `set_app_image`, `delete_app`, ideas, resources, categories, settings,
   `platform_stats` and `app_analytics` – plus the open tools below. A wrong key is 401, never the open part.
-- MCP, open: `POST /mcp` without a key (`server/mcp-public.mjs`). Read: `get_guide`, `list_categories`, `list_apps`,
+- MCP, open: `POST /mcp` without a key (`server/mcp-public.mjs`). Read: `get_guide`, `check_app`, `list_categories`, `list_apps`,
   `get_app`, `list_ideas`, `list_resources`, `app_status`, `app_stats` (openings and likes of any listed
   app; nothing about visitors). Write: `submit_app` (https address, title, description, the parent's first
   name and e-mail; same queue, confirmation mail and hourly limit per address as the form) answers with an
