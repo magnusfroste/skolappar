@@ -2,7 +2,7 @@
 // public API, the admin API and the MCP tools share one set of rules.
 import { randomUUID, randomBytes, createHash, timingSafeEqual } from 'node:crypto';
 import { transaction, serverSecret } from './db.mjs';
-import { appPublishedMail, confirmSubmissionMail } from './mailer.mjs';
+import { appKeysMail, appPublishedMail, confirmSubmissionMail } from './mailer.mjs';
 
 export const APP_STATUSES = ['pending', 'approved', 'rejected', 'featured', 'delisted'];
 export const PUBLIC_STATUSES = ['approved', 'featured'];
@@ -106,9 +106,115 @@ export function createStore(db, { mailer, curriculum, shipholm, siteUrl = 'https
   function setOwnImage(id, key, imageUrl) {
     if (!appKeyMatches(id, key)) return { error: 'key' };
     const r = db.prepare('SELECT status FROM apps WHERE id = ?').get(id);
-    if (!['pending', 'rejected'].includes(r.status)) return { error: 'listed' };
+    if (!['pending', 'rejected'].includes(r.status)) {
+      if (!PUBLIC_STATUSES.includes(r.status)) return { error: 'listed' };   // delisted: withdraw and submit again
+      proposeChange(id, { patch: { image_url: imageUrl } });                // listed: waits for review
+      return appStatus(id);
+    }
     updateApp(id, { image_url: imageUrl, ...(r.status === 'rejected' ? { status: 'pending' } : {}) });
     return appStatus(id);
+  }
+
+  // ---------- changes to a listed app, proposed by its creator ----------
+  // A listed app is never changed without a review: what its creator sends waits here, and the
+  // listed version stays until the reviewer (Hermes) approves the change.
+
+  const CHANGE_FIELDS = ['title', 'description', 'long_description', 'image_url'];
+
+  function parseChange(text) {
+    try { return text ? JSON.parse(text) : null; } catch { return null; }
+  }
+
+  /** Merge a proposal into the app's waiting change. patch: some of CHANGE_FIELDS; ids replace the lists. */
+  function proposeChange(id, { patch = {}, category_ids, curriculum_ids } = {}) {
+    const r = db.prepare('SELECT proposed_change FROM apps WHERE id = ?').get(id);
+    if (!r) return null;
+    const before = parseChange(r.proposed_change) || { fields: {} };
+    const fields = { ...before.fields };
+    for (const f of CHANGE_FIELDS) if (patch[f] !== undefined) fields[f] = patch[f];
+    const change = {
+      fields,
+      ...(category_ids ? { category_ids } : before.category_ids ? { category_ids: before.category_ids } : {}),
+      ...(curriculum_ids ? { curriculum_ids } : before.curriculum_ids ? { curriculum_ids: before.curriculum_ids } : {}),
+      at: now(),
+    };
+    db.prepare('UPDATE apps SET proposed_change = ?, change_note = NULL WHERE id = ?').run(JSON.stringify(change), id);
+    return change;
+  }
+
+  /** What waits: the listed version next to the proposal, oldest first. For the reviewer. */
+  function listChanges() {
+    return db.prepare(`SELECT id FROM apps WHERE proposed_change IS NOT NULL ORDER BY json_extract(proposed_change, '$.at')`).all()
+      .map((r) => {
+        const app = getApp(r.id, { admin: true });
+        const change = parseChange(db.prepare('SELECT proposed_change FROM apps WHERE id = ?').get(r.id).proposed_change);
+        const listed = Object.fromEntries(Object.keys(change.fields).map((f) => [f, app[f] ?? null]));
+        return { id: app.id, title: app.title, url: app.url, status: app.status, page: `${siteUrl}/app/${app.id}`, listed, proposed: change };
+      });
+  }
+
+  /** Approve (apply) or turn down a waiting change. Returns the app, or null when nothing waits. */
+  function reviewChange(id, approve, reason = null) {
+    const r = db.prepare('SELECT proposed_change FROM apps WHERE id = ?').get(id);
+    const change = parseChange(r?.proposed_change);
+    if (!change) return null;
+    if (approve) {
+      transaction(db, () => {
+        updateApp(id, change.fields, change.category_ids);
+        if (change.curriculum_ids) setCurriculum(id, change.curriculum_ids);
+        db.prepare('UPDATE apps SET proposed_change = NULL, change_note = NULL WHERE id = ?').run(id);
+      });
+    } else {
+      db.prepare('UPDATE apps SET proposed_change = NULL, change_note = ? WHERE id = ?').run(reason || 'Ändringen godkändes inte.', id);
+    }
+    return getApp(id, { admin: true });
+  }
+
+  // ---------- new app keys by e-mail ----------
+  // The address is never an identifier by itself: anyone can type it. It only receives a link, and
+  // whoever opens that link (the parent) gets new keys and hands them to their agent.
+
+  const RECOVERY_TTL = 24 * 3600 * 1000;
+  const RECOVERIES_PER_ADDRESS = 3;           // per day
+
+  /** Mail a recovery link if the address has apps. Answers the same either way (no address lookup). */
+  async function startKeyRecovery(email) {
+    const address = String(email || '').trim().toLowerCase();
+    const apps = db.prepare('SELECT COUNT(*) AS n FROM apps WHERE lower(submitter_email) = ?').get(address).n;
+    const since = new Date(Date.now() - RECOVERY_TTL).toISOString();
+    const recent = db.prepare('SELECT COUNT(*) AS n FROM key_recoveries WHERE email = ? AND created_at >= ?').get(address, since).n;
+    if (!apps || recent >= RECOVERIES_PER_ADDRESS || !mailer) return;
+    const token = randomBytes(24).toString('base64url');
+    db.prepare('INSERT INTO key_recoveries (token_hash, email, created_at) VALUES (?, ?, ?)')
+      .run(createHash('sha256').update(token).digest('hex'), address, now());
+    await mailer.send({ to: address, ...appKeysMail({ siteUrl, token }) }).catch(() => {});
+  }
+
+  function recoveryOf(token) {
+    if (typeof token !== 'string' || !/^[A-Za-z0-9_-]{20,64}$/.test(token)) return null;
+    const r = db.prepare('SELECT * FROM key_recoveries WHERE token_hash = ?').get(createHash('sha256').update(token).digest('hex'));
+    if (!r || r.used_at || Date.parse(r.created_at) + RECOVERY_TTL < Date.now()) return null;
+    return r;
+  }
+
+  /** Is the link still good? (The page shows a button first, so a mail scanner opening it changes nothing.) */
+  const keyRecoveryValid = (token) => Boolean(recoveryOf(token));
+
+  /**
+   * Use the link once: every app of that address gets a new key (old ones stop working) and its
+   * address counts as confirmed – the link went to it. Returns [{id, title, status, app_key}] or null.
+   */
+  function finishKeyRecovery(token) {
+    const r = recoveryOf(token);
+    if (!r) return null;
+    return transaction(db, () => {
+      db.prepare('UPDATE key_recoveries SET used_at = ? WHERE token_hash = ?').run(now(), r.token_hash);
+      return db.prepare(`SELECT id, title, status FROM apps WHERE lower(submitter_email) = ? ORDER BY created_at`).all(r.email).map((a) => {
+        const key = `sapp_${randomBytes(24).toString('base64url')}`;
+        db.prepare('UPDATE apps SET app_key_hash = ?, email_confirmed = 1 WHERE id = ?').run(createHash('sha256').update(key).digest('hex'), a.id);
+        return { id: a.id, title: a.title, status: a.status, app_key: key };
+      });
+    });
   }
 
   /** Keep the outcome of a check on the app. */
@@ -142,6 +248,7 @@ export function createStore(db, { mailer, curriculum, shipholm, siteUrl = 'https
     if (admin) {
       app.check = checkSummary(r);
       app.origin_url = r.origin_url;
+      app.proposed_change = parseChange(r.proposed_change);
       app.address_note = r.address_note;
       app.submitter_email = r.submitter_email;
       app.submitter_note = r.submitter_note;
@@ -539,7 +646,7 @@ export function createStore(db, { mailer, curriculum, shipholm, siteUrl = 'https
 
   /** Where a submitted app is in the review – open to anyone who has its id, nothing about the submitter. */
   function appStatus(id) {
-    const r = db.prepare('SELECT id, title, url, status, email_confirmed, delist_reason, created_at, updated_at, check_result, check_passed, checked_at FROM apps WHERE id = ?').get(id);
+    const r = db.prepare('SELECT id, title, url, status, email_confirmed, delist_reason, created_at, updated_at, check_result, check_passed, checked_at, proposed_change, change_note FROM apps WHERE id = ?').get(id);
     if (!r) return null;
     const live = PUBLIC_STATUSES.includes(r.status);
     return {
@@ -548,6 +655,9 @@ export function createStore(db, { mailer, curriculum, shipholm, siteUrl = 'https
       page: live ? `${siteUrl}/app/${r.id}` : null,
       reason: live ? null : r.delist_reason || null,
       check: checkSummary(r),
+      // a change to a listed app waits for review; the listed version stays until then
+      change: r.proposed_change ? { waiting: true, fields: Object.keys(parseChange(r.proposed_change)?.fields || {}), at: parseChange(r.proposed_change)?.at }
+        : r.change_note ? { waiting: false, reason: r.change_note } : null,
       submitted_at: r.created_at, updated_at: r.updated_at,
     };
   }
@@ -910,7 +1020,7 @@ export function createStore(db, { mailer, curriculum, shipholm, siteUrl = 'https
     listPublicApps, listAdminApps, getApp, topApps, recentApps, relatedApps,
     createApp, updateApp, deleteApp, setAppCategories, trackClick,
     createSubmission, confirmEmail, sendConfirmation, resendMail,
-    appKeyMatches, saveCheck, setOwnImage, setCurriculum, curriculumUsed, syncAddress, releaseAddress, listedAt, appStatus, appStats,
+    appKeyMatches, saveCheck, proposeChange, listChanges, reviewChange, startKeyRecovery, keyRecoveryValid, finishKeyRecovery, setOwnImage, setCurriculum, curriculumUsed, syncAddress, releaseAddress, listedAt, appStatus, appStats,
     toggleUpvote, myUpvotes,
     listResources, getResource, getResourceBySlug, createResource, updateResource, deleteResource,
     allSettings, listSettings, getSetting, setSetting,

@@ -94,6 +94,7 @@ export function createApp(config, { fetchImpl = globalThis.fetch, fetchOutside, 
   const submitLimiter = createRateLimiter({ limit: config.submitLimit, windowMs: HOUR });
   const checkLimiter = createRateLimiter({ limit: config.checkLimit || 30, windowMs: HOUR });
   const uploadLimiter = createRateLimiter({ limit: 20, windowMs: HOUR });
+  const recoverLimiter = createRateLimiter({ limit: 5, windowMs: HOUR });
   const ideaLimiter = createRateLimiter({ limit: config.submitLimit, windowMs: HOUR });
   const voteLimiter = createRateLimiter({ limit: config.voteLimit, windowMs: HOUR });
 
@@ -452,6 +453,7 @@ export function createApp(config, { fetchImpl = globalThis.fetch, fetchOutside, 
       role,
       submitAllowed: () => submitLimiter.hit(clientIp(req)),
       checkAllowed: () => (role === 'admin' ? { ok: true } : checkLimiter.hit(clientIp(req))),
+      recoverAllowed: () => recoverLimiter.hit(clientIp(req)),
     });
     if (out === null) {
       res.writeHead(202);
@@ -472,6 +474,22 @@ export function createApp(config, { fetchImpl = globalThis.fetch, fetchOutside, 
 main{max-width:480px;background:#fff;border-radius:24px;padding:32px;box-shadow:0 8px 30px rgba(0,0,0,.08);text-align:center}
 a{display:inline-block;margin-top:16px;padding:12px 20px;border-radius:999px;background:#f0613a;color:#fff;text-decoration:none;font-weight:600}</style></head>
 <body><main><h1>${escapeHtml(title)}</h1><p>${escapeHtml(text)}</p><a href="/">Till Skolappar</a></main></body></html>`;
+  }
+
+  function simplePage(title, text, extra = '') {
+    return `<!doctype html><html lang="sv"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex"><title>${escapeHtml(title)} – Skolappar</title>
+<style>body{font-family:ui-rounded,system-ui,sans-serif;background:#fffcf5;color:#1f1f33;display:flex;min-height:100vh;align-items:center;justify-content:center;margin:0;padding:16px}
+main{max-width:560px;background:#fff;border-radius:24px;padding:32px;box-shadow:0 8px 30px rgba(0,0,0,.08)}
+button,a.btn{display:inline-block;margin-top:16px;padding:12px 20px;border:0;border-radius:999px;background:#f0613a;color:#fff;text-decoration:none;font:inherit;font-weight:600;cursor:pointer}
+li{margin:12px 0}code{display:block;margin-top:4px;padding:8px 10px;background:#f4efe3;border-radius:8px;word-break:break-all;user-select:all}</style></head>
+<body><main><h1>${escapeHtml(title)}</h1><p>${escapeHtml(text)}</p>${extra}</main></body></html>`;
+  }
+
+  function keysPage(apps) {
+    if (!apps.length) return simplePage('Inga appar', 'Det finns inga appar för den här adressen längre.');
+    const list = apps.map((a) => `<li><strong>${escapeHtml(a.title)}</strong><br>id: <code>${escapeHtml(a.id)}</code>nyckel: <code>${escapeHtml(a.app_key)}</code></li>`).join('');
+    return simplePage('Nya nycklar', 'Ge id och nyckel till din agent. Nycklarna visas bara nu; de gamla gäller inte längre.', `<ul>${list}</ul><a class="btn" href="/">Till Skolappar</a>`);
   }
 
   // When the site lives on www.<domain>, the bare <domain> redirects there (one address for
@@ -513,7 +531,7 @@ a{display:inline-block;margin-top:16px;padding:12px 20px;border-radius:999px;bac
       return sendJson(res, 200, result);
     }
 
-    if (req.method !== 'GET' && req.method !== 'HEAD') throw new HttpError(405, 'Method not allowed');
+    if (req.method !== 'GET' && req.method !== 'HEAD' && !(req.method === 'POST' && path.startsWith('/nyckel/'))) throw new HttpError(405, 'Method not allowed');
 
     if (path.startsWith('/images/')) {
       const f = images.file(path.slice('/images/'.length));
@@ -566,6 +584,20 @@ a{display:inline-block;margin-top:16px;padding:12px 20px;border-radius:999px;bac
     if (path === '/sitemap.xml') {
       return sendText(res, 200, buildSitemap(store, config.siteUrl), 'application/xml; charset=utf-8', { 'Cache-Control': 'public, max-age=3600' });
     }
+    // new app keys: the mailed link shows a button first (a mail scanner opening it changes nothing)
+    const keys = /^\/nyckel\/([^/]+)\/?$/.exec(path);
+    if (keys) {
+      const page = (status, html) => sendText(res, status, html, 'text/html; charset=utf-8', { 'Cache-Control': 'no-store', 'X-Robots-Tag': 'noindex' });
+      if (req.method === 'POST') {
+        const apps = store.finishKeyRecovery(keys[1]);
+        return apps ? page(200, keysPage(apps)) : page(410, simplePage('Länken fungerar inte', 'Länken är för gammal eller redan använd. Be din agent fråga efter nya nycklar igen.'));
+      }
+      return store.keyRecoveryValid(keys[1])
+        ? page(200, simplePage('Nya nycklar till dina appar', 'Tryck på knappen så får du en ny nyckel för varje app du skickat in. De gamla nycklarna slutar gälla.',
+          `<form method="post"><button type="submit">Visa nya nycklar</button></form>`))
+        : page(410, simplePage('Länken fungerar inte', 'Länken är för gammal eller redan använd. Be din agent fråga efter nya nycklar igen.'));
+    }
+
     const confirm = /^\/bekrafta\/([^/]+)\/?$/.exec(path);
     if (confirm) {
       const ok = store.confirmEmail(confirm[1]);
@@ -603,6 +635,7 @@ a{display:inline-block;margin-top:16px;padding:12px 20px;border-radius:999px;bac
     submitLimiter.stop();
     checkLimiter.stop();
     uploadLimiter.stop();
+    recoverLimiter.stop();
     ideaLimiter.stop();
     voteLimiter.stop();
     return new Promise((resolve) => {

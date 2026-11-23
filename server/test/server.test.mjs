@@ -586,7 +586,7 @@ describe('the open MCP: an agent submits an app and follows it', () => {
     const init = await rpc(pub, 'initialize', { protocolVersion: '2025-06-18', capabilities: {}, clientInfo: { name: 't', version: '1' } });
     assert.match(init.json.result.instructions, /submit_app/);
     const open = (await rpc(pub, 'tools/list')).json.result.tools.map((t) => t.name).sort();
-    assert.deepEqual(open, ['app_stats', 'app_status', 'check_app', 'get_app', 'get_curriculum', 'get_guide', 'get_skill', 'get_starter', 'list_apps', 'list_categories', 'list_ideas', 'list_resources', 'list_skills', 'publish_on_shipholm', 'set_my_app_image', 'submit_app', 'update_my_app', 'withdraw_my_app']);
+    assert.deepEqual(open, ['app_stats', 'app_status', 'check_app', 'get_app', 'get_curriculum', 'get_guide', 'get_skill', 'get_starter', 'list_apps', 'list_categories', 'list_ideas', 'list_resources', 'list_skills', 'publish_on_shipholm', 'recover_app_keys', 'set_my_app_image', 'submit_app', 'update_my_app', 'withdraw_my_app']);
     const keyed = (await rpc(admin, 'tools/list')).json.result.tools.map((t) => t.name);
     for (const name of ['update_app', 'list_submissions', 'submit_app', 'app_stats']) assert.ok(keyed.includes(name), name);
     assert.equal(keyed.length, new Set(keyed).size, 'no tool twice');
@@ -669,10 +669,28 @@ describe('the open MCP: an agent submits an app and follows it', () => {
     assert.deepEqual([status.status, status.published, status.page], ['approved', true, `https://skolappar.test/app/${id}`]);
     assert.equal((await call(pub, 'get_app', { id })).data.creator_name, 'Anna-Karin');
 
-    // published: no more changes with the key, but it can be withdrawn
-    assert.match((await call(pub, 'update_my_app', { id, app_key: key, title: 'Något annat' })).text, /publicerad/);
-    assert.match((await call(pub, 'set_my_app_image', { id, app_key: key, svg })).text, /publicerad/);
-    assert.equal((await put(key, PNG)).status, 409);
+    // published: a change waits for review while the listed version stays
+    const proposed = await call(pub, 'update_my_app', { id, app_key: key, title: 'Något annat', curriculum_ids: ['MA.1-3.1.4'] });
+    assert.equal(proposed.ok, true, proposed.text);
+    assert.equal(proposed.data.change.waiting, true);
+    assert.deepEqual(proposed.data.change.fields, ['title']);
+    assert.equal((await call(pub, 'get_app', { id })).data.title, 'Robotens räknespel', 'the listed version stays');
+    assert.equal((await call(pub, 'set_my_app_image', { id, app_key: key, svg })).ok, true);
+    assert.equal((await put(key, PNG)).status, 200);
+    const queue = (await call(admin, 'list_changes')).data.find((c) => c.id === id);
+    assert.deepEqual(Object.keys(queue.proposed.fields).sort(), ['image_url', 'title']);
+    assert.equal(queue.listed.title, 'Robotens räknespel');
+    assert.deepEqual(queue.proposed.curriculum_ids, ['MA.1-3.1.4']);
+    assert.match((await call(admin, 'review_change', { id, approve: false })).text, /reason/);
+    const turned = (await call(admin, 'review_change', { id, approve: false, reason: 'Titeln ska vara på svenska.' })).data;
+    assert.equal(turned.title, 'Robotens räknespel');
+    assert.deepEqual((await call(pub, 'app_status', { id })).data.change, { waiting: false, reason: 'Titeln ska vara på svenska.' });
+    await call(pub, 'update_my_app', { id, app_key: key, title: 'Robotens räknebana', curriculum_ids: ['MA.1-3.1.4'] });
+    const applied = (await call(admin, 'review_change', { id, approve: true })).data;
+    assert.equal(applied.title, 'Robotens räknebana');
+    assert.deepEqual(applied.curriculum.map((p) => p.id), ['MA.1-3.1.4']);
+    assert.equal((await call(pub, 'app_status', { id })).data.change, null);
+    assert.equal((await call(admin, 'review_change', { id, approve: true })).ok, false, 'nothing waits any more');
     assert.equal((await call(pub, 'withdraw_my_app', { id, app_key: 'sapp_wrongwrongwrongwrongwrongwrongwr' })).ok, false);
     assert.deepEqual((await call(pub, 'withdraw_my_app', { id, app_key: key })).data, { id, withdrawn: true, status: 'delisted' });
     assert.equal((await call(pub, 'get_app', { id })).ok, false);

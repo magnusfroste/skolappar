@@ -18,6 +18,7 @@ export default defineConfig(() => ({
       "/skills": "http://localhost:8787",
       "/sitemap.xml": "http://localhost:8787",
       "/bekrafta": "http://localhost:8787",
+      "/nyckel": "http://localhost:8787",
     },
   },
   plugins: [react()],

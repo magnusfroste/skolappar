@@ -143,3 +143,15 @@ export function appPublishedMail({ siteUrl, appId, title }) {
       `Tack för att du delar med dig!\n\n– Skolappar`,
   };
 }
+
+export function appKeysMail({ siteUrl, token }) {
+  const link = `${siteUrl}/nyckel/${token}`;
+  return {
+    subject: 'Nycklar till dina appar – Skolappar',
+    text:
+      `Hej!\n\nNågon – troligen din AI-agent – bad om nya nycklar till apparna du har skickat in till Skolappar.\n\n` +
+      `Öppna länken och tryck på knappen, så får du en ny nyckel per app. Ge nyckeln till din agent; de gamla slutar gälla:\n` +
+      `${link}\n\nLänken gäller i ett dygn och kan användas en gång.\n\n` +
+      `Har du inte bett om det kan du bortse från det här mejlet. Ingenting ändras förrän någon öppnar länken.\n\n– Skolappar`,
+  };
+}
