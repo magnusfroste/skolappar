@@ -25,6 +25,7 @@ part, without a key, where a parent's agent submits the app it built and follows
 | `server/check.mjs` | `check_app`: what an address shows about an app without a browser (https, no login, title, lang, viewport, icon, tracking, foreign scripts, links out, touch-action, weight), each finding pointing to a guide section. Run at `submit_app` and kept on the app (`check` for the reviewer and in `app_status`; `guide_ok` shows "Följer guiden" on the app's page) |
 | `server/safefetch.mjs` | fetches addresses given by visitors and agents (card images, `check_app`); refuses private, loopback and link-local addresses at every hop |
 | `server/content.mjs`, `server/content/` | the starter template (`content/starter/`, live at `/starter/`, MCP `get_starter`) and the agent skills (`content/skills/<name>/SKILL.md`, `/skills`, MCP `list_skills`/`get_skill`): plain files, read at start |
+| `server/curriculum.mjs`, `server/content/lgr22.json` | Lgr22: the central content of 17 subjects from Skolverket's open Syllabus API, built by `node scripts/lgr22.mjs` (run again when a syllabus changes, and read the diff: ids are by position). MCP `get_curriculum`, `GET /api/curriculum`; an app is linked with `curriculum_ids` (table `app_curriculum`), shown on its page and filtered on with `/api/apps?lgr=<area>` |
 | `server/guide.mjs` | the build guide "Så bygger du en skolapp": one text for the page `/bygg`, `/guide.md`, `/api/guide`, `llms.txt` and the MCP tool `get_guide` |
 | `server/importer.mjs` | one-shot import of the old Supabase data (`POST /api/admin/import`) |
 | `server/mailer.mjs` | outgoing mail behind one interface: Cloudflare, Brevo, a Resend-compatible API or a logging stub |
@@ -105,7 +106,7 @@ npm test            # node --test: server tests in server/test/
 - MCP, administration: `POST /mcp` with `Authorization: Bearer $ADMIN_KEY` (or an agent key, see `AGENT_KEY_HASHES`). Tools: `list_submissions`, `resend_mail`, `list_apps`, `get_app`,
   `create_app`, `update_app`, `set_app_image`, `delete_app`, ideas, resources, categories, settings,
   `platform_stats` and `app_analytics` – plus the open tools below. A wrong key is 401, never the open part.
-- MCP, open: `POST /mcp` without a key (`server/mcp-public.mjs`). Read: `get_guide`, `get_starter`, `list_skills`, `get_skill`, `check_app`, `list_categories`, `list_apps`,
+- MCP, open: `POST /mcp` without a key (`server/mcp-public.mjs`). Read: `get_guide`, `get_curriculum`, `get_starter`, `list_skills`, `get_skill`, `check_app`, `list_categories`, `list_apps`,
   `get_app`, `list_ideas`, `list_resources`, `app_status`, `app_stats` (openings and likes of any listed
   app; nothing about visitors). Write: `submit_app` (https address, title, description, the parent's first
   name and e-mail; same queue, confirmation mail and hourly limit per address as the form) answers with an

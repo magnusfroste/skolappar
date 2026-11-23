@@ -2,6 +2,7 @@
 // the catalogue, submits the app it built, follows the review and reads how the app is used.
 // submit_app hands out a key for that one app; update_my_app and withdraw_my_app take it.
 import { createHash, randomBytes } from 'node:crypto';
+import { POINT_ID, AREA_ID } from './curriculum.mjs';
 import { GUIDE_SECTIONS, guideMarkdown, guideSectionIds } from './guide.mjs';
 
 const uuid = { type: 'string', format: 'uuid' };
@@ -17,6 +18,7 @@ export const PUBLIC_INSTRUCTIONS =
   'Du behöver ingen nyckel. Arbetsgången finns som skills (list_skills, get_skill) och en färdig startmall med get_starter. Läs get_guide INNAN du bygger: den säger vad en skolapp ska klara (iPad och touch, inget konto, ' +
   'svenska, återkoppling) och slutar med en checklista. Gör så här när appen är byggd och ligger på en egen https-adress: ' +
   '0) check_app – kontrollera adressen och rätta det som är fail. ' +
+  'Välj vad appen ska träna med get_curriculum (Lgr22) och ange punkterna som curriculum_ids. ' +
   '1) list_categories – välj ämne, årskurs och typ. 2) list_apps – se att appen inte redan finns. ' +
   '3) submit_app – skicka in den med förälderns förnamn och e-postadress. Spara app_key ur svaret: den visas en gång. ' +
   '4) Be föräldern klicka på länken i mejlet från Skolappar; utan det publiceras appen inte. ' +
@@ -24,13 +26,19 @@ export const PUBLIC_INSTRUCTIONS =
   'Saknas en idé? list_ideas visar vad lärare och föräldrar önskar sig.';
 
 /** Tools open to everyone. `fail` throws the caller's ToolFailure; ctx carries the request's rate limit. */
-export function createPublicTools({ store, images, checkApp, content, siteUrl, fail, imageHint, categoryHint }) {
+export function createPublicTools({ store, images, checkApp, content, curriculum, siteUrl, fail, imageHint, categoryHint }) {
+  const curriculumIds = { type: 'array', items: { type: 'string', pattern: POINT_ID }, maxItems: 8, description: 'Vad i läroplanen (Lgr22) appen tränar: id för en till tre punkter i det centrala innehållet, från get_curriculum. Välj bara det appen faktiskt övar.' };
+  const linkCurriculum = (id, ids) => {
+    const unknown = store.setCurriculum(id, ids);
+    if (unknown.length) fail(`Okända punkter i Lgr22: ${unknown.join(', ')}. Hämta id med get_curriculum.`);
+  };
   const own = ({ id, app_key }) => {
     if (!store.appKeyMatches(id, app_key)) fail('Fel app eller nyckel. Nyckeln är den som submit_app svarade med.');
     return store.getApp(id, { admin: true });
   };
   const publicView = (a) => a && {
     id: a.id, title: a.title, description: a.description, long_description: a.long_description, url: a.url,
+    curriculum: a.curriculum,
     image_url: a.image_url, creator_name: a.creator_name, opens: a.clicks_count, likes: a.upvotes_count,
     categories: a.categories, created_at: a.created_at,
   };
@@ -83,6 +91,28 @@ export function createPublicTools({ store, images, checkApp, content, siteUrl, f
       handler: ({ name }) => {
         const skill = content?.skill(name) ?? fail('Ingen skill med det namnet. Se list_skills.');
         return { name: skill.name, description: skill.description, markdown: skill.content };
+      },
+    },
+    {
+      name: 'get_curriculum',
+      title: 'Läroplanen (Lgr22): centralt innehåll',
+      description:
+        'Det centrala innehållet i grundskolans kursplaner (Lgr22), från Skolverkets öppna data. Utan argument: ämnena med stadier (1-3, 4-6, 7-9) och områden. ' +
+        'Med subject, stage, area eller search: punkterna, var och en med ett id (t.ex. MA.1-3.1.2). Använd det för att välja vad appen ska träna innan du bygger, ' +
+        'och ange sedan id:n som curriculum_ids i submit_app. Skolappars årskurser: FK–2 och delar av 3–6 hör till stadiet 1-3, 3–6 annars till 4-6.',
+      inputSchema: obj({
+        subject: { type: 'string', maxLength: 40, description: 'Ämnets kod eller namn, t.ex. MA eller Matematik.' },
+        stage: { type: 'string', enum: ['1-3', '4-6', '7-9', '1-6'], description: 'Stadium. Hem- och konsumentkunskap har 1-6.' },
+        area: { type: 'string', pattern: AREA_ID, description: 'Ett områdes id, t.ex. MA.1-3.1.' },
+        search: { type: 'string', minLength: 2, maxLength: 80, description: 'Ord som ska finnas i punkten eller områdets namn, t.ex. bråk eller klockan.' },
+        limit: { type: 'integer', minimum: 1, maximum: 200, default: 60 },
+      }),
+      annotations: RO,
+      handler: ({ subject, stage, area, search, limit = 60 }) => {
+        if (!curriculum) fail('Läroplanen är inte tillgänglig just nu.');
+        const source = `Skolverket, ${curriculum.source.name} (hämtad ${curriculum.source.fetched})`;
+        if (!subject && !stage && !area && !search) return { source, subjects: curriculum.overview() };
+        return { source, points: curriculum.search({ subject, stage, area, q: search, limit }) };
       },
     },
     {
@@ -184,6 +214,7 @@ export function createPublicTools({ store, images, checkApp, content, siteUrl, f
         first_name: { type: 'string', pattern: FIRST_NAME, description: 'Förälderns förnamn – bara förnamnet, inget efternamn och inte barnets namn.' },
         email: { type: 'string', format: 'email', maxLength: 254, description: 'Förälderns e-postadress, för bekräftelse och besked.' },
         category_ids: { type: 'array', items: uuid, maxItems: 20, description: categoryHint },
+        curriculum_ids: curriculumIds,
         note: { type: 'string', maxLength: 2000, description: 'Valfritt meddelande till den som granskar.' },
       }, ['url', 'title', 'description', 'first_name', 'email']),
       annotations: RW,
@@ -199,6 +230,7 @@ export function createPublicTools({ store, images, checkApp, content, siteUrl, f
           long_description: input.long_description, note: input.note, creator_name: input.first_name,
           categoryIds: input.category_ids, keyHash: createHash('sha256').update(appKey).digest('hex'),
         });
+        const unknownPoints = input.curriculum_ids ? store.setCurriculum(id, input.curriculum_ids) : [];
         store.sendConfirmation(id).catch(() => {});
         // the reviewer sees the outcome next to the submission; app_status shows it to the agent
         checkApp?.(input.url).then((result) => store.saveCheck(id, result)).catch(() => {});
@@ -210,6 +242,7 @@ export function createPublicTools({ store, images, checkApp, content, siteUrl, f
             'Spara app_key: den visas inte igen.',
           ],
           ...(unknown_category_ids.length ? { unknown_category_ids } : {}),
+          ...(unknownPoints.length ? { unknown_curriculum_ids: unknownPoints } : {}),
         };
       },
     },
@@ -279,10 +312,11 @@ export function createPublicTools({ store, images, checkApp, content, siteUrl, f
         description: { type: 'string', minLength: 10, maxLength: 500 },
         long_description: { type: 'string', maxLength: 10000 },
         category_ids: { type: 'array', items: uuid, maxItems: 20, description: `Ersätter appens samtliga kategorier. ${categoryHint}` },
+        curriculum_ids: { ...curriculumIds, description: `Ersätter appens koppling till Lgr22. ${curriculumIds.description}` },
         image_url: { type: 'string', format: 'uri', maxLength: 2048, description: 'En bild på en publik adress; den laddas ner och sparas hos Skolappar.' },
       }, ['id', 'app_key']),
       annotations: { ...RW, openWorldHint: true },
-      handler: async ({ id, app_key, category_ids, image_url, ...fields }) => {
+      handler: async ({ id, app_key, category_ids, curriculum_ids, image_url, ...fields }) => {
         const app = own({ id, app_key });
         if (!['pending', 'rejected'].includes(app.status)) {
           fail('Appen är publicerad och kan inte ändras här. Dra tillbaka den (withdraw_my_app) och skicka in på nytt.');
@@ -290,8 +324,9 @@ export function createPublicTools({ store, images, checkApp, content, siteUrl, f
         const patch = Object.fromEntries(Object.entries(fields).filter(([, v]) => v !== undefined));
         if (image_url) patch.image_url = (await images.download(image_url)).url;
         if (app.status === 'rejected') patch.status = 'pending';
-        if (!Object.keys(patch).length && !category_ids) fail('Inget att ändra.');
-        store.updateApp(id, patch, category_ids);
+        if (!Object.keys(patch).length && !category_ids && !curriculum_ids) fail('Inget att ändra.');
+        if (curriculum_ids) linkCurriculum(id, curriculum_ids);
+        if (Object.keys(patch).length || category_ids) store.updateApp(id, patch, category_ids);
         return store.appStatus(id);
       },
     },

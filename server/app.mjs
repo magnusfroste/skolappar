@@ -1,5 +1,6 @@
 // The HTTP application: routes for the public API, admin API, MCP, images,
 // SEO files and the single-page frontend.
+import { loadCurriculum } from './curriculum.mjs';
 import { loadContent } from './content.mjs';
 import { createSafeFetch } from './safefetch.mjs';
 import { createChecker } from './check.mjs';
@@ -82,10 +83,11 @@ export function createApp(config, { fetchImpl = globalThis.fetch, fetchOutside, 
   config.dataDir = usableDataDir(config.dataDir, log);
   const db = openDatabase(config.dataDir);
   const mailer = createMailer(config.env || {}, { fetchImpl, log });
-  const store = createStore(db, { mailer, siteUrl: config.siteUrl, log });
+  const curriculum = loadCurriculum();
+  const store = createStore(db, { mailer, curriculum, siteUrl: config.siteUrl, log });
   const images = createImageStore(config.dataDir, db);
   const importer = createImporter({ store, images, fetchImpl: fetchOutside, log });
-  const mcp = createMcpHandler({ store, images: { ...images, download: (u) => images.download(u, { fetchImpl: fetchOutside }) }, checkApp, content, siteUrl: config.siteUrl, log });
+  const mcp = createMcpHandler({ store, images: { ...images, download: (u) => images.download(u, { fetchImpl: fetchOutside }) }, checkApp, content, curriculum, siteUrl: config.siteUrl, log });
   const statics = createStatic(config.distDir);
   const submitLimiter = createRateLimiter({ limit: config.submitLimit, windowMs: HOUR });
   const checkLimiter = createRateLimiter({ limit: config.checkLimit || 30, windowMs: HOUR });
@@ -255,6 +257,7 @@ export function createApp(config, { fetchImpl = globalThis.fetch, fetchOutside, 
     subjects: csv(query.get('subjects')),
     ages: csv(query.get('ages')),
     types: csv(query.get('types')),
+    curriculumArea: query.get('lgr')?.trim() || undefined,
     sort: query.get('sort') || 'newest',
   }));
   route('GET', '/api/apps/top', () => store.topApps(5));
@@ -270,6 +273,12 @@ export function createApp(config, { fetchImpl = globalThis.fetch, fetchOutside, 
   route('GET', '/api/upvotes', ({ req }) => store.myUpvotes(voterId(req)));
   route('GET', '/api/stats', () => store.publicStats());
   route('GET', '/api/guide', () => guide());
+  // Lgr22: without a filter the subjects and their areas; with one, the points
+  route('GET', '/api/curriculum', ({ query }) => {
+    const filter = { subject: query.get('subject') || undefined, stage: query.get('stage') || undefined, area: query.get('area') || undefined, q: query.get('q') || undefined };
+    return Object.values(filter).some(Boolean) ? { source: curriculum.source, points: curriculum.search(filter) } : { source: curriculum.source, subjects: curriculum.overview() };
+  });
+  route('GET', '/api/curriculum/used', () => store.curriculumUsed());
   route('GET', '/api/resources', ({ query }) => store.listResources({ category: query.get('category') || undefined }));
   route('GET', '/api/resources/:slug', ({ params }) => found(store.getResourceBySlug(params.slug), 'Resource not found'));
   route('GET', '/api/settings', () => store.allSettings());

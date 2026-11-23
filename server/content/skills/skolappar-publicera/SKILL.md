@@ -25,7 +25,8 @@ Kontrollen spelar inte appen – prova själv på iPad-storlek också.
 2. `list_apps` med sökning – finns appen redan?
 3. Fråga föräldern om **förnamn** och **e-postadress**. Gissa aldrig, och använd inte barnets namn.
 4. `submit_app` med adress, namn (två till fyra ord), kort beskrivning, kategorier, förnamn och
-   e-post. Skriv i `long_description` hur appen fungerar och vad i Lgr22 den tränar.
+   e-post. Ange i `curriculum_ids` de punkter i Lgr22 som appen tränar (id från `get_curriculum`),
+   och skriv i `long_description` hur appen fungerar.
 5. **Spara `app_key`** ur svaret där du kan hitta den igen (till exempel i projektets anteckningar,
    inte i appens kod). Den visas en gång och är det enda som låter dig ändra eller dra tillbaka appen.
 6. Sätt kortbilden – se skillen `skolappar-kortbild`.

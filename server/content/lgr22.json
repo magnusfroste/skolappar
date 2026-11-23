@@ -1,0 +1,2141 @@
+{
+ "source": {
+  "name": "Syllabus API",
+  "publisher": "Skolverket",
+  "documentation": "https://www.skolverket.se/om-oss/oppna-data/api-for-laroplaner-kurs--och-amnesplaner-syllabus",
+  "fetched": "2026-11-23"
+ },
+ "subjects": [
+  {
+   "code": "BL",
+   "name": "Bild",
+   "syllabus": "GRGRBIL01",
+   "version": 13,
+   "modified": "2024-02-09",
+   "regulation": "2010:37, ändrad 2022:8",
+   "stages": [
+    {
+     "stage": "1-3",
+     "areas": [
+      {
+       "name": "Bildframställning",
+       "points": [
+        "Framställning av berättande bilder, till exempel sagobilder och illustrationer till berättelser.",
+        "Teckning, måleri, modellering och konstruktion.",
+        "Återanvändning av bilder, till exempel i kollage.",
+        "Fotografering och överföring av bilder med hjälp av digitala verktyg.",
+        "Etiska frågor som kan uppstå vid framställning och användning av bilder i olika sammanhang."
+       ]
+      },
+      {
+       "name": "Tekniker, verktyg och material",
+       "points": [
+        "Olika element som bygger upp form, yta samt för- och bakgrund i en bild, till exempel linjer och färg.",
+        "Några verktyg och material för teckning, måleri, modellering och konstruktioner samt för fotografering och annat digitalt arbete med bilder."
+       ]
+      },
+      {
+       "name": "Bildanalys",
+       "points": [
+        "Samtida och historiska bilder och vad bilderna berättar, till exempel dokumentära bilder och konstbilder.",
+        "Bilder ur elevernas visuella kulturer som gestaltar normer och stereotyper."
+       ]
+      }
+     ]
+    },
+    {
+     "stage": "4-6",
+     "areas": [
+      {
+       "name": "Bildframställning",
+       "points": [
+        "Framställning av berättande och informativa bilder, till exempel serier och illustrationer till text.",
+        "Teckning, måleri, tryck och tredimensionellt arbete.",
+        "Återanvändning och bearbetning av bilder, till exempel i kollage och bildmontage.",
+        "Fotografi, film och annat digitalt bildskapande samt redigering av fotografi och rörlig bild.",
+        "Rättigheter och skyldigheter samt etiska frågeställningar vid användning av bilder i olika sammanhang."
+       ]
+      },
+      {
+       "name": "Tekniker, verktyg och material",
+       "points": [
+        "Olika element som bygger upp och skapar rumslighet i två- och tredimensionella bilder, till exempel linjer, färg och hur kombinationer av dessa kan användas i bildskapande arbete.",
+        "Verktyg och material för teckning, måleri, trycktekniker, tredimensionellt arbete, fotografering, arbete med rörlig bild och digital bildbehandling."
+       ]
+      },
+      {
+       "name": "Bildanalys",
+       "points": [
+        "Konst- och dokumentärbilder samt arkitektur från olika tider och kulturer.",
+        "Mediebilder, till exempel reklam- och nyhetsbilder.",
+        "Bilder ur elevernas visuella kulturer som gestaltar identitet, grupptillhörighet och normer.",
+        "Hur bilder påverkar och förmedlar budskap. Ord och begrepp för att kunna samtala om bilders innehåll, uttryck och funktioner."
+       ]
+      }
+     ]
+    },
+    {
+     "stage": "7-9",
+     "areas": [
+      {
+       "name": "Bildframställning",
+       "points": [
+        "Framställning av berättande, informativa och samhällsorienterande bilder om frågor som är angelägna för eleverna.",
+        "Två- och tredimensionellt bildarbete.",
+        "Kombinationer av bild, ljud, objekt och text i eget bildskapande.",
+        "Digitalt skapande och digital bearbetning av fotografier, rörlig bild och andra typer av bilder.",
+        "Presentationer av eget bildskapande från idé och process till slutgiltigt resultat.",
+        "Rättigheter och skyldigheter samt etiska frågeställningar vid användning och spridning av bilder. Eventuella konflikter mellan yttrandefrihet och integritet vid användning och spridning av bilder."
+       ]
+      },
+      {
+       "name": "Tekniker, verktyg och material",
+       "points": [
+        "Former, färger och bildkompositioner samt deras betydelsebärande egenskaper och hur dessa kan användas i bildskapande arbete.",
+        "Verktyg och material för två- och tredimensionellt bildarbete. Hur dessa verktyg och material kan användas för bestämda syften."
+       ]
+      },
+      {
+       "name": "Bildanalys",
+       "points": [
+        "Samtida konst- och dokumentärbilder samt konst och arkitektur från olika tider och kulturer. Hur bilderna och verken är utformade och vilka budskap de förmedlar.",
+        "Mediebilders utformning och påverkan och hur dessa bilder kan tolkas och kritiskt granskas.",
+        "Bilder som behandlar identitet och maktrelationer, till exempel sexualitet, etnicitet och kön. Hur dessa perspektiv gestaltas och konstrueras.",
+        "Hur bilder kan kopplas till egna erfarenheter och företeelser i elevernas visuella kulturer. Ord och begrepp för att kunna läsa, skriva och samtala om bilders innehåll, uttryck och funktioner."
+       ]
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "code": "BI",
+   "name": "Biologi",
+   "syllabus": "GRGRBIO01",
+   "version": 14,
+   "modified": "2024-02-09",
+   "regulation": "2010:37, ändrad 2022:8",
+   "stages": [
+    {
+     "stage": "1-3",
+     "areas": [
+      {
+       "name": "Året runt i naturen",
+       "points": [
+        "Årstidsväxlingar i naturen. Några djurs och växters livscykler och anpassningar till olika livsmiljöer och årstider.",
+        "Djur, växter och svampar i närmiljön, hur de kan grupperas samt namn på några vanligt förekommande arter.",
+        "Enkla näringskedjor som beskriver samband mellan organismer i ekosystem."
+       ]
+      },
+      {
+       "name": "Kropp och hälsa",
+       "points": [
+        "Några av människans organ, deras namn och översiktliga funktion.",
+        "Människans upplevelser av ljus, ljud, värme, smak och doft med hjälp av olika sinnen.",
+        "Betydelsen av kost, sömn, hygien, motion och sociala relationer för att må bra."
+       ]
+      },
+      {
+       "name": "Kraft och rörelse",
+       "points": [
+        "Tyngdkraft, tyngdpunkt, jämvikt, balans och friktion som kan upplevas och observeras vid lek och rörelse.",
+        "Solsystemets himlakroppar och deras rörelser. Människan i rymden."
+       ]
+      },
+      {
+       "name": "Material och ämnen",
+       "points": [
+        "Hur material kan sorteras efter några egenskaper, till exempel utseende, om de är magnetiska och om de flyter eller sjunker i vatten. Hur materialen kan återvinnas.",
+        "Några blandningar och hur de kan delas upp i sina olika beståndsdelar, till exempel genom avdunstning och filtrering.",
+        "Vattnets olika former: fast, flytande och gas. Avdunstning, kokning, kondensering, smältning och stelning."
+       ]
+      },
+      {
+       "name": "Systematiska undersökningar",
+       "points": [
+        "Enkla fältstudier, observationer och experiment. Utförande och dokumentation av undersökningarna med ord, bilder och digitala verktyg.",
+        "Några berättelser om hur naturvetenskaplig kunskap vuxit fram."
+       ]
+      }
+     ]
+    },
+    {
+     "stage": "4-6",
+     "areas": [
+      {
+       "name": "Natur och miljö",
+       "points": [
+        "Vad liv är och hur livets utveckling kan förklaras med evolutionsteorin. Biologisk mångfald och organismers anpassningar till miljön.",
+        "Näringskedjor och kretslopp i närmiljön. Djurs, växters och svampars samspel med varandra och hur några miljöfaktorer påverkar dem. Fotosyntes och cellandning.",
+        "Hur djur, växter och svampar kan identifieras och grupperas på ett systematiskt sätt, samt namn på några vanligt förekommande arter.",
+        "Människans beroende av och påverkan på naturen med koppling till naturbruk, hållbar utveckling och ekosystemtjänster. Naturen som resurs och vårt ansvar när vi nyttjar den."
+       ]
+      },
+      {
+       "name": "Kropp och hälsa",
+       "points": [
+        "Människans organsystem. Några organs namn, utseende, placering, funktion och samverkan.",
+        "Några vanliga sjukdomar och hur de kan förebyggas och behandlas. Hur den psykiska och fysiska hälsan påverkas av levnadsförhållanden, kost, sömn, hygien, motion och beroendeframkallande medel.",
+        "Människans pubertet, reproduktion, sexualitet och identitet samt frågor om relationer, kärlek och ansvar."
+       ]
+      },
+      {
+       "name": "Systematiska undersökningar och granskning av information",
+       "points": [
+        "Fältstudier och experiment med såväl analoga som digitala verktyg. Planering, utförande, värdering av resultat samt dokumentation med ord, bilder och tabeller.",
+        "Några upptäckter inom biologiområdet och deras betydelse för människans levnadsvillkor och syn på naturen.",
+        "Kritisk granskning och användning av information som rör biologi."
+       ]
+      }
+     ]
+    },
+    {
+     "stage": "7-9",
+     "areas": [
+      {
+       "name": "Natur och miljö",
+       "points": [
+        "Livets uppkomst, utveckling och mångfald samt evolutionens mekanismer. Arvsmassans egenskaper och förhållandet mellan arv och miljö.",
+        "Några gentekniska metoder samt möjligheter, risker och etiska frågor kopplade till genteknik.",
+        "Lokala och globala ekosystem. Sambanden mellan populationer och tillgängliga resurser. Fotosyntes, cellandning, materiens kretslopp och energins flöden.",
+        "Människans påverkan på naturen lokalt och globalt samt hur man på individ- och samhällsnivå kan främja hållbar utveckling. Betydelsen av biologisk mångfald och ekosystemtjänster."
+       ]
+      },
+      {
+       "name": "Kropp och hälsa",
+       "points": [
+        "Kroppens celler samt några organ och organsystem och deras uppbyggnad, funktion och samverkan.",
+        "Virus, bakterier, infektioner, smittspridning och antibiotikaresistens. Hur infektionssjukdomar kan förebyggas och behandlas.",
+        "Hur den psykiska och fysiska hälsan påverkas av levnadsförhållanden, kost, sömn, motion, stress och beroendeframkallande medel samt hur hälsoproblem kan begränsas på individ- och samhällsnivå.",
+        "Människans reproduktion, sexualitet och identitet samt frågor om relationer, kärlek, ansvar, samtycke och ömsesidighet. Sexuellt överförbara sjukdomar och preventivmedel."
+       ]
+      },
+      {
+       "name": "Systematiska undersökningar och granskning av information",
+       "points": [
+        "Fältstudier och experiment med såväl analoga som digitala verktyg. Formulering av undersökningsbara frågor, planering, utförande, värdering av resultat samt dokumentation med bilder, tabeller, diagram och rapporter.",
+        "Sambandet mellan biologiska undersökningar och utvecklingen av begrepp och förklaringsmodeller. De biologiska förklaringsmodellernas historiska framväxt, användbarhet och föränderlighet.",
+        "Informationssökning, kritisk granskning och användning av information som rör biologi. Argumentation och ställningstaganden i aktuella frågor som rör miljö och hälsa."
+       ]
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "code": "EN",
+   "name": "Engelska",
+   "syllabus": "GRGRENG01",
+   "version": 14,
+   "modified": "2024-02-09",
+   "regulation": "2010:37, ändrad 2022:8",
+   "stages": [
+    {
+     "stage": "1-3",
+     "areas": [
+      {
+       "name": "Kommunikationens innehåll",
+       "points": [
+        "Ämnesområden som är välbekanta för eleverna.",
+        "Vardagliga situationer, intressen, personer och platser.",
+        "Vardagsliv och levnadssätt i olika sammanhang och områden där engelska används."
+       ]
+      },
+      {
+       "name": "Lyssna och läsa – reception",
+       "points": [
+        "Tydligt talad engelska och enkla texter som är instruerande, beskrivande och kontaktskapande, från olika medier, även i kombination med illustrationer.",
+        "Enkla dialoger och samtal.",
+        "Filmer och dramatiserade berättelser för barn.",
+        "Sånger, ramsor, dikter och sagor.",
+        "Ord och fraser i närmiljön, till exempel på skyltar, i reklam och andra enkla texter."
+       ]
+      },
+      {
+       "name": "Tala, skriva och samtala – produktion och interaktion",
+       "points": [
+        "Enkla presentationer, meddelanden, beskrivningar och dialoger i tal och skrift.",
+        "Enkla samtal.",
+        "Sånger, ramsor och dramatiseringar."
+       ]
+      }
+     ]
+    },
+    {
+     "stage": "4-6",
+     "areas": [
+      {
+       "name": "Kommunikationens innehåll",
+       "points": [
+        "Ämnesområden som är välbekanta för eleverna.",
+        "Vardagliga situationer, intressen, personer, platser, aktiviteter och händelser.",
+        "Åsikter, känslor och erfarenheter.",
+        "Vardagsliv, levnadssätt och sociala relationer i olika sammanhang och områden där engelska används, även i jämförelse med egna erfarenheter och kunskaper. Engelskans utbredning i världen."
+       ]
+      },
+      {
+       "name": "Lyssna och läsa – reception",
+       "points": [
+        "Tydligt talad engelska och enkla texter som är instruerande, beskrivande och kontaktskapande, från olika medier.",
+        "Dialoger, samtal och intervjuer.",
+        "Berättelser och annan fiktion för barn och unga, även i talad eller dramatiserad form.",
+        "Sånger, dikter och sagor.",
+        "Muntliga och skriftliga meddelanden samt information, till exempel reklam, tidtabeller och notiser.",
+        "Strategier för att uppfatta betydelsebärande ord och sammanhang samt för att anpassa lyssnande och läsning till framställningens form och innehåll.",
+        "Sökning av enkel information i ett avgränsat urval av muntliga och skriftliga källor av olika slag för användning i egen produktion och interaktion.",
+        "Språkliga företeelser, däribland uttal, ord och fasta språkliga uttryck, grammatiska strukturer samt stavning, i det språk eleverna möter.",
+        "Hur olika formuleringar används för att inleda och avsluta olika typer av framställningar och samtal."
+       ]
+      },
+      {
+       "name": "Tala, skriva och samtala – produktion och interaktion",
+       "points": [
+        "Samtal och skrivande för kontakt och kommunikation.",
+        "Presentationer, instruktioner, meddelanden, berättelser och beskrivningar i sammanhängande tal och skrift.",
+        "Strategier, däribland omformuleringar, frågor och stödjande fraser, för att bidra till och underlätta samtal och skriftlig interaktion, även digital.",
+        "Språkliga företeelser, däribland uttal, ord, artighetsfraser, tilltalsord och andra fasta språkliga uttryck, samt grammatiska strukturer och stavning i elevernas egen produktion och interaktion.",
+        "Bearbetning av egna muntliga och skriftliga framställningar för att förtydliga och anpassa kommunikationen efter syfte och mottagare."
+       ]
+      }
+     ]
+    },
+    {
+     "stage": "7-9",
+     "areas": [
+      {
+       "name": "Kommunikationens innehåll",
+       "points": [
+        "Aktuella och för eleven bekanta ämnesområden.",
+        "Vardagliga situationer, intressen, aktiviteter och händelseförlopp.",
+        "Åsikter, känslor, erfarenheter och framtidsplaner samt relationer och etiska frågor.",
+        "Levnadsvillkor, traditioner, sociala relationer och kulturella företeelser i olika sammanhang och områden där engelska används, även i jämförelse med egna erfarenheter och kunskaper."
+       ]
+      },
+      {
+       "name": "Lyssna och läsa – reception",
+       "points": [
+        "Talad engelska, även med inslag av regional och sociolektal variation, och texter, från olika medier.",
+        "Talad engelska och texter som är instruerande, informerande, beskrivande, berättande, diskuterande, argumenterande och kontaktskapande – varje slag för sig eller i olika kombinationer – till exempel samtal, intervjuer, nyheter, reportage och tidningsartiklar.",
+        "Skönlitteratur och annan fiktion, även i talad och filmatiserad form.",
+        "Sånger och dikter.",
+        "Strategier för att uppfatta detaljer och förstå sammanhang samt för att anpassa lyssnande och läsning till framställningens form, innehåll och syfte.",
+        "Sökning och värdering av innehåll i muntliga och skriftliga källor av olika slag, utifrån olika syften.",
+        "Språkliga företeelser, däribland uttal, grammatiska strukturer och satsbyggnad, ord med olika stilvärden och fasta språkliga uttryck samt stavning, i det språk eleverna möter.",
+        "Hur sammanbindande ord och andra uttryck används för att skapa struktur och språkligt sammanhängande helheter."
+       ]
+      },
+      {
+       "name": "Tala, skriva och samtala – produktion och interaktion",
+       "points": [
+        "Samtal, diskussion och skrivande där eleverna berättar, beskriver, instruerar och motiverar sina åsikter.",
+        "Strategier för att bidra till och underlätta samtal och skriftlig interaktion, även digital, till exempel genom att ge bekräftelse, ställa följdfrågor, lyssna aktivt, formulera om, förklara, bidra med nya infallsvinklar och avsluta på ett artigt sätt.",
+        "Språkliga företeelser, däribland uttal, ord och fasta språkliga uttryck, grammatiska strukturer och satsbyggnad samt stavning i elevernas egen produktion och interaktion.",
+        "Bearbetning av egna muntliga och skriftliga framställningar för att förtydliga, variera, precisera och anpassa kommunikationen efter syfte, mottagare och sammanhang."
+       ]
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "code": "FY",
+   "name": "Fysik",
+   "syllabus": "GRGRFYS01",
+   "version": 14,
+   "modified": "2024-02-09",
+   "regulation": "2010:37, ändrad 2022:8",
+   "stages": [
+    {
+     "stage": "1-3",
+     "areas": [
+      {
+       "name": "Året runt i naturen",
+       "points": [
+        "Årstidsväxlingar i naturen. Några djurs och växters livscykler och anpassningar till olika livsmiljöer och årstider.",
+        "Djur, växter och svampar i närmiljön, hur de kan grupperas samt namn på några vanligt förekommande arter.",
+        "Enkla näringskedjor som beskriver samband mellan organismer i ekosystem."
+       ]
+      },
+      {
+       "name": "Kropp och hälsa",
+       "points": [
+        "Några av människans organ, deras namn och översiktliga funktion.",
+        "Människans upplevelser av ljus, ljud, värme, smak och doft med hjälp av olika sinnen.",
+        "Betydelsen av kost, sömn, hygien, motion och sociala relationer för att må bra."
+       ]
+      },
+      {
+       "name": "Kraft och rörelse",
+       "points": [
+        "Tyngdkraft, tyngdpunkt, jämvikt, balans och friktion som kan upplevas och observeras vid lek och rörelse.",
+        "Solsystemets himlakroppar och deras rörelser. Människan i rymden."
+       ]
+      },
+      {
+       "name": "Material och ämnen",
+       "points": [
+        "Hur material kan sorteras efter några egenskaper, till exempel utseende, om de är magnetiska och om de flyter eller sjunker i vatten. Hur materialen kan återvinnas.",
+        "Några blandningar och hur de kan delas upp i sina olika beståndsdelar, till exempel genom avdunstning och filtrering.",
+        "Vattnets olika former: fast, flytande och gas. Avdunstning, kokning, kondensering, smältning och stelning."
+       ]
+      },
+      {
+       "name": "Systematiska undersökningar",
+       "points": [
+        "Enkla fältstudier, observationer och experiment. Utförande och dokumentation av undersökningarna med ord, bilder och digitala verktyg.",
+        "Några berättelser om hur naturvetenskaplig kunskap vuxit fram."
+       ]
+      }
+     ]
+    },
+    {
+     "stage": "4-6",
+     "areas": [
+      {
+       "name": "Fysiken i naturen och samhället",
+       "points": [
+        "Hur dag, natt, årstider och år kan förklaras utifrån rörelser hos solsystemets himlakroppar.",
+        "Vanliga väderfenomen och deras orsaker, till exempel hur vindar och nederbörd uppstår.",
+        "Energiformer samt olika typer av energikällor och deras påverkan på miljön.",
+        "Energiflöden mellan föremål som har olika temperatur. Hur man kan påverka energiflödena med hjälp av olika värmeledande och isolerande material.",
+        "Hur ljus och ljud breder ut sig och kan reflekteras.",
+        "Elektriska kretsar med batterier. Hur de kan kopplas och hur de kan användas i vardaglig elektrisk utrustning.",
+        "Krafter och rörelser som kan observeras och mätas i vardagssituationer.",
+        "Några instrument samt hur de används för att mäta fysikaliska storheter, till exempel temperatur och kraft."
+       ]
+      },
+      {
+       "name": "Systematiska undersökningar och granskning av information",
+       "points": [
+        "Observationer och experiment med såväl analoga som digitala verktyg. Planering, utförande, värdering av resultat samt dokumentation med ord, bilder och tabeller.",
+        "Några upptäckter inom fysikområdet och deras betydelse för människans levnadsvillkor och syn på naturen.",
+        "Kritisk granskning och användning av information som rör fysik."
+       ]
+      }
+     ]
+    },
+    {
+     "stage": "7-9",
+     "areas": [
+      {
+       "name": "Fysiken i naturen och samhället",
+       "points": [
+        "Universums uppkomst, uppbyggnad och utveckling samt förutsättningar för att finna planeter och liv i andra solsystem.",
+        "Partikelmodell av materiens egenskaper samt fasövergångar, tryck, volym, densitet och temperatur.",
+        "Fysikaliska förklaringsmodeller av jordens strålningsbalans, växthuseffekten och klimatförändringar.",
+        "Energins flöde och oförstörbarhet samt olika energislags kvalitet. Olika typer av energikällor samt deras för- och nackdelar för samhället och miljön.",
+        "Partikelstrålning och elektromagnetisk strålning, deras användningsområden och risker.",
+        "Hur ljus breder ut sig, reflekteras och bryts.",
+        "Hur ljud uppstår, breder ut sig och kan registreras på olika sätt.",
+        "Sambandet mellan elektricitet och magnetism samt mellan ström och spänning i elektriska kretsar. Hur kretsarna kan användas i elektrisk utrustning.",
+        "Krafter, rörelser och rörelseförändringar samt hur kunskaper om detta kan användas, till exempel i frågor om trafiksäkerhet.",
+        "Några instrument för att mäta fysikaliska storheter, till exempel kraft och ström. Användning av mätvärden i enkla beräkningar, till exempel beräkningar av densitet och hastighet."
+       ]
+      },
+      {
+       "name": "Systematiska undersökningar och granskning av information",
+       "points": [
+        "Observationer och experiment med såväl analoga som digitala verktyg. Formulering av undersökningsbara frågor, planering, utförande, värdering av resultat samt dokumentation med bilder, tabeller, diagram och rapporter.",
+        "Sambandet mellan undersökningar av fysikaliska fenomen och utvecklingen av begrepp och förklaringsmodeller. De fysikaliska förklaringsmodellernas historiska framväxt, användbarhet och föränderlighet.",
+        "Informationssökning, kritisk granskning och användning av information som rör fysik. Argumentation och ställningstaganden i aktuella frågor som rör energi, teknik och miljö."
+       ]
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "code": "GE",
+   "name": "Geografi",
+   "syllabus": "GRGRGEO01",
+   "version": 15,
+   "modified": "2024-02-09",
+   "regulation": "2010:37, ändrad 2022:8",
+   "stages": [
+    {
+     "stage": "1-3",
+     "areas": [
+      {
+       "name": "Att leva tillsammans",
+       "points": [
+        "Migration inom ett land och mellan länder. Vad detta kan ha för orsaker och få för konsekvenser.",
+        "Skildringar av människors levnadsvillkor förr i tiden, till exempel i barnlitteratur, sånger och filmer. Minnen berättade av människor som lever nu.",
+        "Samtal om och reflektion över moraliska frågor och livsfrågor med betydelse för eleven, till exempel kamratskap, könsroller och döden.",
+        "Samtal om och reflektion över normer och regler i elevens livsmiljöer, däribland i skolan och i digitala miljöer.",
+        "Trafikregler och hur man beter sig i trafiken på ett säkert sätt."
+       ]
+      },
+      {
+       "name": "Att leva i närområdet",
+       "points": [
+        "Några utmärkande drag i närområdets natur- och kulturlandskap. Spår av den senaste istiden.",
+        "Hemortens historia och vad närområdets platser, byggnader och vardagliga föremål kan berätta om livet där under olika tider.",
+        "Kristendomens roll i skolan och på hemorten förr i tiden.",
+        "Centrala samhällsfunktioner, till exempel sjukvård, räddningstjänst och skola.",
+        "Yrken och verksamheter i närområdet."
+       ]
+      },
+      {
+       "name": "Att leva i världen",
+       "points": [
+        "Miljöfrågor utifrån elevens vardag, till exempel frågor om trafik, energi och livsmedel.",
+        "Rumsliga förutsättningar i natur och miljö för befolkning och bebyggelse, till exempel mark, vatten och klimat.",
+        "Namn och läge på världsdelarna och världshaven samt på länder och platser som är betydelsefulla för eleven.",
+        "Människans uppkomst, vandringar, samlande och jakt samt förändrade levnadsvillkor i samband med övergången till jordbruk.",
+        "Norden befolkas. Människors levnadsvillkor under nordisk stenålder, bronsålder och järnålder.",
+        "Berättelser i antik och nordisk mytologi samt i samisk religion.",
+        "Några högtider, symboler och berättelser inom kristendom, islam och judendom. Några berättelser ur Bibeln och deras innebörder.",
+        "Mänskliga rättigheter inklusive alla människors lika värde och barnets rättigheter i enlighet med FN:s konvention om barnets rättigheter (barnkonventionen).",
+        "Grundläggande demokratiska principer. Vad åsikts- och yttrandefrihet samt majoritetsprincipen kan innebära i skolan och i samhället.",
+        "Pengars användning och värde. Olika exempel på betalningsformer och vad några vanliga varor och tjänster kan kosta.",
+        "Aktuella samhällsfrågor i olika medier."
+       ]
+      },
+      {
+       "name": "Att undersöka verkligheten",
+       "points": [
+        "Metoder för att söka information, till exempel textläsning, intervjuer och observationer. Samtal om olika källors användbarhet och tillförlitlighet.",
+        "Jordgloben, analoga och digitala kartor samt storleksrelationer och väderstreck.",
+        "Mentala kartor, till exempel över närområdet, skolvägar eller andra platser som är betydelsefulla för eleven.",
+        "Tidslinjer och tidsbegreppen dåtid, nutid och framtid."
+       ]
+      }
+     ]
+    },
+    {
+     "stage": "4-6",
+     "areas": [
+      {
+       "name": "Geografiska förhållanden, mönster och processer",
+       "points": [
+        "Introduktion till jordens endogena och exogena processer, samt hur dessa formar och förändrar landskapet.",
+        "Jordens naturresurser, till exempel vatten, odlingsmark, skogar och mineraler. Var på jorden olika naturresurser finns och hur människors användning av resurserna påverkar landskapet och människans livsmiljöer.",
+        "Klimat- och vegetationszoner samt på vilka sätt klimatet påverkar människans livsmiljöer.",
+        "Utmärkande drag för några natur- och kulturlandskap i Sverige, Europa och världen.",
+        "Namn och läge på geografiska objekt i Sverige, Europa och världen. Ett urval av hav, sjöar, floder, berg, öknar, regioner, länder och städer."
+       ]
+      },
+      {
+       "name": "Hållbar utveckling",
+       "points": [
+        "Hur val och prioriteringar på individ- och samhällsnivå kan påverka miljön och främja hållbar utveckling.",
+        "Några grundläggande orsaker till och konsekvenser av fattigdom och ohälsa, till exempel bristande tillgång till utbildning, hälsovård och vatten. Arbete för att förbättra människors levnadsvillkor, till exempel genom Förenta Nationerna (FN)."
+       ]
+      },
+      {
+       "name": "Geografins metoder och verktyg",
+       "points": [
+        "Digitala och analoga kartor och deras uppbyggnad med gradnät, färger, symboler och skala. Topografiska och tematiska kartor.",
+        "Fältstudier för att undersöka natur- och kulturlandskap.",
+        "Beskrivningar och enkla analyser av platser och regioner med hjälp av kartor och andra geografiska källor, metoder, verktyg och begrepp."
+       ]
+      }
+     ]
+    },
+    {
+     "stage": "7-9",
+     "areas": [
+      {
+       "name": "Geografiska förhållanden, mönster och processer",
+       "points": [
+        "Jordens endogena och exogena processer, samt hur dessa formar och förändrar landskapet.",
+        "Rumslig utbredning av sårbara platser på jorden, till exempel områden som riskerar att återkommande drabbas av översvämningar, torka eller jordbävningar. Hur samhällsplanering och människans verksamheter påverkar sårbarhet och hur risker kan förebyggas.",
+        "Globala produktions- och konsumtionsmönster samt flöden av varor och tjänster.",
+        "Orsaker till och konsekvenser av demografiska mönster och förändringar: befolkningsfördelning, befolkningsutveckling, migrationsmönster och urbanisering.",
+        "Namn och läge på platser och regioner som är relevanta för studierna av geografiska förhållanden, mönster, processer och hållbarhetsfrågor."
+       ]
+      },
+      {
+       "name": "Hållbar utveckling",
+       "points": [
+        "Vad klimat är och faktorer som påverkar klimatet. Människans påverkan på klimatet och konsekvenser av klimatförändringar för människa, samhälle och natur i olika delar av världen.",
+        "Människors tillgång till och användning av förnybara och icke-förnybara naturresurser och hur det påverkar människans livsmiljöer. Intressekonflikter kring naturresurser.",
+        "Samband mellan ekonomisk och social levnadsstandard och faktorer som demografi, jämställdhet, utbildning och naturresurser.",
+        "Lokalt, regionalt och globalt arbete för att främja hållbar utveckling."
+       ]
+      },
+      {
+       "name": "Geografins metoder och verktyg",
+       "points": [
+        "Digitala och analoga kartors uppbyggnad samt olika kartprojektioner och deras egenskaper. Geografiska informationssystem (GIS) och exempel på hur de används i samhället.",
+        "Beskrivningar och analyser av platser och regioner med hjälp av kartor, enkla former av GIS, fältstudier och andra geografiska källor, metoder, verktyg och begrepp."
+       ]
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "code": "HI",
+   "name": "Historia",
+   "syllabus": "GRGRHIS01",
+   "version": 14,
+   "modified": "2024-02-09",
+   "regulation": "2010:37, ändrad 2022:8",
+   "stages": [
+    {
+     "stage": "1-3",
+     "areas": [
+      {
+       "name": "Att leva tillsammans",
+       "points": [
+        "Migration inom ett land och mellan länder. Vad detta kan ha för orsaker och få för konsekvenser.",
+        "Skildringar av människors levnadsvillkor förr i tiden, till exempel i barnlitteratur, sånger och filmer. Minnen berättade av människor som lever nu.",
+        "Samtal om och reflektion över moraliska frågor och livsfrågor med betydelse för eleven, till exempel kamratskap, könsroller och döden.",
+        "Samtal om och reflektion över normer och regler i elevens livsmiljöer, däribland i skolan och i digitala miljöer.",
+        "Trafikregler och hur man beter sig i trafiken på ett säkert sätt."
+       ]
+      },
+      {
+       "name": "Att leva i närområdet",
+       "points": [
+        "Några utmärkande drag i närområdets natur- och kulturlandskap. Spår av den senaste istiden.",
+        "Hemortens historia och vad närområdets platser, byggnader och vardagliga föremål kan berätta om livet där under olika tider.",
+        "Kristendomens roll i skolan och på hemorten förr i tiden.",
+        "Centrala samhällsfunktioner, till exempel sjukvård, räddningstjänst och skola.",
+        "Yrken och verksamheter i närområdet."
+       ]
+      },
+      {
+       "name": "Att leva i världen",
+       "points": [
+        "Miljöfrågor utifrån elevens vardag, till exempel frågor om trafik, energi och livsmedel.",
+        "Rumsliga förutsättningar i natur och miljö för befolkning och bebyggelse, till exempel mark, vatten och klimat.",
+        "Namn och läge på världsdelarna och världshaven samt på länder och platser som är betydelsefulla för eleven.",
+        "Människans uppkomst, vandringar, samlande och jakt samt förändrade levnadsvillkor i samband med övergången till jordbruk.",
+        "Norden befolkas. Människors levnadsvillkor under nordisk stenålder, bronsålder och järnålder.",
+        "Berättelser i antik och nordisk mytologi samt i samisk religion.",
+        "Några högtider, symboler och berättelser inom kristendom, islam och judendom. Några berättelser ur Bibeln och deras innebörder.",
+        "Mänskliga rättigheter inklusive alla människors lika värde och barnets rättigheter i enlighet med FN:s konvention om barnets rättigheter (barnkonventionen).",
+        "Grundläggande demokratiska principer. Vad åsikts- och yttrandefrihet samt majoritetsprincipen kan innebära i skolan och i samhället.",
+        "Pengars användning och värde. Olika exempel på betalningsformer och vad några vanliga varor och tjänster kan kosta.",
+        "Aktuella samhällsfrågor i olika medier."
+       ]
+      },
+      {
+       "name": "Att undersöka verkligheten",
+       "points": [
+        "Metoder för att söka information, till exempel textläsning, intervjuer och observationer. Samtal om olika källors användbarhet och tillförlitlighet.",
+        "Jordgloben, analoga och digitala kartor samt storleksrelationer och väderstreck.",
+        "Mentala kartor, till exempel över närområdet, skolvägar eller andra platser som är betydelsefulla för eleven.",
+        "Tidslinjer och tidsbegreppen dåtid, nutid och framtid."
+       ]
+      }
+     ]
+    },
+    {
+     "stage": "4-6",
+     "areas": [
+      {
+       "name": "Kulturmöten och statsbildning i Norden, cirka 800–1500",
+       "points": [
+        "Nordens kulturmöten med andra delar av världen genom vikingars resor och medeltidens handelssystem.",
+        "Statsbildning och kristendomens etablerande i Norden samt konsekvenser av dessa förändringar.",
+        "Likheter och skillnader i levnadsvillkor för barn, kvinnor och män under tidsperioden.",
+        "Vad historiska källor är, till exempel arkeologiska fynd, texter, muntliga berättelser och digitalt material, och hur de kan användas för att ge kunskaper om det förflutna.",
+        "Historiebruk kopplat till tidsperioden, till exempel hur vikingar framställs i populärkulturen."
+       ]
+      },
+      {
+       "name": "Maktförhållanden och levnadsvillkor i Norden, cirka 1500–1800",
+       "points": [
+        "Kampen om den politiska makten i Norden. Reformationen och framväxten av en stark kungamakt i Sverige. Uppror och motstånd mot kungamakten.",
+        "Det svenska Östersjöväldet. Orsaker till dess uppkomst och upplösning samt konsekvenser för människor runt Östersjön.",
+        "Likheter och skillnader i levnadsvillkor mellan olika grupper i ståndssamhället.",
+        "Vad historiska källor från tidsperioden, till exempel brev, dagböcker och kartor, kan berätta om det förflutna.",
+        "Historiebruk kopplat till tidsperioden, till exempel i gatunamn, minnesmärken och reklam."
+       ]
+      },
+      {
+       "name": "Folkökning, ändrade maktförhållanden och emigration, cirka 1800–1900",
+       "points": [
+        "Nya maktförhållanden i Sverige och mellan länder i Norden.",
+        "Jordbrukets omvandling och den stora folkökningen samt översiktligt om den tidiga industrialiseringen i Sverige. Olika konsekvenser av detta för barns, kvinnors och mäns levnadsvillkor.",
+        "Olika orsaker till och konsekvenser av emigrationen från Sverige.",
+        "Vad historiska källor från tidsperioden, till exempel kyrkböcker, fotografier och domstolsprotokoll, kan berätta om det förflutna.",
+        "Historiebruk kopplat till tidsperioden, till exempel hur historiska händelser och aktörer framställs i böcker och på museer."
+       ]
+      }
+     ]
+    },
+    {
+     "stage": "7-9",
+     "areas": [
+      {
+       "name": "Samhällsomvandlingar: framväxten av civilisationer och industrisamhällen",
+       "points": [
+        "Framväxten av högkulturer i olika delar av världen, till exempel i Afrika, Amerika och Asien. Antiken, dess utmärkande drag som epok och dess betydelse för vår egen tid.",
+        "Europeisk kolonisation och slavhandel. Konsekvenser av detta för människor och kulturer samt för det ökade globala handelsutbytet mellan Europa, Asien, Afrika och Amerika.",
+        "Industrialiseringen i Europa och Sverige. Olika orsaker till industrialiseringen och konsekvenser av denna för människor och miljö.",
+        "Revolutioner och framväxten av nya idéer, samhällsklasser och politiska ideologier.",
+        "Tolkning av historiska källor från någon tidsperiod och granskning utifrån källkritiska kriterier. Värdering av källornas relevans utifrån historiska frågor.",
+        "Analys av historiebruk kopplat till någon tidsperiod, till exempel hur olika aktörer använder historia för att skapa eller stärka nationella identiteter."
+       ]
+      },
+      {
+       "name": "Imperialism och världskrig, cirka 1850–1950",
+       "points": [
+        "Europeisk nationalism, imperialism och framväxten av olika former av demokrati och diktatur.",
+        "De båda världskrigen, deras orsaker och konsekvenser. Förtryck, folkfördrivningar och folkmord. Förintelsen och Gulag. Människors motstånd mot förtryck.",
+        "Tolkning av historiska källor från tidsperioden och granskning utifrån källkritiska kriterier. Värdering av källornas relevans utifrån historiska frågor.",
+        "Analys av historiebruk kopplat till tidsperioden, till exempel hur olika aktörer använder historia för att skapa opinion eller legitimera makt."
+       ]
+      },
+      {
+       "name": "Demokratisering och ökad globalisering, cirka 1900 till nutid",
+       "points": [
+        "Demokratiseringen i Sverige och framväxten av välfärdssamhället. Bildandet av politiska partier, nya folkrörelser, till exempel kvinnorörelsen, och kampen för allmän rösträtt för kvinnor och män. Kontinuitet och förändring i synen på kön, jämställdhet och sexualitet.",
+        "Kalla krigets konflikter samt nya maktförhållanden och utmaningar i världen efter det kalla krigets slut.",
+        "Kontinuitet och förändring med utgångspunkt i långa historiska linjer kring levnadsvillkor, migration och makt.",
+        "Tolkning av historiska källor från tidsperioden och granskning utifrån källkritiska kriterier. Värdering av källornas relevans utifrån historiska frågor.",
+        "Analys av historiebruk kopplat till tidsperioden, till exempel hur individer och grupper använder historia för att kritisera samtida fenomen och påverka våra föreställningar om framtiden."
+       ]
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "code": "HKK",
+   "name": "Hem- och konsumentkunskap",
+   "syllabus": "GRGRHKK01",
+   "version": 13,
+   "modified": "2024-02-09",
+   "regulation": "2010:37, ändrad 2022:8",
+   "stages": [
+    {
+     "stage": "1-6",
+     "areas": [
+      {
+       "name": "Mat och matlagning",
+       "points": [
+        "Matlagning för olika sammanhang.",
+        "Enkla metoder för matlagning, däribland bakning. Att planera, organisera och utvärdera arbetet.",
+        "Enkla instruktioner och recept. Hur de kan läsas och följas samt vanliga begrepp för matlagning.",
+        "Samtal om upplevelser av smak, doft, konsistens och textur i samband med matlagning.",
+        "Redskap och teknisk utrustning som kan användas vid matlagning och hur dessa används på ett funktionellt och säkert sätt.",
+        "Hygien och livsmedelssäkerhet i samband med hantering, tillagning och förvaring av livsmedel."
+       ]
+      },
+      {
+       "name": "Privatekonomi och konsumtion",
+       "points": [
+        "Ungas privatekonomi. Relationen mellan sparande och konsumtion. Olika sätt för att betala och spara.",
+        "Skillnaden mellan saklig konsumentinformation och annan påverkan på konsumtionsval. Reklam i olika former, även dolda reklambudskap.",
+        "Jämförelser av några vanliga varor utifrån jämförpris."
+       ]
+      },
+      {
+       "name": "Levnadsvanor",
+       "points": [
+        "Vikten av att äta varierat och balanserat för att må bra. Hur måltider kan fördelas över en dag.",
+        "Måltidens betydelse för gemenskap. Olika mattraditioner.",
+        "Resurshushållning av livsmedel och andra förbrukningsvaror i hemmet. Återvinning i hemmet och i närområdet och hur den fungerar.",
+        "Några olika certifieringar och märkningar av livsmedel och andra varor samt deras betydelse.",
+        "Rutiner och metoder för rengöring."
+       ]
+      }
+     ]
+    },
+    {
+     "stage": "7-9",
+     "areas": [
+      {
+       "name": "Mat och matlagning",
+       "points": [
+        "Matlagning för olika behov och sammanhang.",
+        "Livsmedels egenskaper och användningsområden.",
+        "Val av livsmedel och metoder för matlagning, däribland bakning. Att planera, organisera och utvärdera arbetet.",
+        "Skapande av egna måltider, till exempel utifrån säsong och rester.",
+        "Instruktioner och recept. Hur de kan läsas och följas samt begrepp för matlagning.",
+        "Samtal om upplevelser av smak, doft, konsistens och textur i samband med matlagning.",
+        "Redskap och teknisk utrustning som kan användas vid matlagning och hur dessa används på ett funktionellt och säkert sätt.",
+        "Hygien och livsmedelssäkerhet i samband med hantering, tillagning och förvaring av livsmedel."
+       ]
+      },
+      {
+       "name": "Privatekonomi och konsumtion",
+       "points": [
+        "Ungas privatekonomi. Konsumtion och ekonomisk planering, däribland att göra en budget.",
+        "Att handla på kredit, teckna abonnemang samt låna och spara pengar.",
+        "Skillnaden mellan saklig konsumentinformation och annan påverkan på konsumtionsval. Reklam i olika former, även dolda reklambudskap.",
+        "Konsumenters rättigheter och skyldigheter. Garanti, reklamation, ångerrätt, öppet köp och köp från privatperson samt skillnad mellan köp i butik och på internet."
+       ]
+      },
+      {
+       "name": "Levnadsvanor",
+       "points": [
+        "Sammansättning av varierade och balanserade måltider och anpassning till individuella behov.",
+        "Måltidens betydelse för gemenskap. Olika mattraditioner.",
+        "Arbetsfördelning i hemmet ur ett jämställdhetsperspektiv.",
+        "Resurshushållning. Ställningstaganden vid val och användning av livsmedel och andra varor. Hur produktion, transport och återvinning av livsmedel och andra varor påverkar människors hälsa, ekonomi och miljö.",
+        "Rutiner och metoder för rengöring och tvätt."
+       ]
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "code": "IDH",
+   "name": "Idrott och hälsa",
+   "syllabus": "GRGRIDR01",
+   "version": 14,
+   "modified": "2024-02-09",
+   "regulation": "2010:37, ändrad 2022:8",
+   "stages": [
+    {
+     "stage": "1-3",
+     "areas": [
+      {
+       "name": "Rörelse",
+       "points": [
+        "Motoriska grundformer med och utan olika redskap. Deras sammansatta former.",
+        "Lekar och andra enkla rörelseaktiviteter, inomhus och utomhus.",
+        "Takt och rytm i enkla danser och rörelser till musik.",
+        "Rörelser i vatten och vattenvana. Att balansera, flyta och simma i mag- och ryggläge."
+       ]
+      },
+      {
+       "name": "Friluftsliv och utevistelse",
+       "points": [
+        "Att orientera sig i närmiljön och enkla kartors uppbyggnad. Begrepp som beskriver läge, avstånd och riktning.",
+        "Utforskande av möjligheter till och genomförande av vistelse, lekar och rörelser i natur- och utemiljö.",
+        "Allemansrättens grunder."
+       ]
+      },
+      {
+       "name": "Hälsa och levnadsvanor",
+       "points": [
+        "Samtal om upplevelser av olika aktiviteter.",
+        "Undersökande av möjligheter till daglig rörelse i närmiljön.",
+        "Säkerhet och hänsynstagande i samband med aktiviteter."
+       ]
+      }
+     ]
+    },
+    {
+     "stage": "4-6",
+     "areas": [
+      {
+       "name": "Rörelse",
+       "points": [
+        "Sammansatta motoriska grundformer med och utan olika redskap.",
+        "Lekar, spel, idrotter och andra rörelseaktiviteter, inomhus och utomhus.",
+        "Takt och rytm i danser och i rörelser till musik.",
+        "Grundläggande träningslära: pulshöjande rörelser samt koordinations-, styrke- och rörlighetsövningar.",
+        "Simning i mag- och ryggläge."
+       ]
+      },
+      {
+       "name": "Friluftsliv och utevistelse",
+       "points": [
+        "Att orientera sig i den närliggande natur- och utemiljön med hjälp av kartor, såväl med som utan stöd av digitala verktyg. Kartors uppbyggnad och symboler.",
+        "Utforskande av möjligheter till och genomförande av friluftsaktiviteter, lekar och rörelser i skiftande natur- och utemiljöer under olika årstider.",
+        "Rättigheter och skyldigheter i naturen enligt allemansrätten och dess tillämpning i praktiken.",
+        "Badvett och säkerhet vid vatten under olika årstider. Hantering av nödsituationer vid vatten med hjälpredskap."
+       ]
+      },
+      {
+       "name": "Hälsa och levnadsvanor",
+       "points": [
+        "Samtal om upplevelser av olika aktiviteter samt värdering av hur de påverkar den fysiska förmågan och hälsan.",
+        "Normer kring olika slags aktiviteter. Hur normer påverkar individers deltagande, till exempel normer kring kön och funktionalitet kopplade till olika rörelseaktiviteter.",
+        "Undersökande av möjligheter till daglig rörelse i närmiljön.",
+        "Olika sätt att förebygga skador, däribland uppvärmning.",
+        "Säkerhet och hänsynstagande i samband med aktiviteter.",
+        "Första hjälpen."
+       ]
+      }
+     ]
+    },
+    {
+     "stage": "7-9",
+     "areas": [
+      {
+       "name": "Rörelse",
+       "points": [
+        "Komplexa rörelser i lekar, spel, idrotter och andra rörelseaktiviteter, inomhus och utomhus.",
+        "Olika former av dans samt skapande av rörelse- och träningsprogram till musik, takt och rytm.",
+        "Träningslära: konditionsträning, koordinationsträning, styrketräning och rörlighetsträning utifrån olika ändamål och individuella behov.",
+        "Olika verktyg, däribland digitala för att planera, genomföra och värdera rörelseaktiviteter.",
+        "Olika simsätt i mag- och ryggläge."
+       ]
+      },
+      {
+       "name": "Friluftsliv och utevistelse",
+       "points": [
+        "Att orientera sig i okända miljöer med hjälp av kartor och andra hjälpmedel såväl med som utan stöd av digitala verktyg.",
+        "Planering och genomförande av friluftsaktiviteter i skilda miljöer under olika årstider.",
+        "Rättigheter och skyldigheter i naturen enligt allemansrätten och dess tillämpning i praktiken.",
+        "Kulturella traditioner i friluftsliv och utevistelse.",
+        "Badvett och säkerhet vid vatten under olika årstider. Hantering av nödsituationer i och vid vatten med hjälpredskap."
+       ]
+      },
+      {
+       "name": "Hälsa och levnadsvanor",
+       "points": [
+        "Planering och genomförande av olika aktiviteter utifrån hur de påverkar olika aspekter av fysisk förmåga och olika aspekter av hälsa.",
+        "Kroppsideal och normer inom olika rörelsekulturer. Hur de påverkar individers möjligheter till deltagande i olika aktiviteter.",
+        "Undersökande av möjligheter till daglig rörelse i närmiljön.",
+        "Dopning och lagar och andra bestämmelser som reglerar förbud mot dopning.",
+        "Samtal om upplevelser av olika aktiviteter och värdering av hur de påverkar olika aspekter av fysisk förmåga och olika aspekter av hälsa.",
+        "Förebyggande av skador genom allsidig träning, anpassning av belastning och tekniker för rörelseutföranden.",
+        "Säkerhet och hänsynstagande i samband med olika aktiviteter.",
+        "Första hjälpen och hjärt- och lungräddning."
+       ]
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "code": "KE",
+   "name": "Kemi",
+   "syllabus": "GRGRKEM01",
+   "version": 14,
+   "modified": "2024-02-09",
+   "regulation": "2010:37, ändrad 2022:8",
+   "stages": [
+    {
+     "stage": "1-3",
+     "areas": [
+      {
+       "name": "Året runt i naturen",
+       "points": [
+        "Årstidsväxlingar i naturen. Några djurs och växters livscykler och anpassningar till olika livsmiljöer och årstider.",
+        "Djur, växter och svampar i närmiljön, hur de kan grupperas samt namn på några vanligt förekommande arter.",
+        "Enkla näringskedjor som beskriver samband mellan organismer i ekosystem."
+       ]
+      },
+      {
+       "name": "Kropp och hälsa",
+       "points": [
+        "Några av människans organ, deras namn och översiktliga funktion.",
+        "Människans upplevelser av ljus, ljud, värme, smak och doft med hjälp av olika sinnen.",
+        "Betydelsen av kost, sömn, hygien, motion och sociala relationer för att må bra."
+       ]
+      },
+      {
+       "name": "Kraft och rörelse",
+       "points": [
+        "Tyngdkraft, tyngdpunkt, jämvikt, balans och friktion som kan upplevas och observeras vid lek och rörelse.",
+        "Solsystemets himlakroppar och deras rörelser. Människan i rymden."
+       ]
+      },
+      {
+       "name": "Material och ämnen",
+       "points": [
+        "Hur material kan sorteras efter några egenskaper, till exempel utseende, om de är magnetiska och om de flyter eller sjunker i vatten. Hur materialen kan återvinnas.",
+        "Några blandningar och hur de kan delas upp i sina olika beståndsdelar, till exempel genom avdunstning och filtrering.",
+        "Vattnets olika former: fast, flytande och gas. Avdunstning, kokning, kondensering, smältning och stelning."
+       ]
+      },
+      {
+       "name": "Systematiska undersökningar",
+       "points": [
+        "Enkla fältstudier, observationer och experiment. Utförande och dokumentation av undersökningarna med ord, bilder och digitala verktyg.",
+        "Några berättelser om hur naturvetenskaplig kunskap vuxit fram."
+       ]
+      }
+     ]
+    },
+    {
+     "stage": "4-6",
+     "areas": [
+      {
+       "name": "Kemin i naturen, i samhället och i människokroppen",
+       "points": [
+        "Materiens uppbyggnad visualiserad med hjälp av enkla partikelmodeller.",
+        "Indelning av ämnen och material utifrån egenskaperna löslighet, ledningsförmåga, surt eller basiskt.",
+        "Vattnets egenskaper och kretslopp.",
+        "Luftens egenskaper och sammansättning.",
+        "Fotosyntes och förbränning som exempel på kemiska reaktioner i naturen.",
+        "Fossila och förnybara bränslen och deras påverkan på klimatet.",
+        "Matens innehåll och näringsämnenas betydelse för hälsan.",
+        "Vanliga kemikalier i hemmet. Deras användning och påverkan på miljön och människan samt hur de är märkta och bör hanteras.",
+        "Råvarors förädling till produkter, till exempel metaller, papper och plast. Hur produkterna kan återanvändas eller återvinnas."
+       ]
+      },
+      {
+       "name": "Systematiska undersökningar och granskning av information",
+       "points": [
+        "Observationer och experiment med såväl analoga som digitala verktyg. Planering, utförande, värdering av resultat samt dokumentation med ord, bilder och tabeller.",
+        "Några upptäckter inom kemiområdet och deras betydelse för människans levnadsvillkor och syn på naturen.",
+        "Kritisk granskning och användning av information som rör kemi."
+       ]
+      }
+     ]
+    },
+    {
+     "stage": "7-9",
+     "areas": [
+      {
+       "name": "Kemin i naturen, i samhället och i människokroppen",
+       "points": [
+        "Materiens uppbyggnad, kretslopp och oförstörbarhet visualiserat med hjälp av partikelmodeller. Grundämnen, molekyl- och jonföreningar samt hur ämnen omvandlas genom kemiska reaktioner. Atomer, elektroner och kärnpartiklar.",
+        "Separations- och analysmetoder, till exempel filtrering, fällning, pH-mätning och identifikation av ämnen.",
+        "Vatten som lösningsmedel och transportör av ämnen, till exempel i mark, växter och människokroppen.",
+        "Några kemiska processer i mark, luft och vatten samt deras koppling till frågor om miljö och hälsa, till exempel växthuseffekten, vattenrening och spridning av miljögifter.",
+        "Kolatomens egenskaper och kretslopp i naturen, i samhället och i människokroppen.",
+        "Kolhydrater, proteiner och fetter samt deras funktioner i människokroppen.",
+        "Utveckling av produkter och material, till exempel läkemedel, funktionskläder och batterier.",
+        "Några produkters livscykler och påverkan på miljön."
+       ]
+      },
+      {
+       "name": "Systematiska undersökningar och granskning av information",
+       "points": [
+        "Observationer och experiment med såväl analoga som digitala verktyg. Formulering av undersökningsbara frågor, planering, utförande, värdering av resultat samt dokumentation med bilder, tabeller, diagram och rapporter.",
+        "Sambandet mellan kemiska undersökningar och utvecklingen av begrepp och förklaringsmodeller. De kemiska förklaringsmodellernas historiska framväxt, användbarhet och föränderlighet.",
+        "Informationssökning, kritisk granskning och användning av information som rör kemi. Argumentation och ställningstaganden i aktuella frågor som rör miljö och hälsa."
+       ]
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "code": "MA",
+   "name": "Matematik",
+   "syllabus": "GRGRMAT01",
+   "version": 14,
+   "modified": "2024-02-09",
+   "regulation": "2010:37, ändrad 2022:8",
+   "stages": [
+    {
+     "stage": "1-3",
+     "areas": [
+      {
+       "name": "Taluppfattning och tals användning",
+       "points": [
+        "Naturliga tal och deras egenskaper samt hur talen delas upp och används för att ange antal och ordning.",
+        "Positionssystemet och hur det används för att beskriva naturliga tal.",
+        "Symboler för tal och symbolernas utveckling i några olika kulturer genom historien.",
+        "Tal i bråkform som del av helhet och del av antal samt hur delarna benämns och uttrycks som enkla bråk. Hur enkla bråk förhåller sig till naturliga tal.",
+        "Hur naturliga tal och enkla tal i bråkform används i elevnära situationer.",
+        "De fyra räknesättens egenskaper och samband samt användning i olika situationer.",
+        "Metoder för beräkningar med naturliga tal, vid huvudräkning, överslagsräkning och skriftlig beräkning. Användning av digitala verktyg vid beräkningar.",
+        "Rimlighetsbedömning vid uppskattningar och beräkningar."
+       ]
+      },
+      {
+       "name": "Algebra",
+       "points": [
+        "Matematiska likheter och likhetstecknets betydelse.",
+        "Obekanta tal och hur de kan betecknas med en symbol.",
+        "Enkla mönster i talföljder och enkla geometriska mönster samt hur de konstrueras, beskrivs och uttrycks.",
+        "Entydiga stegvisa instruktioner och hur de konstrueras, beskrivs och följs som grund för programmering. Hur symboler används vid stegvisa instruktioner."
+       ]
+      },
+      {
+       "name": "Geometri",
+       "points": [
+        "Vanliga lägesord för att beskriva föremåls och objekts läge i rummet.",
+        "Grundläggande geometriska tvådimensionella objekt samt objekten klot, kon, cylinder och rätblock. Egenskaper hos dessa objekt och deras inbördes relationer. Konstruktion av geometriska objekt.",
+        "Jämförelser och uppskattningar av storheter. Mätning av längd, massa, volym och tid med vanliga nutida och äldre måttenheter.",
+        "Skala vid enkel förminskning och förstoring.",
+        "Symmetri i vardagen och hur symmetri kan konstrueras."
+       ]
+      },
+      {
+       "name": "Sannolikhet och statistik",
+       "points": [
+        "Slumpmässiga händelser i konkreta situationer.",
+        "Enkla tabeller och diagram och hur de används för att sortera data och beskriva resultat från undersökningar, såväl med som utan digitala verktyg."
+       ]
+      },
+      {
+       "name": "Samband och förändring",
+       "points": [
+        "Proportionella samband, däribland dubbelt och hälften."
+       ]
+      },
+      {
+       "name": "Problemlösning",
+       "points": [
+        "Strategier för att lösa matematiska problem i elevnära situationer.",
+        "Formulering av matematiska frågeställningar utifrån vardagliga situationer."
+       ]
+      }
+     ]
+    },
+    {
+     "stage": "4-6",
+     "areas": [
+      {
+       "name": "Taluppfattning och tals användning",
+       "points": [
+        "Rationella tal, däribland negativa tal, och deras egenskaper samt hur talen kan delas upp och användas.",
+        "Positionssystemet och hur det används för att beskriva hela tal och tal i decimalform.",
+        "Olika talsystem och några talsystem som använts i olika kulturer genom historien.",
+        "Tal i procentform och deras samband med tal i bråk- och decimalform.",
+        "Hur tal i bråk- och decimalform kan användas i vardagliga situationer.",
+        "De fyra räknesätten och regler för deras användning vid beräkningar med naturliga tal.",
+        "Metoder för beräkningar med naturliga tal och enkla tal i bråk- och decimalform vid överslagsräkning, huvudräkning och skriftlig beräkning. Användning av digitala verktyg vid beräkningar.",
+        "Rimlighetsbedömning vid uppskattningar och beräkningar."
+       ]
+      },
+      {
+       "name": "Algebra",
+       "points": [
+        "Matematiska likheter och hur likhetstecknet används för att teckna enkla ekvationer.",
+        "Variabler och deras användning i enkla algebraiska uttryck och ekvationer.",
+        "Metoder, däribland algebraiska, för att lösa enkla ekvationer.",
+        "Mönster i talföljder och geometriska mönster samt hur de konstrueras, beskrivs och uttrycks.",
+        "Programmering i visuella programmeringsmiljöer. Hur algoritmer skapas och används vid programmering."
+       ]
+      },
+      {
+       "name": "Geometri",
+       "points": [
+        "Grundläggande geometriska två- och tredimensionella objekt samt deras egenskaper och inbördes relationer. Konstruktion av geometriska objekt, såväl med som utan digitala verktyg.",
+        "Jämförelse, uppskattning och mätning av längd, area, massa, volym, tid och vinkel med standardiserade måttenheter samt enhetsbyten i samband med detta.",
+        "Metoder för hur omkrets och area hos olika tvådimensionella geometriska figurer kan bestämmas och uppskattas.",
+        "Skala vid förminskning och förstoring samt användning av skala i elevnära situationer.",
+        "Symmetri i planet och hur symmetri kan konstrueras."
+       ]
+      },
+      {
+       "name": "Sannolikhet och statistik",
+       "points": [
+        "Slumpmässiga händelser, chans och risk med utgångspunkt i observationer, simuleringar och statistiskt material. Jämförelse av sannolikhet vid olika slumpmässiga försök.",
+        "Enkel kombinatorik i konkreta situationer.",
+        "Tabeller och diagram för att beskriva resultat från undersökningar, såväl med som utan digitala verktyg. Tolkning av data i tabeller och diagram.",
+        "Lägesmåtten medelvärde, typvärde och median samt hur de används i statistiska undersökningar."
+       ]
+      },
+      {
+       "name": "Samband och förändring",
+       "points": [
+        "Proportionalitet samt hur proportionella samband uttrycks i bråk-, decimal- och procentform.",
+        "Koordinatsystem och gradering av koordinataxlar.",
+        "Grafer för att uttrycka proportionella samband."
+       ]
+      },
+      {
+       "name": "Problemlösning",
+       "points": [
+        "Strategier för att lösa matematiska problem i elevnära situationer.",
+        "Formulering av matematiska frågeställningar utifrån vardagliga situationer."
+       ]
+      }
+     ]
+    },
+    {
+     "stage": "7-9",
+     "areas": [
+      {
+       "name": "Taluppfattning och tals användning",
+       "points": [
+        "Reella tal och deras egenskaper samt talens användning i matematiska situationer.",
+        "Talsystemets utveckling från naturliga tal till reella tal.",
+        "Tal i potensform. Grundpotensform för att uttrycka små och stora tal samt användning av prefix.",
+        "Matematiska lagar och regler samt deras användning vid beräkningar med tal i bråk-, decimal- och potensform.",
+        "Metoder för beräkningar med tal i bråk- och decimalform vid överslagsräkning, huvudräkning och skriftlig beräkning. Användning av digitala verktyg vid beräkningar.",
+        "Rimlighetsbedömning vid uppskattningar och beräkningar."
+       ]
+      },
+      {
+       "name": "Algebra",
+       "points": [
+        "Matematiska likheter samt hur likhetstecknet används för att teckna ekvationer och funktioner.",
+        "Variablers användning i algebraiska uttryck, formler, ekvationer och funktioner.",
+        "Metoder för att lösa linjära ekvationer och enkla andragradsekvationer.",
+        "Mönster i talföljder och geometriska mönster samt hur de konstrueras, beskrivs och uttrycks generellt.",
+        "Programmering i visuell och textbaserad programmeringsmiljö. Hur algoritmer skapas, testas och förbättras vid programmering."
+       ]
+      },
+      {
+       "name": "Geometri",
+       "points": [
+        "Geometriska objekt samt deras egenskaper och inbördes relationer. Konstruktion av geometriska objekt, såväl med som utan digitala verktyg.",
+        "Metoder för beräkning av area, omkrets och volym hos geometriska objekt, samt enhetsbyten i samband med detta.",
+        "Geometriska satser och formler samt argumentation för deras giltighet.",
+        "Skala vid förminskning och förstoring av två- och tredimensionella objekt.",
+        "Likformighet och kongruens."
+       ]
+      },
+      {
+       "name": "Sannolikhet och statistik",
+       "points": [
+        "Sannolikhet och metoder för att beräkna sannolikhet i olika situationer. Bedömningar av risker och chanser utifrån datorsimuleringar och statistiskt material.",
+        "Kombinatoriska principer och hur de kan användas i olika situationer.",
+        "Tabeller, diagram och grafer samt hur de tolkas och används för att beskriva resultat av egna och andras undersökningar, såväl med som utan digitala verktyg.",
+        "Lägesmått och spridningsmått samt hur de används för bedömning av resultat vid statistiska undersökningar."
+       ]
+      },
+      {
+       "name": "Samband och förändring",
+       "points": [
+        "Proportionalitet och hur det används för att uttrycka skala, likformighet och förändring.",
+        "Härledda enheter, till exempel km/h och kr/kg.",
+        "Procent och förändringsfaktor för att uttrycka förändring samt beräkningar med procent i vardagliga situationer och inom olika ämnesområden.",
+        "Räta linjens ekvation och förändringstakt. Användning av räta linjens ekvation för att beskriva samband.",
+        "Funktioner och hur de används för att beskriva samband och förändring samt undersöka förändringstakt. Hur funktioner uttrycks i form av grafer, tabeller och funktionsuttryck."
+       ]
+      },
+      {
+       "name": "Problemlösning",
+       "points": [
+        "Strategier för att lösa matematiska problem i olika situationer och inom olika ämnesområden samt värdering av valda strategier och metoder.",
+        "Formulering av matematiska frågeställningar utifrån olika situationer och ämnesområden.",
+        "Enkla matematiska modeller och hur de kan användas i olika situationer."
+       ]
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "code": "MU",
+   "name": "Musik",
+   "syllabus": "GRGRMUS01",
+   "version": 13,
+   "modified": "2024-02-09",
+   "regulation": "2010:37, ändrad 2022:8",
+   "stages": [
+    {
+     "stage": "1-3",
+     "areas": [
+      {
+       "name": "Musicerande och musikskapande",
+       "points": [
+        "Sång och spel i olika former. Unison sång, kanon, växelsång och ensemblespel.",
+        "Imitation och improvisation med röst, rörelse och instrument.",
+        "Komposition med utgångspunkt i inspirationskällor, till exempel bild, rörelse och musik.",
+        "Gestaltning av sånger och berättelser med ljud, rytmer och rörelser."
+       ]
+      },
+      {
+       "name": "Musikens verktyg",
+       "points": [
+        "Rösten och hur den kan användas för musikaliska uttryck genom variation av klang, rytm och dynamik.",
+        "Slagverksinstrument, stränginstrument, tangentinstrument och digitala verktyg för musicerande och musikskapande.",
+        "Röstvård och hörselvård vid sång, spel och lyssnande.",
+        "Musikaliska byggstenar: puls, rytm, tempo, klang, tonhöjd och dynamik.",
+        "Musiksymboler, bilder och grundläggande notkännedom."
+       ]
+      },
+      {
+       "name": "Musikens sammanhang och funktioner",
+       "points": [
+        "Musik som knyter an till elevens vardagliga och högtidliga sammanhang, däribland nationalsången och några av de vanligaste psalmerna, samt inblickar i svensk och nordisk barnvisetradition.",
+        "Olika musikinstrument. Hur de låter, vad de heter och hur de ser ut.",
+        "Associationer i form av tankar, känslor och inre bilder som uppkommer genom musikupplevelser."
+       ]
+      }
+     ]
+    },
+    {
+     "stage": "4-6",
+     "areas": [
+      {
+       "name": "Musicerande och musikskapande",
+       "points": [
+        "Sång, melodispel och ackompanjemang i olika genrer, unisont och i stämmor.",
+        "Imitation och improvisation med röst, rörelse och instrument med utgångspunkt i musikaliska byggstenar.",
+        "Komposition med utgångspunkt i musikaliska byggstenar.",
+        "Gestaltning av idéer genom att musicera och genom att kombinera musik med andra uttrycksformer."
+       ]
+      },
+      {
+       "name": "Musikens verktyg",
+       "points": [
+        "Rösten och hur den kan varieras och användas musikaliskt i olika vokala uttryck, till exempel sång, jojk och rap.",
+        "Ackord-, melodi-, bas- och slagverksinstrument samt digitala verktyg för musicerande och musikskapande.",
+        "Röstvård och hörselvård vid musikaliska aktiviteter i olika miljöer.",
+        "Musikaliska byggstenar: puls, rytm, tempo, taktarter, klang, tonhöjd, dynamik, fraser, perioder, musikalisk form och ackord.",
+        "Musiksymboler, grafisk notation, ackordbeteckningar och grundläggande notkännedom."
+       ]
+      },
+      {
+       "name": "Musikens sammanhang och funktioner",
+       "points": [
+        "Musikens påverkan på och betydelse för människa och samhälle. Hur musik kan uppfattas och användas i vardagliga och högtidliga sammanhang.",
+        "Musik tillsammans med bild, text och dans. Hur olika uttrycksformer kan samspela.",
+        "Musikinstrumentens funktioner i olika ensemble- och orkestertyper.",
+        "Musikaliska karaktärsdrag i konstmusik, folkmusik och populärmusik från olika kulturer."
+       ]
+      }
+     ]
+    },
+    {
+     "stage": "7-9",
+     "areas": [
+      {
+       "name": "Musicerande och musikskapande",
+       "points": [
+        "Sång, melodispel och ackompanjemang med genretypiska musikaliska uttryck, unisont och i stämmor.",
+        "Rytmisk och melodisk improvisation med röst, rörelse och instrument med utgångspunkt i musikaliska byggstenar.",
+        "Komposition i olika genrer, till exempel visor, ljudkompositioner och låtar.",
+        "Gestaltning och kommunikation av musikaliska tankar och idéer i kombination med andra uttrycksformer."
+       ]
+      },
+      {
+       "name": "Musikens verktyg",
+       "points": [
+        "Rösten och hur den kan varieras och användas för vokala uttryck inom olika genrer och ensembletyper.",
+        "Ackord-, melodi-, bas- och slagverksinstrument samt digitala verktyg för musicerande och musikskapande.",
+        "Röstvård och hörselvård. Orsaker till att tal, sång, musiklyssnande och musicerande kan bidra till skador samt hur dessa skador kan förebyggas.",
+        "Musikaliska byggstenar: puls, rytm, tempo, taktarter, klang, tonhöjd, dynamik, fraser, perioder, musikalisk form, ackord, ackompanjemangsmodeller och basgångar.",
+        "Musiksymboler, grafisk notation, ackordbeteckningar och grundläggande notkännedom."
+       ]
+      },
+      {
+       "name": "Musikens sammanhang och funktioner",
+       "points": [
+        "Musikens påverkan på och betydelse för människa och samhälle. Musikens funktion för att uttrycka identitet, normer och grupptillhörighet i olika kulturer och sociala sammanhang.",
+        "Hur musik används som meningsskapande uttrycksform i olika medier, till exempel i film och spel.",
+        "Rättigheter och skyldigheter vid bruk av musik i olika sammanhang.",
+        "Musikinstrumentens funktioner och uttryck i olika genrer och sammanhang.",
+        "Musikaliska karaktärsdrag i konstmusik, folkmusik och populärmusik från olika tidsperioder. Framväxten av olika genrer samt några centrala tonsättare, låtskrivare och musikaliska verk."
+       ]
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "code": "RE",
+   "name": "Religionskunskap",
+   "syllabus": "GRGRREL01",
+   "version": 14,
+   "modified": "2024-02-09",
+   "regulation": "2010:37, ändrad 2022:8",
+   "stages": [
+    {
+     "stage": "1-3",
+     "areas": [
+      {
+       "name": "Att leva tillsammans",
+       "points": [
+        "Migration inom ett land och mellan länder. Vad detta kan ha för orsaker och få för konsekvenser.",
+        "Skildringar av människors levnadsvillkor förr i tiden, till exempel i barnlitteratur, sånger och filmer. Minnen berättade av människor som lever nu.",
+        "Samtal om och reflektion över moraliska frågor och livsfrågor med betydelse för eleven, till exempel kamratskap, könsroller och döden.",
+        "Samtal om och reflektion över normer och regler i elevens livsmiljöer, däribland i skolan och i digitala miljöer.",
+        "Trafikregler och hur man beter sig i trafiken på ett säkert sätt."
+       ]
+      },
+      {
+       "name": "Att leva i närområdet",
+       "points": [
+        "Några utmärkande drag i närområdets natur- och kulturlandskap. Spår av den senaste istiden.",
+        "Hemortens historia och vad närområdets platser, byggnader och vardagliga föremål kan berätta om livet där under olika tider.",
+        "Kristendomens roll i skolan och på hemorten förr i tiden.",
+        "Centrala samhällsfunktioner, till exempel sjukvård, räddningstjänst och skola.",
+        "Yrken och verksamheter i närområdet."
+       ]
+      },
+      {
+       "name": "Att leva i världen",
+       "points": [
+        "Miljöfrågor utifrån elevens vardag, till exempel frågor om trafik, energi och livsmedel.",
+        "Rumsliga förutsättningar i natur och miljö för befolkning och bebyggelse, till exempel mark, vatten och klimat.",
+        "Namn och läge på världsdelarna och världshaven samt på länder och platser som är betydelsefulla för eleven.",
+        "Människans uppkomst, vandringar, samlande och jakt samt förändrade levnadsvillkor i samband med övergången till jordbruk.",
+        "Norden befolkas. Människors levnadsvillkor under nordisk stenålder, bronsålder och järnålder.",
+        "Berättelser i antik och nordisk mytologi samt i samisk religion.",
+        "Några högtider, symboler och berättelser inom kristendom, islam och judendom. Några berättelser ur Bibeln och deras innebörder.",
+        "Mänskliga rättigheter inklusive alla människors lika värde och barnets rättigheter i enlighet med FN:s konvention om barnets rättigheter (barnkonventionen).",
+        "Grundläggande demokratiska principer. Vad åsikts- och yttrandefrihet samt majoritetsprincipen kan innebära i skolan och i samhället.",
+        "Pengars användning och värde. Olika exempel på betalningsformer och vad några vanliga varor och tjänster kan kosta.",
+        "Aktuella samhällsfrågor i olika medier."
+       ]
+      },
+      {
+       "name": "Att undersöka verkligheten",
+       "points": [
+        "Metoder för att söka information, till exempel textläsning, intervjuer och observationer. Samtal om olika källors användbarhet och tillförlitlighet.",
+        "Jordgloben, analoga och digitala kartor samt storleksrelationer och väderstreck.",
+        "Mentala kartor, till exempel över närområdet, skolvägar eller andra platser som är betydelsefulla för eleven.",
+        "Tidslinjer och tidsbegreppen dåtid, nutid och framtid."
+       ]
+      }
+     ]
+    },
+    {
+     "stage": "4-6",
+     "areas": [
+      {
+       "name": "Religioner och andra livsåskådningar",
+       "points": [
+        "Religionens betydelse i människors liv och människors olika sätt att uttrycka sin religiositet.",
+        "Ritualer och religiöst motiverade levnadsregler samt heliga platser och rum i kristendom, islam och judendom.",
+        "Centrala tankegångar med koppling till ritualer, levnadsregler och heliga platser inom kristendom, islam och judendom, till exempel som de uttrycks i berättelser i Bibeln och andra religiösa urkunder.",
+        "Några huvuddrag inom hinduism och buddhism.",
+        "Likheter och skillnader mellan och inom några religioner.",
+        "Begreppen religion och livsåskådning."
+       ]
+      },
+      {
+       "name": "Religion och samhälle",
+       "points": [
+        "Hur religioner framställs och representeras på olika sätt i media och i andra sammanhang och hur det kan påverka människors bilder av sig själva och andra.",
+        "Kristendomens betydelse för värderingar och kultur i det svenska samhället förr och nu.",
+        "Människors religiösa och livsåskådningsmässiga tillhörigheter i Sverige i dag samt hur detta har förändrats över tid."
+       ]
+      },
+      {
+       "name": "Etik och livsfrågor",
+       "points": [
+        "Samtal om och reflektion över vardagliga moraliska frågor utifrån elevernas egna argument och olika religiösa tolkningar. Sådana frågor kan till exempel handla om ansvar, utanförskap, kränkningar, jämställdhet och sexualitet.",
+        "Samtal om och reflektion över livsfrågor utifrån elevernas egna tankar och olika religiösa tolkningar. Sådana frågor kan till exempel handla om vad som är viktigt i livet och olika föreställningar om vad som händer efter döden."
+       ]
+      }
+     ]
+    },
+    {
+     "stage": "7-9",
+     "areas": [
+      {
+       "name": "Religioner och andra livsåskådningar",
+       "points": [
+        "Vad religion och livsåskådning kan betyda för människors behov av mening, gemenskap, identitet och förståelse av omvärlden.",
+        "Centrala tankegångar inom kristendom, islam, judendom, hinduism och buddhism.",
+        "Likheter och skillnader i religiösa tolkningar och praktiker mellan och inom olika religioner. Huvudinriktningar inom kristendom och andra religioner.",
+        "Tolkning av och samtal om religiös och livsåskådningsmässig symbolik och mening i Bibeln och andra religiösa urkunder, samt i ritualer och estetiska uttryck.",
+        "Religionernas uppkomst, spridning och geografiska utbredning i dag.",
+        "Orientering om sekulära livsåskådningar och livshållningar, till exempel humanism och ateism."
+       ]
+      },
+      {
+       "name": "Religion och samhälle",
+       "points": [
+        "Kritisk granskning av hur religion och religiositet framställs och representeras på olika sätt i media och i andra sammanhang och hur det kan påverka individer och samhället i stort.",
+        "Från enhetskyrka till religiös mångfald och sekularisering i det svenska samhället. Religionens betydelse i samhället i Sverige jämfört med några andra delar av världen.",
+        "Konflikter och samförstånd mellan olika religiösa och olika sekulära synsätt, till exempel i frågor om religionsfrihet, sexualitet och synen på kvinnors och mäns roller."
+       ]
+      },
+      {
+       "name": "Etik och livsfrågor",
+       "points": [
+        "Grundprinciper inom några etiska modeller, till exempel konsekvensetik och pliktetik.",
+        "Analys av och reflektion över etiska frågor utifrån elevernas egna argument samt utifrån tolkningar inom religioner och andra livsåskådningar och utifrån etiska modeller. Sådana frågor kan till exempel handla om frihet, rättvisa och solidaritet.",
+        "Samtal om och reflektion över livsfrågor utifrån elevernas egna tankar samt utifrån tolkningar inom religioner och andra livsåskådningar. Sådana frågor kan till exempel handla om identitet, kärlek, sexualitet och meningen med livet."
+       ]
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "code": "SH",
+   "name": "Samhällskunskap",
+   "syllabus": "GRGRSAM01",
+   "version": 14,
+   "modified": "2024-02-09",
+   "regulation": "2010:37, ändrad 2022:8",
+   "stages": [
+    {
+     "stage": "1-3",
+     "areas": [
+      {
+       "name": "Att leva tillsammans",
+       "points": [
+        "Migration inom ett land och mellan länder. Vad detta kan ha för orsaker och få för konsekvenser.",
+        "Skildringar av människors levnadsvillkor förr i tiden, till exempel i barnlitteratur, sånger och filmer. Minnen berättade av människor som lever nu.",
+        "Samtal om och reflektion över moraliska frågor och livsfrågor med betydelse för eleven, till exempel kamratskap, könsroller och döden.",
+        "Samtal om och reflektion över normer och regler i elevens livsmiljöer, däribland i skolan och i digitala miljöer.",
+        "Trafikregler och hur man beter sig i trafiken på ett säkert sätt."
+       ]
+      },
+      {
+       "name": "Att leva i närområdet",
+       "points": [
+        "Några utmärkande drag i närområdets natur- och kulturlandskap. Spår av den senaste istiden.",
+        "Hemortens historia och vad närområdets platser, byggnader och vardagliga föremål kan berätta om livet där under olika tider.",
+        "Kristendomens roll i skolan och på hemorten förr i tiden.",
+        "Centrala samhällsfunktioner, till exempel sjukvård, räddningstjänst och skola.",
+        "Yrken och verksamheter i närområdet."
+       ]
+      },
+      {
+       "name": "Att leva i världen",
+       "points": [
+        "Miljöfrågor utifrån elevens vardag, till exempel frågor om trafik, energi och livsmedel.",
+        "Rumsliga förutsättningar i natur och miljö för befolkning och bebyggelse, till exempel mark, vatten och klimat.",
+        "Namn och läge på världsdelarna och världshaven samt på länder och platser som är betydelsefulla för eleven.",
+        "Människans uppkomst, vandringar, samlande och jakt samt förändrade levnadsvillkor i samband med övergången till jordbruk.",
+        "Norden befolkas. Människors levnadsvillkor under nordisk stenålder, bronsålder och järnålder.",
+        "Berättelser i antik och nordisk mytologi samt i samisk religion.",
+        "Några högtider, symboler och berättelser inom kristendom, islam och judendom. Några berättelser ur Bibeln och deras innebörder.",
+        "Mänskliga rättigheter inklusive alla människors lika värde och barnets rättigheter i enlighet med FN:s konvention om barnets rättigheter (barnkonventionen).",
+        "Grundläggande demokratiska principer. Vad åsikts- och yttrandefrihet samt majoritetsprincipen kan innebära i skolan och i samhället.",
+        "Pengars användning och värde. Olika exempel på betalningsformer och vad några vanliga varor och tjänster kan kosta.",
+        "Aktuella samhällsfrågor i olika medier."
+       ]
+      },
+      {
+       "name": "Att undersöka verkligheten",
+       "points": [
+        "Metoder för att söka information, till exempel textläsning, intervjuer och observationer. Samtal om olika källors användbarhet och tillförlitlighet.",
+        "Jordgloben, analoga och digitala kartor samt storleksrelationer och väderstreck.",
+        "Mentala kartor, till exempel över närområdet, skolvägar eller andra platser som är betydelsefulla för eleven.",
+        "Tidslinjer och tidsbegreppen dåtid, nutid och framtid."
+       ]
+      }
+     ]
+    },
+    {
+     "stage": "4-6",
+     "areas": [
+      {
+       "name": "Individer och gemenskaper",
+       "points": [
+        "Sociala roller och normer i olika sammanhang, till exempel inom familjen och i vänskapsrelationer. Könsroller, jämställdhet och sexualitet.",
+        "Sociala skyddsnät för barn i olika livssituationer, i skolan och i samhället."
+       ]
+      },
+      {
+       "name": "Samhällsresurser och fördelning",
+       "points": [
+        "Privatekonomi och relationen mellan arbete, inkomst och konsumtion.",
+        "Det offentligas ekonomi. Vad skatter är och vad kommuner, regioner och stat använder skattemedel till.",
+        "Exempel på skilda ekonomiska och sociala villkor för barn, i Sverige och i olika delar av världen."
+       ]
+      },
+      {
+       "name": "Beslutsfattande och politiska idéer",
+       "points": [
+        "Vad demokrati är och hur demokratiska beslut fattas. Hur individer och grupper kan påverka beslut, genom att rösta i allmänna val och till exempel genom elevråd i skolan eller genom att skapa opinion i sociala medier.",
+        "Riksdagen och regeringen och deras olika uppdrag. Politiska val och partier i Sverige. Skiljelinjer i några aktuella politiska frågor."
+       ]
+      },
+      {
+       "name": "Rättigheter och rättsskipning",
+       "points": [
+        "Samhällets behov av lagstiftning samt några olika lagar och påföljder. Kriminalitet och möjliga konsekvenser för individ och samhälle.",
+        "De mänskliga rättigheterna och deras betydelse, inklusive barnets rättigheter i enlighet med barnkonventionen. Principen om likabehandling, inklusive skydd mot diskriminering.",
+        "De nationella minoriteterna judar, romer, urfolket samerna, sverigefinnar och tornedalingar: kultur, historia och rättigheter."
+       ]
+      },
+      {
+       "name": "Information och kommunikation",
+       "points": [
+        "Mediernas roll som informationsspridare, opinionsbildare och granskare av samhällets makthavare samt som underhållare.",
+        "Hur digitala och andra medier kan användas ansvarsfullt utifrån sociala, etiska och rättsliga aspekter."
+       ]
+      },
+      {
+       "name": "Granskning av samhällsfrågor",
+       "points": [
+        "Aktuella samhällsfrågor och olika perspektiv på dessa.",
+        "Hur budskap, avsändare och syfte kan urskiljas och granskas med ett källkritiskt förhållningssätt i såväl digitala medier som i andra typer av källor som rör samhällsfrågor."
+       ]
+      }
+     ]
+    },
+    {
+     "stage": "7-9",
+     "areas": [
+      {
+       "name": "Individer och gemenskaper",
+       "points": [
+        "Människors identiteter, ekonomiska resurser och möjligheter i samhället och hur dessa kan påverkas av bland annat socioekonomisk bakgrund, kön, ålder och etnicitet. Begreppen makt, rättvisa, jämlikhet och jämställdhet.",
+        "Svenska välfärdsstrukturer och hur de fungerar, till exempel sjukvårdssystemet och arbetslöshetsförsäkringen.",
+        "Migration till, samt integration och segregation i Sverige i dag."
+       ]
+      },
+      {
+       "name": "Samhällsresurser och fördelning",
+       "points": [
+        "Hur hushållens, företagens, bankernas och det offentligas ekonomi hänger samman. Orsaker till förändringar i samhällsekonomin och vilka effekter de kan få.",
+        "Länders och regioners beroende av varandra i en globaliserad ekonomi. Skilda förutsättningar för olika länder och regioner.",
+        "Orsaker till och konsekvenser av en ojämlik fördelning av inkomster och förmögenheter mellan människor i Sverige och i olika delar av världen.",
+        "Arbetsmarknadens och arbetslivets förändringar och villkor, till exempel med avseende på lönebildning, arbetsmiljö och arbetsrätt."
+       ]
+      },
+      {
+       "name": "Beslutsfattande och politiska idéer",
+       "points": [
+        "Vad begreppen demokrati och diktatur, monarki och republik samt parlamentarism och presidentstyre innebär. Exempel på hur dessa olika stats- och styrelseskick kan fungera.",
+        "Politiska ideologier och skiljelinjer mellan politiska partier i Sverige.",
+        "Sveriges politiska system med Europeiska unionen, riksdag, regering, Sametinget, regioner och kommuner. Sveriges grundlagar.",
+        "Var olika beslut fattas och exempel på hur besluten påverkar individer, grupper och samhället i stort. Individers och gruppers möjligheter att påverka den demokratiska processen.",
+        "FN:s syfte, huvuduppgifter och verksamhet samt det nordiska samarbetets bakgrund och innehåll."
+       ]
+      },
+      {
+       "name": "Rättigheter och rättsskipning",
+       "points": [
+        "Kränkningar av de mänskliga rättigheterna i olika delar av världen och internationellt arbete för att främja mänskliga rättigheter.",
+        "De nationella minoriteternas situation i Sverige samt den svenska minoritetspolitiken och dess framväxt. Samernas ställning som urfolk.",
+        "Friheter, rättigheter och skyldigheter i demokratiska samhällen. Dilemman som hänger samman med demokratiska rättigheter och skyldigheter, till exempel gränsen mellan yttrandefrihet och kränkningar i sociala medier.",
+        "Rättssystemet i Sverige och principer för rättssäkerhet. Möjliga orsaker till och konsekvenser av olika typer av kriminalitet, till exempel korruption, våldsbrott, sexualbrott och hedersrelaterat våld och förtryck. Kriminalvårdens uppgifter."
+       ]
+      },
+      {
+       "name": "Information och kommunikation",
+       "points": [
+        "Hur media produceras, distribueras och konsumeras samt vilka möjligheter och svårigheter det kan innebära för mediernas roll i ett demokratiskt samhälle.",
+        "Nyhetsvärdering och hur den kan påverka människors bilder av omvärlden. Hur individer och grupper framställs i media, till exempel utifrån kön och etnicitet, och hur detta kan påverka normbildning och värderingar."
+       ]
+      },
+      {
+       "name": "Granskning av samhällsfrågor",
+       "points": [
+        "Lokala, nationella och globala samhällsfrågor och olika perspektiv på dessa.",
+        "Kritisk granskning av information, ståndpunkter och argument som rör samhällsfrågor i såväl digitala medier som i andra typer av källor."
+       ]
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "code": "SL",
+   "name": "Slöjd",
+   "syllabus": "GRGRSLJ01",
+   "version": 14,
+   "modified": "2024-02-09",
+   "regulation": "2010:37, ändrad 2022:8",
+   "stages": [
+    {
+     "stage": "1-3",
+     "areas": [
+      {
+       "name": "Slöjdens material, verktyg och hantverkstekniker",
+       "points": [
+        "Metall, textil och trä. Materialens egenskaper och användningsområden.",
+        "Verktyg och redskap, hur de benämns och hur de används på ett säkert och ändamålsenligt sätt.",
+        "Några enkla former av hantverkstekniker och begrepp som används i samband med dessa.",
+        "Enkla skisser och arbetsbeskrivningar, hur de kan förstås och följas."
+       ]
+      },
+      {
+       "name": "Slöjdens arbetsprocesser",
+       "points": [
+        "Slöjdarbetets olika delar: idéutveckling, överväganden, framställning och reflektion över arbetsprocessen.",
+        "Undersökande av olika materials egenskaper."
+       ]
+      },
+      {
+       "name": "Slöjdens uttryck och betydelse för hållbar utveckling",
+       "points": [
+        "Bilder, föremål och andra inspirationskällor för det egna skapandet.",
+        "Några slöjdmaterials ursprung och miljöpåverkan, till exempel ståltråd, ull och furu.",
+        "Resurshushållning vid användning av material i slöjdarbetet."
+       ]
+      }
+     ]
+    },
+    {
+     "stage": "4-6",
+     "areas": [
+      {
+       "name": "Slöjdens material, verktyg och hantverkstekniker",
+       "points": [
+        "Metall, textil, trä och andra material. Materialens egenskaper, användningsområden och kombinationsmöjligheter med varandra.",
+        "Verktyg, redskap och maskiner, hur de benämns och hur de används på ett säkert och ändamålsenligt sätt.",
+        "Enkla former av hantverkstekniker och begrepp som används i samband med dessa.",
+        "Skisser, mönster och arbetsbeskrivningar, hur de kan förstås och följas."
+       ]
+      },
+      {
+       "name": "Slöjdens arbetsprocesser",
+       "points": [
+        "Slöjdarbetets olika delar: idéutveckling, överväganden, framställning och reflektion över arbetsprocessen. Hur delarna i arbetsprocessen samverkar till en helhet.",
+        "Undersökande av olika materials egenskaper och användbarhet i det egna slöjdarbetet."
+       ]
+      },
+      {
+       "name": "Slöjdens uttryck och betydelse för hållbar utveckling",
+       "points": [
+        "Hantverk och slöjdtraditioner från olika kulturer som inspirationskällor för det egna skapandet.",
+        "Hur färg, form och material bidrar till olika uttryck hos slöjdföremål.",
+        "Slöjdmaterials ursprung, framställning och miljöpåverkan, till exempel tenn, bomullstyg, teak och läder.",
+        "Resurshushållning genom återbruk av material."
+       ]
+      }
+     ]
+    },
+    {
+     "stage": "7-9",
+     "areas": [
+      {
+       "name": "Slöjdens material, verktyg och hantverkstekniker",
+       "points": [
+        "Metall, textil, trä och andra material. Materialens kombinationsmöjligheter med varandra.",
+        "Verktyg, redskap och maskiner, hur de benämns och hur de används på ett säkert och ändamålsenligt sätt.",
+        "Utvecklade former av hantverkstekniker och begrepp som används i samband med dessa.",
+        "Två- och tredimensionella skisser, modeller, mönster och arbetsbeskrivningar, skapade såväl med som utan digitala verktyg."
+       ]
+      },
+      {
+       "name": "Slöjdens arbetsprocesser",
+       "points": [
+        "Slöjdarbetets olika delar: idéutveckling, överväganden, framställning samt reflektion över arbetsprocessen och resultatet. Hur delarna i arbetsprocessen samverkar och påverkar resultatet.",
+        "Undersökande av olika material och hantverkstekniker utifrån deras kombinations- och konstruktionsmöjligheter."
+       ]
+      },
+      {
+       "name": "Slöjdens uttryck och betydelse för hållbar utveckling",
+       "points": [
+        "Design, mode, konsthantverk och hemslöjd från olika kulturer och tider som inspirationskällor för det egna skapandet.",
+        "Hur färg, form och material kan kombineras för att skapa personliga uttryck i egna slöjdföremål.",
+        "Jämförelser mellan olika slöjdmaterial utifrån deras kvalitet och påverkan på miljön, till exempel mellan natur- och konstmaterial, förnybara och icke förnybara material.",
+        "Resurshushållning genom återbruk, reparation samt vård av material och föremål."
+       ]
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "code": "SV",
+   "name": "Svenska",
+   "syllabus": "GRGRSVE01",
+   "version": 15,
+   "modified": "2024-08-24",
+   "regulation": "2010:37, ändrad 2024:590",
+   "stages": [
+    {
+     "stage": "1-3",
+     "areas": [
+      {
+       "name": "Läsa och skriva",
+       "points": [
+        "Gemensam och enskild läsning. Sambandet mellan ljud och bokstav. Strategier för att avkoda, förstå och tolka ord, begrepp och texter.",
+        "Att återge delar av innehållet i olika texter samt resonera om budskap i texterna och jämföra med egna erfarenheter.",
+        "Gemensamt och enskilt skrivande. Strategier för att skriva ord, meningar och olika typer av texter med anpassning till deras uppbyggnad och språkliga drag. Skapande av texter där ord och bild samspelar, såväl med som utan digitala verktyg.",
+        "Grundläggande textbearbetning.",
+        "Handstil och att skriva med digitala verktyg.",
+        "Språkliga strukturer och normer. Grundläggande skrivregler, med gemener och versaler, de vanligaste skiljetecknen samt stavning av vanligt förekommande ord i elevnära texter.",
+        "Alfabetet och alfabetisk ordning."
+       ]
+      },
+      {
+       "name": "Tala, lyssna och samtala",
+       "points": [
+        "Strukturerade samtal. Att berätta om vardagliga händelser samt att uttrycka känslor, kunskaper och åsikter. Att lyssna, ställa frågor och ge kommentarer.",
+        "Att lyssna aktivt och återberätta viktiga delar av ett innehåll.",
+        "Att ge och ta emot muntliga instruktioner.",
+        "Muntliga presentationer och muntligt berättande. Föremål, bilder, digitala medier och verktyg samt andra hjälpmedel som kan stödja presentationer."
+       ]
+      },
+      {
+       "name": "Texter",
+       "points": [
+        "Skönlitteratur för barn från olika tider och skilda delar av världen. Sånger, muntligt berättande, bilderböcker, kapitelböcker, lyrik, dramatik, sagor och myter. Texter som belyser människors upplevelser och erfarenheter.",
+        "Berättande texters budskap, uppbyggnad och innehåll. Hur en berättande text kan organiseras med inledning, händelseförlopp och avslutning samt personbeskrivningar.",
+        "Några skönlitterärt betydelsefulla barnboksförfattare och illustratörer.",
+        "Sakprosatexter för barn. Beskrivande, förklarande och instruerande texter och hur deras innehåll kan organiseras.",
+        "Texter som kombinerar ord och bild samt texter i digitala miljöer för barn."
+       ]
+      },
+      {
+       "name": "Språkbruk",
+       "points": [
+        "Språkliga strategier för att minnas och lära, till exempel grafiska modeller.",
+        "Ord och begrepp för att på ett varierat sätt uttrycka känslor, kunskaper och åsikter.",
+        "Hur ord och yttranden uppfattas av omgivningen beroende på kroppsspråk, tonfall och ords nyanser. Språkbruk samt möjligheter och risker vid egen kommunikation i digitala medier.",
+        "Skillnader mellan tal- och skriftspråk."
+       ]
+      },
+      {
+       "name": "Informationssökning och källkritik",
+       "points": [
+        "Informationssökning i böcker, tidskrifter och på webbplatser för barn samt i söktjänster på internet.",
+        "Hur texters avsändare påverkar innehållet."
+       ]
+      }
+     ]
+    },
+    {
+     "stage": "4-6",
+     "areas": [
+      {
+       "name": "Läsa och skriva",
+       "points": [
+        "Gemensam och enskild läsning. Strategier för att förstå och tolka ord, begrepp och texter från olika medier. Att urskilja texters budskap, både det direkt uttalade och sådant som är indirekt uttryckt.",
+        "Sammanfattning av texter.",
+        "Resonemang om texter med koppling till sammanhang inom och utanför texten samt till den egna läsupplevelsen.",
+        "Gemensamt och enskilt skrivande. Strategier för att skriva olika typer av texter med anpassning till deras uppbyggnad och språkliga drag. Skapande av texter där ord, bild och ljud samspelar, såväl med som utan digitala verktyg.",
+        "Bearbetning av egna och gemensamma texter till innehåll och form. Att ge och ta emot respons på texter.",
+        "Handstil och att skriva med digitala verktyg.",
+        "Språkliga strukturer och normer. Meningsbyggnad, med huvudsatser, bisatser och skiljetecken samt textbindning med hjälp av sambandsord. Stavning, ords böjningsformer och ordklasser.",
+        "Ordböcker och digitala verktyg för stavning och ordförståelse."
+       ]
+      },
+      {
+       "name": "Tala, lyssna och samtala",
+       "points": [
+        "Olika former av samtal. Att lyssna aktivt, ställa frågor, uttrycka tankar och känslor samt resonera och argumentera i olika samtalssituationer och i samband med demokratiska beslutsprocesser.",
+        "Muntliga presentationer och muntligt berättande för olika mottagare. Disposition med inledning, innehåll och avslutning. Stödord, bilder, digitala medier och verktyg samt andra hjälpmedel för att planera och genomföra en muntlig presentation. Hur gester och kroppsspråk kan påverka en presentation."
+       ]
+      },
+      {
+       "name": "Texter",
+       "points": [
+        "Skönlitteratur för barn och unga från olika tider, från Sverige, Norden och övriga världen. Lyrik, dramatik, sagor och myter. Texter som belyser människors villkor och identitets- och livsfrågor.",
+        "Berättande texters budskap, språkliga drag och uppbyggnad. Tillbakablickar, miljö- och personbeskrivningar samt dialoger.",
+        "Några skönlitterärt betydelsefulla barn- och ungdomsboksförfattare och deras verk.",
+        "Sakprosatexter för barn och unga. Beskrivande, förklarande, instruerande och argumenterande texter. Texternas innehåll, uppbyggnad och typiska språkliga drag.",
+        "Texter som kombinerar ord, bild och ljud samt texter i digitala miljöer. Texternas innehåll, uppbyggnad och typiska språkliga drag."
+       ]
+      },
+      {
+       "name": "Språkbruk",
+       "points": [
+        "Språkliga strategier för att minnas och lära, till exempel grafiska modeller och stödord.",
+        "Ord och begrepp för att på ett varierat sätt uttrycka känslor, kunskaper och åsikter. Ords och begrepps nyanser och värdeladdning.",
+        "Formellt och informellt språk. Skillnader i språkanvändning beroende på mottagare, syfte och sammanhang. Ansvarsfullt agerande vid kommunikation i digitala och andra medier.",
+        "Språkbruk i Sverige och Norden. Några svenska dialekter. De nordiska grannspråken. De nationella minoritetsspråken i Sverige."
+       ]
+      },
+      {
+       "name": "Informationssökning och källkritik",
+       "points": [
+        "Informationssökning i några olika medier och källor, till exempel i uppslagsböcker, genom intervjuer och i söktjänster på internet.",
+        "Hur man jämför källor och prövar deras tillförlitlighet med ett källkritiskt förhållningssätt."
+       ]
+      }
+     ]
+    },
+    {
+     "stage": "7-9",
+     "areas": [
+      {
+       "name": "Läsa och skriva",
+       "points": [
+        "Gemensam och enskild läsning. Strategier för att förstå, tolka och analysera texter från olika medier. Att urskilja texters budskap, tema och motiv samt deras syfte, avsändare och sammanhang. Att urskilja innehåll som kan vara direkt uttalat eller indirekt uttryckt i texten.",
+        "Sammanfattning av texter.",
+        "Analys av texter med koppling till upphovsperson, tid och andra texter samt utifrån egna erfarenheter, olika livsfrågor och omvärldsfrågor.",
+        "Gemensamt och enskilt skrivande. Strategier för att skriva olika typer av texter med anpassning till deras uppbyggnad och språkliga drag. Skapande av texter där ord, bild och ljud samspelar.",
+        "Disposition och redigering av texter med hjälp av digitala verktyg. Bearbetning av egna och gemensamma texter till innehåll och form. Att ge och ta emot respons på texter.",
+        "Språkliga strukturer och normer. Stavning, meningsbyggnad, styckeindelning och olika typer av textbindning. Ordklasser och satsdelar.",
+        "Språkliga handböcker och digitala verktyg för ordförståelse, språkriktighet och variation."
+       ]
+      },
+      {
+       "name": "Tala, lyssna och samtala",
+       "points": [
+        "Olika former av samtal. Att delta aktivt, uttrycka känslor, tankar och kunskaper, lyssna, ställa frågor och föra resonemang, samt formulera och bemöta argument.",
+        "Att leda ett samtal och sammanfatta huvuddragen i vad som sagts.",
+        "Muntliga presentationer och muntligt berättande för olika mottagare. Anpassning av språk, innehåll och disposition till syfte, mottagare och sammanhang. Talmanus och olika verktyg för att planera och genomföra muntliga presentationer, såväl med som utan digital teknik."
+       ]
+      },
+      {
+       "name": "Texter",
+       "points": [
+        "Skönlitteratur för ungdomar och vuxna från olika tider, från Sverige, Norden och övriga världen. Epik, lyrik och dramatik. Texter som belyser människors villkor och identitets- och livsfrågor.",
+        "Språkliga drag, uppbyggnad och berättarperspektiv i berättande och poetiska texter. Bildspråk, gestaltningar, parallellhandling, tillbakablickar, miljö- och personbeskrivningar samt dialoger.",
+        "Några skönlitterära genrer och hur de stilistiskt och innehållsligt skiljer sig ifrån varandra.",
+        "Några skönlitterärt betydelsefulla författare och deras verk samt de historiska och kulturella sammanhang som verken har tillkommit i.",
+        "Sakprosatexter för ungdomar och vuxna. Beskrivande, förklarande, utredande, instruerande och argumenterande texter. Texternas syfte, innehåll, uppbyggnad och språkliga drag. Kombinationer av olika texttyper.",
+        "Texter i digitala miljöer samt andra texter som kombinerar ord, bild och ljud. Språkliga och dramaturgiska komponenter samt hur uttrycken kan samspela med varandra, till exempel i filmiskt berättande, teaterföreställningar och webbtexter."
+       ]
+      },
+      {
+       "name": "Språkbruk",
+       "points": [
+        "Språkliga strategier för att minnas och lära genom att identifiera nyckelord och föra anteckningar.",
+        "Ord och begrepp för att på ett varierat sätt uttrycka känslor, kunskaper och åsikter. Ords och begrepps nyanser och värdeladdning.",
+        "Skillnader i språkanvändning beroende på syfte, mottagare och sammanhang. Språkets betydelse för att utöva inflytande.",
+        "Språkbruk, yttrandefrihet och integritet i digitala och andra medier och i olika sammanhang.",
+        "Språkbruk i Sverige och Norden. Några svenska dialekter och sociolekter. Framträdande skillnader och likheter mellan de nordiska språken. De nationella minoritetsspråken i Sverige och deras ställning i samhället.",
+        "Språkbruk och språkförändring genom tiderna, till exempel vilka språk som påverkat svenskan historiskt och i nutid."
+       ]
+      },
+      {
+       "name": "Informationssökning och källkritik",
+       "points": [
+        "Informationssökning på bibliotek och på internet, i böcker och massmedier samt genom intervjuer.",
+        "Hur man refererar, citerar och gör källhänvisningar, även referenser till digitala medier.",
+        "Hur man sovrar i en stor informationsmängd och prövar källors tillförlitlighet med ett källkritiskt förhållningssätt."
+       ]
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "code": "SVA",
+   "name": "Svenska som andraspråk",
+   "syllabus": "GRGRSVA01",
+   "version": 14,
+   "modified": "2024-02-09",
+   "regulation": "2010:37, ändrad 2022:8",
+   "stages": [
+    {
+     "stage": "1-3",
+     "areas": [
+      {
+       "name": "Läsa och skriva",
+       "points": [
+        "Gemensam och enskild läsning. Läsrelaterade aktiviteter och strategier för att förstå, avkoda och tolka ord, begrepp och texter.",
+        "Läsriktning och sambandet mellan ljud och bokstav i jämförelse med andra språk eleven kan.",
+        "Att återge delar av innehållet i olika texter samt resonera om budskap i texterna och jämföra med egna erfarenheter.",
+        "Gemensamt och enskilt skrivande. Strategier för att skriva ord, meningar och olika typer av texter med anpassning till deras uppbyggnad och språkliga drag. Skapande av texter där ord och bild samspelar, såväl med som utan digitala verktyg.",
+        "Grundläggande textbearbetning.",
+        "Handstil och att skriva med digitala verktyg.",
+        "Språkliga strukturer och normer. Ords böjningsformer och meningsbyggnad med sambandsord, i jämförelse med andra språk eleven kan. Grundläggande skrivregler, med gemener och versaler, de vanligaste skiljetecknen samt stavning av vanligt förekommande ord i elevnära och för eleven kända texter.",
+        "Alfabetet och alfabetisk ordning."
+       ]
+      },
+      {
+       "name": "Tala, lyssna och samtala",
+       "points": [
+        "Strategier för att lyssna, förstå och muntligt göra sig förstådd i situationer när det egna svenska språket inte räcker till, exempelvis att be om förtydliganden, förklara och använda olika språk som resurs.",
+        "Strukturerade samtal. Att berätta om vardagliga händelser samt att uttrycka känslor, kunskaper och åsikter. Att lyssna, ställa frågor och ge kommentarer. Fraser och uttryck samt ords värdeladdning.",
+        "Att lyssna aktivt och återberätta viktiga delar av ett innehåll.",
+        "Att ge och ta emot muntliga instruktioner.",
+        "Muntliga presentationer och muntligt berättande. Föremål, bilder, digitala medier och verktyg samt andra hjälpmedel som kan stödja presentationer.",
+        "Uttal, betoning och satsmelodi samt uttalets betydelse för att göra sig förstådd. Svenska språkets uttal i jämförelse med andra språk eleven kan."
+       ]
+      },
+      {
+       "name": "Texter",
+       "points": [
+        "Skönlitteratur för barn från olika tider och skilda delar av världen. Sånger, muntligt berättande, bilderböcker, kapitelböcker, lyrik, dramatik, sagor och myter. Texter som belyser människors upplevelser och erfarenheter.",
+        "Berättande texters budskap, uppbyggnad och innehåll. Hur en berättande text kan organiseras med inledning, händelseförlopp och avslutning samt utbyggnad med enkla miljö- och personbeskrivningar. Texternas ord och uttryck.",
+        "Några skönlitterärt betydelsefulla barnboksförfattare och illustratörer.",
+        "Sakprosatexter för barn. Beskrivande, förklarande och instruerande texter och hur deras innehåll kan organiseras.",
+        "Muntliga texter, till exempel radioprogram för barn och inlästa texter.",
+        "Texter som kombinerar ord och bild samt texter i digitala miljöer för barn."
+       ]
+      },
+      {
+       "name": "Språkbruk",
+       "points": [
+        "Språkliga strategier för att minnas och lära, till exempel grafiska modeller.",
+        "Ord och begrepp för att på ett varierat sätt uttrycka känslor, kunskaper och åsikter.",
+        "Hur ord och yttranden uppfattas av omgivningen beroende på tonfall, kroppsspråk och ords nyanser. Språkbruk samt möjligheter och risker vid egen kommunikation i digitala medier.",
+        "Ord och begrepp för att benämna elevnära händelser och föremål i elevens vardag. Vardagliga ords betydelseomfång och kategorisering i jämförelse med andra språk eleven kan, till exempel att flera ord på ett språk motsvaras av ett ord på ett annat språk.",
+        "Ordspråk och talesätt i jämförelse med andra språk eleven kan.",
+        "Skillnader mellan tal- och skriftspråk."
+       ]
+      },
+      {
+       "name": "Informationssökning och källkritik",
+       "points": [
+        "Informationssökning i böcker, tidskrifter och på webbplatser för barn samt i söktjänster på internet.",
+        "Hur texters avsändare påverkar innehållet."
+       ]
+      }
+     ]
+    },
+    {
+     "stage": "4-6",
+     "areas": [
+      {
+       "name": "Läsa och skriva",
+       "points": [
+        "Gemensam och enskild läsning. Läsrelaterade aktiviteter och strategier för att förstå, avkoda och tolka ord, begrepp och texter från olika medier. Att urskilja texters budskap, både det direkt uttalade och sådant som är indirekt uttryckt.",
+        "Sammanfattning av texter.",
+        "Resonemang om texter med koppling till sammanhang inom och utanför texten samt till den egna läsupplevelsen.",
+        "Gemensamt och enskilt skrivande. Strategier för att skriva olika typer av texter med anpassning till deras uppbyggnad och språkliga drag. Skapande av texter där ord, bild och ljud samspelar, såväl med som utan digitala verktyg.",
+        "Bearbetning av egna och gemensamma texter till innehåll och form. Att ge och ta emot respons på texter.",
+        "Handstil och att skriva med digitala verktyg.",
+        "Språkliga strukturer och normer. Ords böjningsformer, meningsbyggnad med huvudsatser och bisatser samt svenska språkets ordföljd i jämförelse med andra språk eleven kan. Textbindning med hjälp av sambandsord. Stavning, skiljetecken och ordklasser.",
+        "Svenska och flerspråkiga ordböcker och digitala verktyg för att utöka ordförrådet samt för ordförståelse och stavning."
+       ]
+      },
+      {
+       "name": "Tala, lyssna och samtala",
+       "points": [
+        "Strategier för att förstå och göra sig förstådd när det egna svenska språket inte räcker till, exempelvis att be om förtydliganden, omformulera och använda olika språk som resurs.",
+        "Utmärkande drag i talspråket som kan försvåra förståelsen: reduktioner, assimileringar och talhastighet.",
+        "Olika former av strukturerade samtal, till exempel dialoger och intervjuer.",
+        "Att lyssna aktivt, ställa frågor, uttrycka tankar och känslor samt resonera och argumentera i olika samtalssituationer och i samband med demokratiska beslutsprocesser. Användning av sambandsord för att jämföra, motivera och exemplifiera.",
+        "Muntliga presentationer och muntligt berättande för olika mottagare. Disposition med inledning, innehåll och avslutning. Stödord, bilder, digitala medier och verktyg samt andra hjälpmedel för att planera och genomföra en muntlig presentation. Hur gester och kroppsspråk kan påverka en presentation.",
+        "Uttal, satsmelodi och sambandet mellan betoning och betydelse. Svenska språkets uttal i jämförelse med andra språk eleven kan."
+       ]
+      },
+      {
+       "name": "Texter",
+       "points": [
+        "Skönlitteratur för barn och unga från olika tider, från Sverige och övriga världen. Lyrik, dramatik, sagor och myter. Texter som belyser människors villkor och identitets- och livsfrågor.",
+        "Berättande texters budskap, språkliga drag och uppbyggnad. Tillbakablickar, miljö- och personbeskrivningar samt dialoger. Texternas ord och uttryck.",
+        "Några skönlitterärt betydelsefulla barn- och ungdomsboksförfattare och deras verk.",
+        "Sakprosatexter för barn och unga. Beskrivande, förklarande, instruerande och argumenterande texter. Texternas innehåll, uppbyggnad, typiska språkliga drag samt deras ord och begrepp.",
+        "Muntliga texter, till exempel radioprogram för barn och ungdomar samt inlästa texter.",
+        "Texter som kombinerar ord, bild och ljud samt texter i digitala miljöer. Texternas innehåll, uppbyggnad och typiska språkliga drag."
+       ]
+      },
+      {
+       "name": "Språkbruk",
+       "points": [
+        "Språkliga strategier för att minnas och lära, till exempel grafiska modeller och stödord.",
+        "Ord och begrepp för att på ett varierat sätt uttrycka känslor, kunskaper och åsikter. Ords och begrepps nyanser och värdeladdning.",
+        "Ord och begrepp i både vardags- och skolspråk. Flertydiga ord, ords inbördes relationer, ords klassificering i över- och underordning samt ords betydelseomfång i jämförelse med andra språk eleven kan.",
+        "Ordspråk och talesätt i jämförelse med andra språk eleven kan. Fasta fraser och liknelser.",
+        "Formellt och informellt språk. Skillnader i språkanvändning beroende på mottagare, syfte och sammanhang. Ansvarsfullt agerande vid kommunikation i digitala och andra medier."
+       ]
+      },
+      {
+       "name": "Informationssökning och källkritik",
+       "points": [
+        "Informationssökning i några olika medier och källor, till exempel i uppslagsböcker, genom intervjuer och i söktjänster på internet.",
+        "Hur man jämför källor och prövar deras tillförlitlighet med ett källkritiskt förhållningssätt."
+       ]
+      }
+     ]
+    },
+    {
+     "stage": "7-9",
+     "areas": [
+      {
+       "name": "Läsa och skriva",
+       "points": [
+        "Gemensam och enskild läsning. Läsrelaterade aktiviteter och strategier för att förstå, tolka och analysera texter från olika medier. Att urskilja texters budskap, tema och motiv samt deras syfte, avsändare och sammanhang. Att urskilja innehåll som kan vara direkt uttalat eller indirekt uttryckt i texten.",
+        "Sammanfattning av texter.",
+        "Analys av texter med koppling till upphovsperson, tid och andra texter samt utifrån egna erfarenheter och referensramar, olika livsfrågor och omvärldsfrågor.",
+        "Gemensamt och enskilt skrivande. Strategier för att skriva olika typer av texter med anpassning till deras uppbyggnad och språkliga drag. Skapande av texter där ord, bild och ljud samspelar.",
+        "Disposition och redigering av texter med hjälp av digitala verktyg. Bearbetning av egna och gemensamma texter till innehåll och form. Att ge och ta emot respons på texter.",
+        "Språkliga strukturer och normer. Meningsbyggnad och ordföljd på svenska i jämförelse med andra språk eleven kan. Hur orsaks-, konsekvens- och villkorssamband kan formuleras genom olika typer av bisatser. Styckeindelning och textbindning med sambandsmarkörer, referensbindning och tematisk bindning. Skiljetecken, ordklasser, kongruens, tempus, genus och satsdelar samt stavning.",
+        "Svenska och flerspråkiga ordböcker och digitala verktyg för att utöka ordförrådet samt för ordförståelse, variation och stavning."
+       ]
+      },
+      {
+       "name": "Tala, lyssna och samtala",
+       "points": [
+        "Strategier för att förstå och göra sig förstådd när det egna svenska språket inte räcker till, exempelvis omformuleringar, synonymer och att använda olika språk som resurs.",
+        "Olika former av samtal. Att delta aktivt, uttrycka känslor, tankar och kunskaper, lyssna, ställa frågor och föra resonemang, samt formulera och bemöta argument. Användning av sambandsord för att jämföra, motivera, exemplifiera och problematisera.",
+        "Att leda ett samtal och sammanfatta huvuddragen i vad som sagts.",
+        "Muntliga presentationer och muntligt berättande för olika mottagare. Anpassning av språk, innehåll och disposition till syfte, mottagare och sammanhang. Talmanus och olika verktyg för att planera och genomföra muntliga presentationer, såväl med som utan digital teknik.",
+        "Svenska språkets prosodi och uttalets betydelse för att göra sig förstådd. Olika varieteter av talad svenska: dialekter och sociolekter."
+       ]
+      },
+      {
+       "name": "Texter",
+       "points": [
+        "Skönlitteratur för ungdomar och vuxna från olika tider, från Sverige och övriga världen. Epik, lyrik och dramatik. Texter som belyser människors villkor och identitets- och livsfrågor.",
+        "Språkliga drag, uppbyggnad och berättarperspektiv i berättande och poetiska texter. Bildspråk, gestaltningar, parallellhandling, tillbakablickar, miljö- och personbeskrivningar samt dialoger.",
+        "Några skönlitterära genrer och hur de stilistiskt och innehållsligt skiljer sig ifrån varandra.",
+        "Några skönlitterärt betydelsefulla författare och deras verk samt de historiska och kulturella sammanhang som verken har tillkommit i.",
+        "Sakprosatexter för ungdomar och vuxna. Beskrivande, förklarande, utredande, instruerande och argumenterande texter. Texternas syfte, innehåll, uppbyggnad och språkliga drag samt deras ord och uttryck. Kombinationer av olika texttyper.",
+        "Muntliga texter, till exempel radioprogram för unga och vuxna samt inlästa texter.",
+        "Texter i digitala miljöer samt andra texter som kombinerar ord, bild och ljud. Språkliga och dramaturgiska komponenter samt hur uttrycken kan samspela med varandra, till exempel i filmiskt berättande, teaterföreställningar och webbtexter."
+       ]
+      },
+      {
+       "name": "Språkbruk",
+       "points": [
+        "Språkliga strategier för att minnas och lära genom att identifiera nyckelord, föra anteckningar och använda grafiska modeller.",
+        "Ord och begrepp för att på ett varierat sätt uttrycka känslor, kunskaper och åsikter. Ords och begrepps nyanser och värdeladdning.",
+        "Ord och begrepp i både vardags- och skolspråk. Flertydiga ord, synonymer, ords klassificering i över- och underordning samt ords betydelseomfång i jämförelse med andra språk eleven kan.",
+        "Ordbildning, till exempel sammansatta ord samt avledningar med suffix och prefix. Bildspråk, nominaliseringar, fasta fraser och idiomatiska uttryck i jämförelse med andra språk eleven kan.",
+        "Skillnader i språkanvändning beroende på syfte, mottagare och sammanhang. Språkets betydelse för att utöva inflytande.",
+        "Språkbruk, yttrandefrihet och integritet i digitala och andra medier och i olika sammanhang."
+       ]
+      },
+      {
+       "name": "Informationssökning och källkritik",
+       "points": [
+        "Informationssökning på bibliotek och på internet, i böcker och massmedier samt genom intervjuer.",
+        "Hur man refererar, citerar och gör källhänvisningar, även referenser till digitala medier.",
+        "Hur man sovrar i en stor informationsmängd och prövar källors tillförlitlighet med ett källkritiskt förhållningssätt."
+       ]
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "code": "TK",
+   "name": "Teknik",
+   "syllabus": "GRGRTEK01",
+   "version": 14,
+   "modified": "2024-02-09",
+   "regulation": "2010:37, ändrad 2022:8",
+   "stages": [
+    {
+     "stage": "1-3",
+     "areas": [
+      {
+       "name": "Teknik, människa, samhälle och miljö",
+       "points": [
+        "Några föremål och något tekniskt system i elevernas vardag, hur de är anpassade efter människans behov samt hur de har förändrats över tid.",
+        "Säkerhet vid elevernas användning av teknik, till exempel elektricitet och olika tjänster via internet."
+       ]
+      },
+      {
+       "name": "Tekniska lösningar",
+       "points": [
+        "Hur några föremål i elevernas vardag används och fungerar. Enkla mekanismer, till exempel i verktyg och leksaker av olika slag. Begrepp som används i samband med detta.",
+        "Vad datorer används till och deras delar för inmatning, utmatning och lagring av information. Föremål i elevernas vardag som styrs med hjälp av programmering, till exempel hushållsmaskiner och smarta telefoner.",
+        "Material för konstruktionsarbete. Materialens egenskaper och hur materialen benämns och kan sammanfogas."
+       ]
+      },
+      {
+       "name": "Arbetsmetoder för utveckling av tekniska lösningar",
+       "points": [
+        "Undersökande av hur några föremål i elevernas vardag är utformade och hur deras funktion kan förbättras.",
+        "Egna konstruktioner där man använder enkla mekanismer.",
+        "Styrning av föremål med programmering.",
+        "Dokumentation av tekniska lösningar: skisser, bilder, ord samt enkla fysiska och digitala modeller."
+       ]
+      }
+     ]
+    },
+    {
+     "stage": "4-6",
+     "areas": [
+      {
+       "name": "Teknik, människa, samhälle och miljö",
+       "points": [
+        "Några tekniska system och hur de påverkar människa och miljö, till exempel vatten- och avloppssystem och system för återvinning. Hur systemen har förändrats över tid och några orsaker till detta.",
+        "Möjligheter, risker och säkerhet vid teknikanvändning i vardagen, till exempel vid användning av elektricitet och vid överföring av information i digitala miljöer.",
+        "Konsekvenser av teknikval: olika tekniska lösningars för- och nackdelar för människa och miljö."
+       ]
+      },
+      {
+       "name": "Tekniska lösningar",
+       "points": [
+        "Hur några komponenter i vanliga tekniska system benämns och samverkar, till exempel i en cykel eller i ett enkelt produktions- eller transportsystem.",
+        "Föremål som innehåller rörliga delar och hur de rörliga delarna är sammanfogade med hjälp av olika mekanismer för att överföra och förstärka krafter.",
+        "Några av datorns delar och deras funktioner, till exempel processor och arbetsminne. Hur datorer styrs av program och kan kopplas samman i nätverk.",
+        "Tekniska lösningar som utnyttjar elkomponenter och enkel elektronik för att åstadkomma ljud, ljus eller rörelse, till exempel larm och belysning. Begrepp som används i samband med detta.",
+        "Hur hållfasta och stabila konstruktioner är uppbyggda, till exempel skal, armering och fackverk. Material som används i hållfasta och stabila konstruktioner."
+       ]
+      },
+      {
+       "name": "Arbetsmetoder för utveckling av tekniska lösningar",
+       "points": [
+        "Teknikutvecklingsarbetets olika faser: identifiering av behov, undersökning, förslag till lösningar, konstruktion och utprövning.",
+        "Egna konstruktioner där man använder mekanismer, elektriska kopplingar samt hållfasta och stabila strukturer.",
+        "Styrning av egna konstruktioner eller andra föremål med programmering.",
+        "Dokumentation av tekniska lösningar: skisser med vyer och måttangivelser, ord samt fysiska och digitala modeller."
+       ]
+      }
+     ]
+    },
+    {
+     "stage": "7-9",
+     "areas": [
+      {
+       "name": "Teknik, människa, samhälle och miljö",
+       "points": [
+        "Internet och några andra globala tekniska system samt deras fördelar, risker och begränsningar.",
+        "Möjligheter, risker och säkerhet vid teknikanvändning i samhället, däribland vid lagring av data.",
+        "Konsekvenser av teknikval utifrån ekologiska, ekonomiska och sociala aspekter av hållbar utveckling.",
+        "Hur tekniken möjliggjort vetenskapliga upptäckter och hur vetenskapen har möjliggjort tekniska innovationer.",
+        "Hur föreställningar om teknik påverkar individers användning av tekniska lösningar och yrkesval."
+       ]
+      },
+      {
+       "name": "Tekniska lösningar",
+       "points": [
+        "Hur komponenter och delsystem benämns och samverkar inom tekniska system, till exempel informations- och kommunikationsteknik och transportsystem.",
+        "Tekniska lösningar för styrning och reglering med hjälp av elektronik och olika typer av sensorer. Hur tekniska lösningar som utnyttjar elektronik kan programmeras. Begrepp som används i samband med detta.",
+        "Tekniska lösningar för hållfasta och stabila konstruktioner samt betydelsen av materialens egenskaper, till exempel drag- och tryckhållfasthet, hårdhet och elasticitet.",
+        "Bearbetning av råvara till färdig produkt och hantering av avfall i någon industriell process, till exempel vid tillverkning av livsmedel och förpackningar."
+       ]
+      },
+      {
+       "name": "Arbetsmetoder för utveckling av tekniska lösningar",
+       "points": [
+        "Teknikutvecklingsarbetets olika faser: identifiering av behov, undersökning, förslag till lösningar, konstruktion och utprövning. Hur faserna i arbetsprocessen samverkar i det egna arbetet och i teknikutvecklingsarbeten i samhället, till exempel inom arkitektur och kollektivtrafik.",
+        "Hur digitala verktyg kan användas i teknikutvecklingsarbete, till exempel för att göra ritningar och simuleringar.",
+        "Egna konstruktioner där man använder styrning eller reglering med hjälp av programmering.",
+        "Dokumentation av tekniska lösningar: skisser, ritningar, fysiska och digitala modeller samt rapporter som beskriver teknikutvecklings- och konstruktionsarbeten."
+       ]
+      }
+     ]
+    }
+   ]
+  }
+ ]
+}

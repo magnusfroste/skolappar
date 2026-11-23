@@ -28,7 +28,8 @@ import { CompactAppCard } from '@/components/CompactAppCard';
 import { PublicNav } from '@/components/PublicNav';
 import { PublicFooter } from '@/components/PublicFooter';
 import { SEO } from '@/components/SEO';
-import { useApps, useCategories, useUserUpvotes, useToggleUpvote } from '@/hooks/useApps';
+import { useApps, useCategories, useCurriculumUsed, useUserUpvotes, useToggleUpvote } from '@/hooks/useApps';
+import { useSearchParams } from 'react-router-dom';
 import { useSetting } from '@/hooks/useSettings';
 
 export default function Apps() {
@@ -42,12 +43,20 @@ export default function Apps() {
   const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false);
   const [showFavoritesOnly, setShowFavoritesOnly] = useLocalStorage('apps-favorites-mode', false);
 
+  // Lgr22: the area is in the address (?lgr=MA.1-3.1), so an app's page can link to "more apps that train this"
+  const [params, setParams] = useSearchParams();
+  const lgr = params.get('lgr') || '';
+  const setLgr = (id: string) => setParams((p) => { if (id) p.set('lgr', id); else p.delete('lgr'); return p; }, { replace: true });
+  const { data: curriculumAreas = [] } = useCurriculumUsed();
+  const lgrArea = curriculumAreas.find((a) => a.id === lgr);
+
   const { data: categories, isLoading: categoriesLoading } = useCategories();
   const { data: apps, isLoading: appsLoading } = useApps({
     search,
     subjects: selectedSubjects,
     ages: selectedAges,
     types: selectedTypes,
+    lgr: lgr || undefined,
     sort,
   });
   const { data: userUpvotes = [] } = useUserUpvotes();
@@ -57,7 +66,7 @@ export default function Apps() {
   const ageCategories = categories?.filter(c => c.type === 'age') || [];
   const typeCategories = categories?.filter(c => c.type === 'app_type') || [];
 
-  const activeFiltersCount = selectedSubjects.length + selectedAges.length + selectedTypes.length;
+  const activeFiltersCount = selectedSubjects.length + selectedAges.length + selectedTypes.length + (lgr ? 1 : 0);
 
   // Filter apps to show only favorites when toggle is on
   const displayedApps = showFavoritesOnly 
@@ -70,6 +79,7 @@ export default function Apps() {
   };
 
   const clearFilters = () => {
+    setLgr('');
     setSelectedSubjects([]);
     setSelectedAges([]);
     setSelectedTypes([]);
@@ -137,6 +147,25 @@ export default function Apps() {
         selected={selectedTypes}
         setSelected={setSelectedTypes}
       />
+      {curriculumAreas.length > 0 && (
+        <div>
+          <h4 className="font-semibold text-sm mb-3">Läroplanen (Lgr22)</h4>
+          <div className="space-y-1">
+            {curriculumAreas.map((a) => (
+              <button
+                key={a.id}
+                type="button"
+                onClick={() => setLgr(lgr === a.id ? '' : a.id)}
+                aria-pressed={lgr === a.id}
+                className={`w-full text-left text-sm rounded-lg px-2 py-1.5 transition-colors ${lgr === a.id ? 'bg-primary/10 text-primary font-medium' : 'hover:bg-muted'}`}
+              >
+                {a.area}
+                <span className="block text-xs text-muted-foreground">{a.subject_name}, åk {a.stage.replace('-', '–')} · {a.apps} {a.apps === 1 ? 'app' : 'appar'}</span>
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
       {activeFiltersCount > 0 && (
         <Button variant="ghost" size="sm" onClick={clearFilters} className="w-full">
           <X className="w-4 h-4 mr-1" />
@@ -238,7 +267,7 @@ export default function Apps() {
         </div>
 
         {/* Active filters */}
-        {showFilters && activeFiltersCount > 0 && (
+        {(showFilters || lgr) && activeFiltersCount > 0 && (
           <div className="flex flex-wrap gap-2 mb-6">
             {[...selectedSubjects, ...selectedAges, ...selectedTypes].map(slug => {
               const cat = categories?.find(c => c.slug === slug);
@@ -259,6 +288,12 @@ export default function Apps() {
                 </Badge>
               );
             })}
+            {lgr && (
+              <Badge variant="secondary" className="pl-2 pr-1 py-1 gap-1 cursor-pointer hover:bg-destructive/10" onClick={() => setLgr('')}>
+                📘 {lgrArea ? `${lgrArea.area} (${lgrArea.subject_name}, åk ${lgrArea.stage.replace('-', '–')})` : `Lgr22: ${lgr}`}
+                <X className="w-3 h-3 ml-1" />
+              </Badge>
+            )}
             <Button variant="ghost" size="sm" onClick={clearFilters} className="h-6 text-xs">
               Rensa alla
             </Button>

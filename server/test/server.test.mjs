@@ -495,7 +495,7 @@ describe('the open MCP: an agent submits an app and follows it', () => {
     for (const sec of json.sections) assert.ok(md.text.includes(`## ${sec.title}`), sec.id);
     // every tool the guide names exists in the open part
     const open = (await rpc(pub, 'tools/list')).json.result.tools.map((t) => t.name);
-    for (const [, name] of md.text.matchAll(/`([a-z]+(?:_[a-z]+)+)`/g)) if (name !== 'app_key') assert.ok(open.includes(name), name);
+    for (const [, name] of md.text.matchAll(/`([a-z]+(?:_[a-z]+)+)`/g)) if (!['app_key', 'curriculum_ids'].includes(name)) assert.ok(open.includes(name), name);
     assert.match((await pub('GET', '/llms.txt')).text, /https:\/\/skolappar\.test\/guide\.md/);
     assert.match((await pub('GET', '/sitemap.xml')).text, /\/bygg</);
   });
@@ -530,7 +530,7 @@ describe('the open MCP: an agent submits an app and follows it', () => {
       assert.equal(md, (await call(pub, 'get_skill', { name: skill.name })).data.markdown);
       assert.match(md, new RegExp(`^---\\nname: ${skill.name}\\ndescription: `));
       for (const [, tool] of md.matchAll(/`([a-z]+(?:_[a-z]+)+)`/g)) {
-        if (!['app_key', 'long_description', 'image_url'].includes(tool)) assert.ok(open.includes(tool), `${skill.name}: ${tool}`);
+        if (!['app_key', 'long_description', 'image_url', 'curriculum_ids'].includes(tool)) assert.ok(open.includes(tool), `${skill.name}: ${tool}`);
       }
       for (const [, section] of md.matchAll(/avsnitt(?:et)? `([a-z-]+)`/g)) assert.ok(guideSections.includes(section), `${skill.name}: ${section}`);
     }
@@ -539,11 +539,54 @@ describe('the open MCP: an agent submits an app and follows it', () => {
     assert.match((await pub('GET', '/llms.txt')).text, /\/starter\//);
   });
 
+  test('Lgr22: the central content is searchable, an app is linked to points, the site filters on them', async () => {
+    const overview = (await call(pub, 'get_curriculum')).data;
+    assert.match(overview.source, /Skolverket/);
+    const maths = overview.subjects.find((x) => x.subject === 'MA');
+    assert.deepEqual(maths.stages.map((x) => x.stage), ['1-3', '4-6', '7-9']);
+    assert.equal(maths.stages[0].areas[0].id, 'MA.1-3.1');
+
+    const found = (await call(pub, 'get_curriculum', { subject: 'matematik', stage: '1-3', search: 'bråk' })).data.points;
+    assert.ok(found.length >= 1 && found.every((p) => p.subject === 'MA' && p.stage === '1-3' && /bråk/i.test(p.text)));
+    const point = found[0].id;
+    assert.match(point, /^MA\.1-3\.\d+\.\d+$/);
+    assert.equal((await pub('GET', '/api/curriculum?area=MA.1-3.1')).json.points[0].area_id, 'MA.1-3.1');
+    assert.ok((await pub('GET', '/api/curriculum')).json.subjects.length >= 15);
+
+    // nothing is linked yet: no filter to offer
+    assert.deepEqual((await pub('GET', '/api/curriculum/used')).json, []);
+    // an unknown point is refused; known ones are kept and shown with their text
+    assert.match((await call(admin, 'update_app', { id: APP1, curriculum_ids: ['MA.1-3.9.9'] })).text, /Okända punkter/);
+    assert.equal((await call(admin, 'update_app', { id: APP1, curriculum_ids: [point] })).ok, true);
+    const shown = (await pub('GET', `/api/apps/${APP1}`)).json.curriculum;
+    assert.deepEqual(shown.map((p) => p.id), [point]);
+    assert.ok(shown[0].text.length > 20 && shown[0].subject_name === 'Matematik');
+    assert.deepEqual((await call(pub, 'get_app', { id: APP1 })).data.curriculum.map((p) => p.id), [point]);
+
+    const area = shown[0].area_id;
+    const used = (await pub('GET', '/api/curriculum/used')).json;
+    assert.deepEqual(used.map((a) => [a.id, a.apps]), [[area, 1]]);
+    assert.deepEqual((await pub('GET', `/api/apps?lgr=${area}`)).json.map((a) => a.id), [APP1]);
+    assert.deepEqual((await pub('GET', '/api/apps?lgr=SV.1-3.1')).json, []);
+
+    // an agent links its own app when it submits, and may change the link while the app waits
+    s.app.limiters.submitLimiter.reset();
+    const sent = await call(pub, 'submit_app', { ...submission, url: 'https://lgr.example', curriculum_ids: [point, 'XX.1-3.1.1'] });
+    assert.deepEqual(sent.data.unknown_curriculum_ids, ['XX.1-3.1.1']);
+    const queued = (await call(admin, 'list_submissions')).data.find((a) => a.id === sent.data.id);
+    assert.deepEqual(queued.curriculum.map((p) => p.id), [point]);
+    assert.equal((await call(pub, 'update_my_app', { id: sent.data.id, app_key: sent.data.app_key, curriculum_ids: [] })).ok, true);
+    assert.deepEqual((await call(admin, 'get_app', { id: sent.data.id })).data.curriculum, []);
+    assert.equal((await call(pub, 'withdraw_my_app', { id: sent.data.id, app_key: sent.data.app_key })).ok, true);
+    assert.equal((await call(admin, 'update_app', { id: APP1, curriculum_ids: [] })).ok, true);
+    s.app.limiters.submitLimiter.reset(); // the other tests count their own submissions
+  });
+
   test('no key: the open tools and their instructions; a key: the administration as well', async () => {
     const init = await rpc(pub, 'initialize', { protocolVersion: '2025-06-18', capabilities: {}, clientInfo: { name: 't', version: '1' } });
     assert.match(init.json.result.instructions, /submit_app/);
     const open = (await rpc(pub, 'tools/list')).json.result.tools.map((t) => t.name).sort();
-    assert.deepEqual(open, ['app_stats', 'app_status', 'check_app', 'get_app', 'get_guide', 'get_skill', 'get_starter', 'list_apps', 'list_categories', 'list_ideas', 'list_resources', 'list_skills', 'set_my_app_image', 'submit_app', 'update_my_app', 'withdraw_my_app']);
+    assert.deepEqual(open, ['app_stats', 'app_status', 'check_app', 'get_app', 'get_curriculum', 'get_guide', 'get_skill', 'get_starter', 'list_apps', 'list_categories', 'list_ideas', 'list_resources', 'list_skills', 'set_my_app_image', 'submit_app', 'update_my_app', 'withdraw_my_app']);
     const keyed = (await rpc(admin, 'tools/list')).json.result.tools.map((t) => t.name);
     for (const name of ['update_app', 'list_submissions', 'submit_app', 'app_stats']) assert.ok(keyed.includes(name), name);
     assert.equal(keyed.length, new Set(keyed).size, 'no tool twice');

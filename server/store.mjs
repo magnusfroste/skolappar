@@ -35,7 +35,7 @@ function personOrNull(name) {
   return name ? { display_name: name, avatar_url: null } : null;
 }
 
-export function createStore(db, { mailer, siteUrl = 'https://www.skolappar.com', log = console } = {}) {
+export function createStore(db, { mailer, curriculum, siteUrl = 'https://www.skolappar.com', log = console } = {}) {
   const voterSalt = serverSecret(db);
 
   /** sha256(voter id + server secret) – the raw browser id is never stored. */
@@ -172,7 +172,50 @@ export function createStore(db, { mailer, siteUrl = 'https://www.skolappar.com',
       }
     }
     for (const app of apps) app.categories = byApp.get(app.id) || [];
+    return withCurriculum(apps);
+  }
+
+  /** Attach the points of Lgr22 an app trains ({id, subject_name, stage, area, text}); ids no longer in the data are left out. */
+  function withCurriculum(apps) {
+    const byApp = new Map(apps.map((a) => [a.id, []]));
+    const ids = [...byApp.keys()];
+    for (let i = 0; i < ids.length; i += 500) {
+      const chunk = ids.slice(i, i + 500);
+      const rows = db.prepare(`SELECT app_id, point_id FROM app_curriculum WHERE app_id IN (${placeholders(chunk.length)}) ORDER BY point_id`).all(...chunk);
+      for (const r of rows) {
+        const point = curriculum?.point(r.point_id);
+        if (point) byApp.get(r.app_id).push(point);
+      }
+    }
+    for (const app of apps) app.curriculum = byApp.get(app.id) || [];
     return apps;
+  }
+
+  /** Replace the points of Lgr22 an app trains. Returns the ids that are not in the curriculum (not stored). */
+  function setCurriculum(appId, pointIds) {
+    const { known, unknown } = curriculum ? curriculum.sort(pointIds) : { known: [], unknown: pointIds };
+    transaction(db, () => {
+      db.prepare('DELETE FROM app_curriculum WHERE app_id = ?').run(appId);
+      const add = db.prepare('INSERT INTO app_curriculum (app_id, point_id) VALUES (?, ?)');
+      for (const id of known) add.run(appId, id);
+    });
+    return unknown;
+  }
+
+  /** The areas of Lgr22 that listed apps train, with the number of apps: what the site's filter offers. */
+  function curriculumUsed() {
+    const rows = db.prepare(
+      `SELECT ac.point_id, ac.app_id FROM app_curriculum ac JOIN apps a ON a.id = ac.app_id WHERE a.status IN ('approved','featured')`
+    ).all();
+    const byArea = new Map();
+    for (const r of rows) {
+      const point = curriculum?.point(r.point_id);
+      if (!point) continue;
+      if (!byArea.has(point.area_id)) byArea.set(point.area_id, new Set());
+      byArea.get(point.area_id).add(r.app_id);
+    }
+    return [...byArea].map(([id, apps]) => ({ ...curriculum.area(id), apps: apps.size }))
+      .sort((a, b) => a.subject_name.localeCompare(b.subject_name, 'sv') || a.id.localeCompare(b.id));
   }
 
   const SORTS = {
@@ -183,7 +226,7 @@ export function createStore(db, { mailer, siteUrl = 'https://www.skolappar.com',
     oldest: 'created_at ASC',
   };
 
-  function listPublicApps({ search, subjects, ages, types, sort = 'newest' } = {}) {
+  function listPublicApps({ search, subjects, ages, types, curriculumArea, sort = 'newest' } = {}) {
     const where = [`status IN ('approved','featured')`];
     const params = [];
     if (search) {
@@ -199,6 +242,7 @@ export function createStore(db, { mailer, siteUrl = 'https://www.skolappar.com',
     filterBy('subject', subjects);
     filterBy('age', ages);
     filterBy('app_type', types);
+    if (curriculumArea) apps = apps.filter((a) => a.curriculum.some((p) => p.area_id === curriculumArea || p.id === curriculumArea));
     return apps;
   }
 
@@ -814,7 +858,7 @@ export function createStore(db, { mailer, siteUrl = 'https://www.skolappar.com',
     listPublicApps, listAdminApps, getApp, topApps, recentApps, relatedApps,
     createApp, updateApp, deleteApp, setAppCategories, trackClick,
     createSubmission, confirmEmail, sendConfirmation, resendMail,
-    appKeyMatches, saveCheck, setOwnImage, listedAt, appStatus, appStats,
+    appKeyMatches, saveCheck, setOwnImage, setCurriculum, curriculumUsed, listedAt, appStatus, appStats,
     toggleUpvote, myUpvotes,
     listResources, getResource, getResourceBySlug, createResource, updateResource, deleteResource,
     allSettings, listSettings, getSetting, setSetting,

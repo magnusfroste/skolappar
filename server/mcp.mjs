@@ -3,6 +3,7 @@
 // catalogue, submit an app, follow it); with the admin or an agent key, the administration below
 // (ported from the old Supabase mcp-key function, minus users, roles and comments) plus the
 // open tools that have no admin counterpart.
+import { POINT_ID } from './curriculum.mjs';
 import { IMAGE_HINT } from './guide.mjs';
 import { validate, ValidationError } from './validate.mjs';
 import { APP_STATUSES, IDEA_STATUSES } from './store.mjs';
@@ -134,9 +135,16 @@ export function createTools({ store, images }) {
         is_featured: { type: 'boolean' },
         delist_reason: { type: 'string', maxLength: 500 },
         category_ids: { type: 'array', items: uuid, maxItems: 20, description: `Ersätter appens samtliga kategorier. ${CATEGORY_HINT}` },
+        curriculum_ids: { type: 'array', items: { type: 'string', pattern: POINT_ID }, maxItems: 8, description: 'Ersätter appens koppling till Lgr22: id för de punkter i det centrala innehållet som appen tränar (get_curriculum). Tom lista tar bort kopplingen.' },
       }, ['id']),
       annotations: RW,
-      handler: ({ id, category_ids, ...fields }) => {
+      handler: ({ id, category_ids, curriculum_ids, ...fields }) => {
+        if (curriculum_ids) {
+          if (!store.getApp(id, { admin: true })) return fail('Appen hittades inte.');
+          const unknown = store.setCurriculum(id, curriculum_ids);
+          if (unknown.length) return fail(`Okända punkter i Lgr22: ${unknown.join(', ')}. Hämta id med get_curriculum.`);
+          if (!Object.keys(defined(fields)).length && !category_ids) return { app: store.getApp(id, { admin: true }) };
+        }
         if (fields.image_url && !fields.image_url.startsWith('/images/') && !/^https?:\/\//.test(fields.image_url)) {
           return fail('image_url måste vara en http(s)-URL eller /images/…');
         }
@@ -369,9 +377,9 @@ function fail(message) {
   throw new ToolFailure(message);
 }
 
-export function createMcpHandler({ store, images, checkApp, content, siteUrl = 'https://www.skolappar.com', log = console }) {
+export function createMcpHandler({ store, images, checkApp, content, curriculum, siteUrl = 'https://www.skolappar.com', log = console }) {
   const adminTools = createTools({ store, images });
-  const publicTools = createPublicTools({ store, images, checkApp, content, siteUrl, fail, imageHint: IMAGE_HINT, categoryHint: CATEGORY_HINT });
+  const publicTools = createPublicTools({ store, images, checkApp, content, curriculum, siteUrl, fail, imageHint: IMAGE_HINT, categoryHint: CATEGORY_HINT });
   // With a key: the administration, plus the open tools it has no version of (submit_app, app_status …).
   const adminNames = new Set(adminTools.map((t) => t.name));
   const toolsFor = {

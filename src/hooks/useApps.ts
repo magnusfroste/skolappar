@@ -30,6 +30,34 @@ export interface App {
   }[];
 }
 
+/** A point of the curriculum's central content (Lgr22) that an app trains. */
+export interface CurriculumPoint {
+  id: string;
+  subject: string;
+  subject_name: string;
+  stage: string;
+  area_id: string;
+  area: string;
+  text: string;
+}
+
+/** An area of Lgr22 that at least one listed app trains. */
+export interface CurriculumArea {
+  id: string;
+  subject_name: string;
+  stage: string;
+  area: string;
+  apps: number;
+}
+
+export function useCurriculumUsed() {
+  return useQuery({
+    queryKey: ['curriculum-used'],
+    queryFn: () => api.get<CurriculumArea[]>('/api/curriculum/used'),
+    staleTime: 5 * 60 * 1000,
+  });
+}
+
 export interface Category {
   id: string;
   name: string;
@@ -53,6 +81,8 @@ interface AppsFilters {
   subjects?: string[];
   ages?: string[];
   types?: string[];
+  /** An area of Lgr22, e.g. MA.1-3.1. */
+  lgr?: string;
   sort?: 'newest' | 'popular' | 'comments';
 }
 
@@ -65,6 +95,7 @@ export function useApps(filters: AppsFilters = {}) {
       if (filters.subjects?.length) q.set('subjects', filters.subjects.join(','));
       if (filters.ages?.length) q.set('ages', filters.ages.join(','));
       if (filters.types?.length) q.set('types', filters.types.join(','));
+      if (filters.lgr) q.set('lgr', filters.lgr);
       if (filters.sort) q.set('sort', filters.sort);
       return api.get<App[]>(`/api/apps?${q}`);
     },
