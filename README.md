@@ -2,7 +2,8 @@
 
 A Swedish catalogue of small educational web apps for children, made by parents (www.skolappar.com).
 Visitors browse and play apps, upvote, suggest apps ("Tipsa om en app") and post app ideas. There are no
-user accounts; the site is administered at `/admin` and by an AI agent over MCP (`/mcp`).
+user accounts; the site is administered at `/admin` and by an AI agent over MCP (`/mcp`). The same endpoint has an open
+part, without a key, where a parent's agent submits the app it built and follows it.
 
 ## How it is built
 
@@ -19,7 +20,8 @@ user accounts; the site is administered at `/admin` and by an AI agent over MCP 
 | --- | --- |
 | `server/app.mjs` | routes: public API, admin API, MCP, images, SEO files, static files |
 | `server/store.mjs` | all reads and writes (shared by API, admin and MCP) |
-| `server/mcp.mjs` | MCP endpoint and tools (JSON-RPC 2.0, plain JSON responses) |
+| `server/mcp.mjs` | MCP endpoint and the administration tools (JSON-RPC 2.0, plain JSON responses) |
+| `server/mcp-public.mjs` | the open MCP tools: read the catalogue, submit an app, follow it |
 | `server/importer.mjs` | one-shot import of the old Supabase data (`POST /api/admin/import`) |
 | `server/mailer.mjs` | outgoing mail behind one interface: Cloudflare, Brevo, a Resend-compatible API or a logging stub |
 
@@ -27,8 +29,8 @@ user accounts; the site is administered at `/admin` and by an AI agent over MCP 
 
 | Variable | Required | Meaning |
 | --- | --- | --- |
-| `ADMIN_KEY` | yes (secret) | protects `/api/admin/*`, `/admin` and `/mcp` (`Authorization: Bearer …`). Without it they answer 503 and the public site still works. |
-| `AGENT_KEY_HASHES` | no | SHA-256 hashes (hex, comma separated) of agent keys that open `/mcp` only – as `Authorization: Bearer …` or `X-Api-Key`. Holds the hash of the `skol_…` key the agent had on Supabase, so it keeps its key. New key: `openssl rand -hex 24`, hash it with `printf %s "$KEY" \| sha256sum`. |
+| `ADMIN_KEY` | yes (secret) | protects `/api/admin/*`, `/admin` and the administration tools of `/mcp` (`Authorization: Bearer …`). Without it the admin API answers 503; the public site and the open part of `/mcp` still work. |
+| `AGENT_KEY_HASHES` | no | SHA-256 hashes (hex, comma separated) of agent keys that open the administration tools of `/mcp` only – as `Authorization: Bearer …` or `X-Api-Key`. Holds the hash of the `skol_…` key the agent had on Supabase, so it keeps its key. New key: `openssl rand -hex 24`, hash it with `printf %s "$KEY" \| sha256sum`. |
 | `PORT` | no | default 8080 |
 | `DATA_DIR` | no | default `./data`; a persistent disk in production (`/data`) |
 | `SITE_URL` | no | absolute URLs in llms.txt, sitemap and mails; default `https://www.skolappar.com` |
@@ -94,9 +96,16 @@ npm test            # node --test: server tests in server/test/
 - `/admin` asks for the admin key (kept in `sessionStorage` for the tab) and shows pending submissions,
   all apps (edit, status, image, categories), statistics, ideas, categories, resources and the
   branding/theme/font/SEO/AEO settings.
-- MCP: `POST /mcp` with `Authorization: Bearer $ADMIN_KEY` (or an agent key, see `AGENT_KEY_HASHES`). Tools: `list_submissions`, `resend_mail`, `list_apps`, `get_app`,
+- MCP, administration: `POST /mcp` with `Authorization: Bearer $ADMIN_KEY` (or an agent key, see `AGENT_KEY_HASHES`). Tools: `list_submissions`, `resend_mail`, `list_apps`, `get_app`,
   `create_app`, `update_app`, `set_app_image`, `delete_app`, ideas, resources, categories, settings,
-  `platform_stats` and `app_analytics`.
+  `platform_stats` and `app_analytics` – plus the open tools below. A wrong key is 401, never the open part.
+- MCP, open: `POST /mcp` without a key (`server/mcp-public.mjs`). Read: `list_categories`, `list_apps`,
+  `get_app`, `list_ideas`, `list_resources`, `app_status`, `app_stats` (openings and likes of any listed
+  app; nothing about visitors). Write: `submit_app` (https address, title, description, the parent's first
+  name and e-mail; same queue, confirmation mail and hourly limit per address as the form) answers with an
+  `app_key` for that one app – shown once, only its SHA-256 is kept – which `update_my_app` (while the app
+  waits or was rejected) and `withdraw_my_app` take. A listed app is not changed with the key: withdraw
+  and submit again, so nothing unreviewed reaches the catalogue. The e-mail address is never returned.
 
 ## Import from Supabase
 

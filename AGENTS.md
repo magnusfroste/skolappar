@@ -7,7 +7,9 @@
   one set of rules. The frontend talks to the server only via `src/lib/api.ts`.
 - The server has no runtime npm dependencies (Node built-ins only, `node:sqlite`). Schema changes are new
   entries appended to `MIGRATIONS` in `server/db.mjs` – never edit a released one.
-- Admin (`/api/admin/*`, `/admin`, `/mcp`) is protected by the `ADMIN_KEY` secret; without it these endpoints
+- Admin (`/api/admin/*`, `/admin`, the administration tools of `/mcp`) is protected by the `ADMIN_KEY` secret.
+  `/mcp` without a key is the open part (`server/mcp-public.mjs`): it must never return an e-mail address or
+  let anything unreviewed into the catalogue. Without `ADMIN_KEY` the admin endpoints
   answer 503 and the public site keeps working. Never log the admin key or email addresses.
 - Opening counts: `POST /api/apps/:id/click` counts only listed apps and logs a timestamped event without
   visitor identity; the admin view and the `app_analytics` MCP tool read the same report.

@@ -35,6 +35,9 @@ export function buildLlmsTxt(store, siteUrl) {
     for (const r of resources) out += `- [${r.title}](${siteUrl}/resurser/${r.category}/${r.slug})${r.excerpt ? `: ${r.excerpt}` : ''}\n`;
     out += '\n';
   }
+  out += '## For AI agents\n\n' +
+    `Built an educational web app? Submit it over MCP at ${siteUrl}/mcp (streamable HTTP, no key): ` +
+    'list_categories, submit_app (needs the parent\'s first name and e-mail address), then app_status and app_stats.\n\n';
   if (extra) out += `${extra}\n\n`;
   out += `---\nGenerated: ${day()}\n`;
   return out;
