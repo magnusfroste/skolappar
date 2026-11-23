@@ -162,6 +162,12 @@ const MIGRATIONS = [
   );
   CREATE INDEX app_curriculum_point_idx ON app_curriculum(point_id);
   `,
+  // 6: an app on Shipholm gets <name>.skolappar.com while it is listed. origin_url is the address it
+  // came with (and goes back to); address_note says why an address could not be given.
+  `
+  ALTER TABLE apps ADD COLUMN origin_url TEXT;
+  ALTER TABLE apps ADD COLUMN address_note TEXT;
+  `,
 ];
 
 export function openDatabase(dataDir) {

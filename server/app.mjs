@@ -1,5 +1,6 @@
 // The HTTP application: routes for the public API, admin API, MCP, images,
 // SEO files and the single-page frontend.
+import { createShipholm } from './shipholm.mjs';
 import { loadCurriculum } from './curriculum.mjs';
 import { loadContent } from './content.mjs';
 import { createSafeFetch } from './safefetch.mjs';
@@ -84,7 +85,8 @@ export function createApp(config, { fetchImpl = globalThis.fetch, fetchOutside, 
   const db = openDatabase(config.dataDir);
   const mailer = createMailer(config.env || {}, { fetchImpl, log });
   const curriculum = loadCurriculum();
-  const store = createStore(db, { mailer, curriculum, siteUrl: config.siteUrl, log });
+  const shipholm = createShipholm(config.env || {}, { fetchImpl, log });
+  const store = createStore(db, { mailer, curriculum, shipholm, siteUrl: config.siteUrl, log });
   const images = createImageStore(config.dataDir, db);
   const importer = createImporter({ store, images, fetchImpl: fetchOutside, log });
   const mcp = createMcpHandler({ store, images: { ...images, download: (u) => images.download(u, { fetchImpl: fetchOutside }) }, checkApp, content, curriculum, siteUrl: config.siteUrl, log });
@@ -357,7 +359,10 @@ export function createApp(config, { fetchImpl = globalThis.fetch, fetchOutside, 
     const body = check(APP_PATCH, await readJson(req));
     checkImageUrl(body.image_url);
     const { category_ids, ...fields } = body;
-    return found(store.updateApp(needId(params.id), fields, category_ids), 'App not found');
+    const out = found(store.updateApp(needId(params.id), fields, category_ids), 'App not found');
+    // listed or no longer listed: an app on Shipholm gets, or gives back, its skolappar address
+    const address = fields.status ? await store.syncAddress(params.id) : null;
+    return address?.changed || address?.note ? { ...out, app: store.getApp(params.id, { admin: true }), address } : out;
   });
   admin('POST', '/api/admin/apps/:id/resend-mail', async ({ req, params }) => {
     const body = check({ type: 'object', properties: { kind: { type: 'string', enum: ['confirm', 'published'] } }, required: ['kind'], additionalProperties: false }, await readJson(req));
@@ -365,7 +370,10 @@ export function createApp(config, { fetchImpl = globalThis.fetch, fetchOutside, 
     if (out.error) throw new HttpError(409, `Cannot send this mail: ${out.error}`, { reason: out.error });
     return out;
   });
-  admin('DELETE', '/api/admin/apps/:id', ({ params }) => ({ deleted: found(store.deleteApp(needId(params.id)), 'App not found') && params.id }));
+  admin('DELETE', '/api/admin/apps/:id', async ({ params }) => {
+    await store.releaseAddress(needId(params.id));
+    return { deleted: found(store.deleteApp(params.id), 'App not found') && params.id };
+  });
   admin('POST', '/api/admin/apps/:id/image', async ({ req, params }) => {
     const body = check({ type: 'object', properties: { url: { type: 'string', format: 'uri', maxLength: 2048 } }, required: ['url'] }, await readJson(req));
     found(store.getApp(needId(params.id), { admin: true }), 'App not found');

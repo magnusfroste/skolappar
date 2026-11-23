@@ -17,6 +17,8 @@
   a test checks that each exists, so rename in both places.
 - An address that a visitor or an agent gave us is fetched with `fetchOutside` (`server/safefetch.mjs`), never
   with plain `fetch`: the open MCP part must not be a way into the cluster's network.
+- An app's address in the catalogue follows its status: call `store.syncAddress(id)` after a status change and
+  `store.releaseAddress(id)` before a delete, or a `<name>.skolappar.com` address is left behind at Shipholm.
 - Opening counts: `POST /api/apps/:id/click` counts only listed apps and logs a timestamped event without
   visitor identity; the admin view and the `app_analytics` MCP tool read the same report.
 - Reuse a shared app-thumbnail component across card variants so screenshot and fallback behaviour stays consistent.

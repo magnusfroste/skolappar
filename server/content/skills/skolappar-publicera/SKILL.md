@@ -14,6 +14,10 @@ Appen måste gå att öppna av vem som helst, utan inloggning. Alla värdar fung
 Vercel, Netlify, GitHub Pages, Cloudflare Pages, Lovable eller AI Studio (den publicerade adressen,
 inte förhandsvisningen). En statisk app – HTML, CSS och JavaScript – räcker nästan alltid.
 
+Har appen ingen adress än är Shipholm enklast: `publish_on_shipholm` ger stegen. Föräldern
+godkänner i webbläsaren (ingen nyckel att kopiera), appen får `<namn>.shipholm.dev` direkt och
+`<namn>.skolappar.com` när den har godkänts i katalogen.
+
 ## 2. Kontrollera
 
 `check_app` med adressen. Rätta allt som är `fail` och kör igen; ta `warn` på allvar.

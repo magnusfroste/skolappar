@@ -122,7 +122,9 @@ export function createTools({ store, images }) {
       title: 'Uppdatera app',
       description:
         'Uppdatera en app: innehåll, status (approved = godkänn, rejected = avslå, featured = utvald, delisted = avlista), ' +
-        'utvald-flagga och kategorier. När ett tips godkänns för första gången får tipsaren (om e-posten är bekräftad) ett mejl.',
+        'utvald-flagga och kategorier. När ett tips godkänns för första gången får tipsaren (om e-posten är bekräftad) ett mejl. ' +
+        'En app som ligger på Shipholm (<namn>.shipholm.dev) får adressen <namn>.skolappar.com när den godkänns och lämnar tillbaka den när den avlistas; ' +
+        'svaret har då address: {url, changed, note}. note säger varför en adress inte kunde ges.',
       inputSchema: obj({
         id: uuid,
         title: { type: 'string', minLength: 2, maxLength: 120 },
@@ -138,7 +140,7 @@ export function createTools({ store, images }) {
         curriculum_ids: { type: 'array', items: { type: 'string', pattern: POINT_ID }, maxItems: 8, description: 'Ersätter appens koppling till Lgr22: id för de punkter i det centrala innehållet som appen tränar (get_curriculum). Tom lista tar bort kopplingen.' },
       }, ['id']),
       annotations: RW,
-      handler: ({ id, category_ids, curriculum_ids, ...fields }) => {
+      handler: async ({ id, category_ids, curriculum_ids, ...fields }) => {
         if (curriculum_ids) {
           if (!store.getApp(id, { admin: true })) return fail('Appen hittades inte.');
           const unknown = store.setCurriculum(id, curriculum_ids);
@@ -149,7 +151,10 @@ export function createTools({ store, images }) {
           return fail('image_url måste vara en http(s)-URL eller /images/…');
         }
         const result = store.updateApp(id, defined(fields), category_ids);
-        return result ?? fail('Appen hittades inte.');
+        if (!result) return fail('Appen hittades inte.');
+        // listed or no longer listed: an app on Shipholm gets, or gives back, its skolappar address
+        const address = fields.status ? await store.syncAddress(id) : null;
+        return address?.changed || address?.note ? { ...result, app: store.getApp(id, { admin: true }), address } : result;
       },
     },
     {
@@ -170,7 +175,10 @@ export function createTools({ store, images }) {
       description: "Radera en app permanent. Överväg status 'delisted' eller 'rejected' istället för att bevara historik.",
       inputSchema: obj({ id: uuid }, ['id']),
       annotations: DESTRUCTIVE,
-      handler: ({ id }) => (store.deleteApp(id) ? { deleted: id } : fail('Appen hittades inte.')),
+      handler: async ({ id }) => {
+        await store.releaseAddress(id);
+        return store.deleteApp(id) ? { deleted: id } : fail('Appen hittades inte.');
+      },
     },
     {
       name: 'list_ideas',
