@@ -160,6 +160,22 @@ export default function AppDetail() {
         </div>
 
         {/* Categories & Device support */}
+        {app.curriculum && app.curriculum.length > 0 && (
+          <section className="mb-6 rounded-xl border bg-card p-4" aria-labelledby="lgr22">
+            <h2 id="lgr22" className="font-heading font-bold text-base mb-1">Tränar enligt läroplanen (Lgr22)</h2>
+            <ul className="space-y-2">
+              {app.curriculum.map((p) => (
+                <li key={p.id} className="text-sm">
+                  <Link to={`/apps?lgr=${encodeURIComponent(p.area_id)}`} className="font-medium text-primary hover:underline">
+                    {p.subject_name}, årskurs {p.stage.replace('-', '–')} · {p.area}
+                  </Link>
+                  <p className="text-muted-foreground">{p.text}</p>
+                </li>
+              ))}
+            </ul>
+            <p className="mt-2 text-xs text-muted-foreground">Centralt innehåll ur grundskolans kursplaner. Källa: Skolverket.</p>
+          </section>
+        )}
         {app.guide_ok && (
           <Link
             to="/bygg"

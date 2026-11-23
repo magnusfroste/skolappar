@@ -33,6 +33,8 @@ export interface AppDetails {
   categories: Category[];
   /** The last automatic check of the address found nothing that breaks the build guide. */
   guide_ok?: boolean;
+  /** The points of Lgr22 the app trains. */
+  curriculum?: import('./useApps').CurriculumPoint[];
 }
 
 export function useAppDetails(appId: string | undefined) {

@@ -67,10 +67,12 @@ export const GUIDE_SECTIONS = [
   {
     id: 'laroplan',
     title: 'Läroplanen (Lgr22)',
-    body: `- Läroplanen för grundskolan, Lgr22, är offentlig och finns på skolverket.se. Varje ämne har ett **centralt innehåll** per stadium: årskurs 1–3, 4–6 och 7–9.
-- Välj den punkt i det centrala innehållet som appen tränar och håll dig till den.
-- Skriv i appens långa beskrivning vad den täcker, till exempel: *"Tränar: taluppfattning, de naturliga talens egenskaper – matematik, årskurs 1–3 (Lgr22)."* Det ger lärare och föräldrar ett skäl att lita på appen.
-- Skolappars årsgrupper är förskola, FK–2, 3–6 och 7–9. Ligger appen mellan två, välj den grupp där de flesta som har nytta av den går.`,
+    body: `- Läroplanen för grundskolan, Lgr22, är offentlig. Varje ämne har ett **centralt innehåll** per stadium: årskurs 1–3, 4–6 och 7–9.
+- Skolappar har det centrala innehållet som sökbar data från Skolverket: \`get_curriculum\` över MCP. Sök på ämne och stadium, eller på ett ord som "bråk" eller "klockan".
+- **Välj en till tre punkter innan du bygger** och håll appen till dem. En app som tränar en punkt bra är mer värd än en som nuddar tio.
+- Ange punkternas id som \`curriculum_ids\` när du skickar in. Då står det på appens sida vad den tränar, och lärare och föräldrar hittar den genom läroplanen.
+- Skriv också i den långa beskrivningen hur appen tränar just det.
+- Skolappars årsgrupper är förskola, FK–2, 3–6 och 7–9. Läroplanens stadier är 1–3, 4–6 och 7–9: en app för FK–2 hör till stadiet 1–3, en app för 3–6 oftast till 4–6. Förskolan har en egen läroplan och inget centralt innehåll att koppla till.`,
   },
   {
     id: 'sprak',
@@ -160,7 +162,7 @@ export const GUIDE_SECTIONS = [
 1. \`check_app\` – kontrollera adressen mot guiden och rätta det som brister.
 2. \`list_categories\` – hämta id för ämne, årskurs och typ.
 3. \`list_apps\` – se att appen inte redan finns.
-4. \`submit_app\` – adress, namn, beskrivning, kategorier samt förälderns förnamn och e-postadress. Spara \`app_key\` ur svaret; den visas en gång.
+4. \`submit_app\` – adress, namn, beskrivning, kategorier, punkterna i Lgr22 (\`curriculum_ids\`) samt förälderns förnamn och e-postadress. Spara \`app_key\` ur svaret; den visas en gång.
 5. \`set_my_app_image\` – sätt kortbilden: som SVG, från en adress eller som uppladdad fil. Utan bild får kortet ämnets färg och symbol.
 6. Be föräldern klicka på länken i mejlet från Skolappar. Utan det publiceras appen inte.
 7. \`app_status\` – appar granskas en gång om dagen. Avslås appen står skälet där; rätta och uppdatera, så ställs den i kö igen.
@@ -181,7 +183,7 @@ export const GUIDE_SECTIONS = [
 - Appen går att använda utan ljud och har en ljudknapp.
 - Sidan har titel, ikon och rätt viewport.
 - Namn, beskrivning, ämne, årskurs, typ och kortbild är klara.
-- Beskrivningen säger vad i Lgr22 appen tränar.`,
+- Appen är kopplad till en till tre punkter i Lgr22, och beskrivningen säger hur den tränar dem.`,
   },
 ];
 

@@ -153,6 +153,15 @@ const MIGRATIONS = [
   ALTER TABLE apps ADD COLUMN check_passed INTEGER;
   ALTER TABLE apps ADD COLUMN checked_at TEXT;
   `,
+  // 5: which points of the curriculum (Lgr22, ids from server/curriculum.mjs) an app trains.
+  `
+  CREATE TABLE app_curriculum (
+    app_id TEXT NOT NULL REFERENCES apps(id) ON DELETE CASCADE,
+    point_id TEXT NOT NULL,
+    PRIMARY KEY (app_id, point_id)
+  );
+  CREATE INDEX app_curriculum_point_idx ON app_curriculum(point_id);
+  `,
 ];
 
 export function openDatabase(dataDir) {

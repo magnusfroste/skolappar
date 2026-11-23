@@ -16,8 +16,9 @@ innehåll ligger på `https://www.skolappar.com/guide.md` och `https://www.skola
 1. **Läs guiden** med `get_guide` innan du skriver kod. Den är kort och avgör om appen blir godkänd.
 2. **Bestäm idén tillsammans med barnet**: vad ska övas, för vilken årskurs? Saknas en idé visar
    `list_ideas` vad lärare och föräldrar önskar sig. Se med `list_apps` om något liknande finns.
-3. **Välj punkt i läroplanen.** Avsnittet `laroplan` i guiden säger hur. Skriv ner vilken punkt i
-   det centrala innehållet (Lgr22) appen tränar; den ska med i beskrivningen.
+3. **Välj punkt i läroplanen** med `get_curriculum`: sök på ämne och stadium eller på ett ord.
+   Välj en till tre punkter i det centrala innehållet (Lgr22) och spara deras id – de följer med
+   när appen skickas in. Avsnittet `laroplan` i guiden säger mer.
 4. **Utgå från startmallen**: `get_starter` ger filerna. Byt `tasks.js` (innehållet) och låt
    `app.js` (motorn) vara: omgångar, återkoppling, svårighet, ljud, uppläsning och sparning finns redan.
    Bygger du med ett eget ramverk gäller samma krav – gå igenom guidens avsnitt `touch` och `barnet`.
