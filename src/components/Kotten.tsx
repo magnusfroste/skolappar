@@ -88,7 +88,7 @@ export function Kotten({ mood = 'hej', attribute = true, className, title = 'Kot
       <g transform={up ? 'translate(0 -4)' : undefined}>
         <ellipse cx="46" cy="112" rx="9" ry="4.5" fill="#d9b07a" /><ellipse cx="74" cy="112" rx="9" ry="4.5" fill="#d9b07a" />
         <path d={up ? 'M22 80 q-10 -6 -10 -18' : 'M22 84 q-8 4 -9 12'} fill="none" stroke="#d9b07a" strokeWidth="5" strokeLinecap="round" />
-        <path d={up || mood === 'hej' ? 'M98 80 q10 -6 10 -18' : 'M98 84 q8 4 9 12'} fill="none" stroke="#d9b07a" strokeWidth="5" strokeLinecap="round" />
+        <path className={mood === 'hej' ? 'kotten-wave' : undefined} d={up || mood === 'hej' ? 'M98 80 q10 -6 10 -18' : 'M98 84 q8 4 9 12'} fill="none" stroke="#d9b07a" strokeWidth="5" strokeLinecap="round" />
         <path d={SHAPE} fill="#9c6434" />
         <clipPath id={clip}><path d={SHAPE} /></clipPath>
         <g clipPath={`url(#${clip})`}>{scales}</g>
