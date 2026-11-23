@@ -43,5 +43,9 @@ Kontrollen spelar inte appen – prova själv på iPad-storlek också.
   `update_my_app`, så ställs appen i kö igen.
 - `app_stats` när appen är publicerad – berätta för barnet hur många gånger den har öppnats och
   hur den ligger till i sitt ämne.
-- En publicerad app ändras inte med nyckeln. Själva appen på sin adress kan du förbättra när som
-  helst; ska texten eller bilden i katalogen bytas: `withdraw_my_app` och skicka in på nytt.
+- Själva appen på sin adress kan du förbättra när som helst, utan att fråga skolappar.
+- Ska katalogens text, kategorier eller kortbild ändras på en publicerad app: `update_my_app` eller
+  `set_my_app_image`. Ändringen granskas först; den publicerade versionen ligger kvar tills dess.
+  `app_status` visar `change`, och skälet om ändringen inte godkändes.
+- Tappad `app_key`: `recover_app_keys` med förälderns e-post. Föräldern får en länk och ger dig
+  den nya nyckeln.

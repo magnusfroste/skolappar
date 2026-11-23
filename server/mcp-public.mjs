@@ -23,6 +23,7 @@ export const PUBLIC_INSTRUCTIONS =
   '3) submit_app – skicka in den med förälderns förnamn och e-postadress. Spara app_key ur svaret: den visas en gång. ' +
   '4) Be föräldern klicka på länken i mejlet från Skolappar; utan det publiceras appen inte. ' +
   '5) app_status – appar granskas en gång om dagen. 6) app_stats – berätta för barnet hur många som har spelat. ' +
+  'Ändringar av en publicerad app (update_my_app, set_my_app_image) granskas innan de syns. Tappad app_key: recover_app_keys. ' +
   'Saknas en idé? list_ideas visar vad lärare och föräldrar önskar sig.';
 
 /** Tools open to everyone. `fail` throws the caller's ToolFailure; ctx carries the request's rate limit. */
@@ -293,7 +294,7 @@ export function createPublicTools({ store, images, checkApp, content, curriculum
         'Sätter bilden som visas på appens kort, med appens app_key. Tre sätt: svg (bilden som SVG-text, det enklaste för en ritad bild), ' +
         'image_url (en bild på en publik adress, laddas ner) eller – för en bildfil som en skärmdump – ladda upp filen direkt: ' +
         `curl -X PUT --data-binary @bild.png -H "X-App-Key: <app_key>" ${siteUrl}/api/apps/<id>/image (png, jpg, webp, gif, avif eller svg, högst 10 MB). ` +
-        'Går så länge appen väntar på granskning eller har avslagits. Utan bild får kortet ämnets färg och symbol. ' + imageHint,
+        'På en publicerad app granskas den nya bilden först. Utan bild visar kortet Kotten på ämnets färg. ' + imageHint,
       inputSchema: obj({
         id: uuid,
         app_key: { type: 'string', minLength: 10, maxLength: 100 },
@@ -317,7 +318,7 @@ export function createPublicTools({ store, images, checkApp, content, curriculum
           fail(`Bilden kunde inte sparas: ${err.message}`);
         }
         const out = store.setOwnImage(id, app_key, saved.url);
-        if (out.error) fail('Appen är publicerad och kan inte ändras här. Dra tillbaka den (withdraw_my_app) och skicka in på nytt.');
+        if (out.error) fail('Appen är avlistad och ändras inte här. Skicka in den på nytt med submit_app.');
         return { ...out, image_url: `${siteUrl}${saved.url}` };
       },
     },
@@ -325,8 +326,9 @@ export function createPublicTools({ store, images, checkApp, content, curriculum
       name: 'update_my_app',
       title: 'Ändra min inskickade app',
       description:
-        'Ändra text eller kategorier (kortbilden: set_my_app_image) på en app du skickat in, med dess app_key. Går så länge appen väntar på granskning, eller har avslagits ' +
-        '(den ställs då i kö igen). En publicerad app ändras inte här: dra tillbaka den och skicka in på nytt. ' + imageHint,
+        'Ändra text, kategorier, Lgr22-koppling eller kortbild på en app du skickat in, med dess app_key. Väntar appen på granskning ändras den direkt; ' +
+        'en avslagen app ställs i kö igen. På en publicerad app granskas ändringen först: den publicerade versionen ligger kvar tills den är godkänd, ' +
+        'och app_status visar change. Själva appen på sin adress ändrar du utan att fråga här. Tappad nyckel: recover_app_keys. ' + imageHint,
       inputSchema: obj({
         id: uuid,
         app_key: { type: 'string', minLength: 10, maxLength: 100 },
@@ -340,16 +342,38 @@ export function createPublicTools({ store, images, checkApp, content, curriculum
       annotations: { ...RW, openWorldHint: true },
       handler: async ({ id, app_key, category_ids, curriculum_ids, image_url, ...fields }) => {
         const app = own({ id, app_key });
-        if (!['pending', 'rejected'].includes(app.status)) {
-          fail('Appen är publicerad och kan inte ändras här. Dra tillbaka den (withdraw_my_app) och skicka in på nytt.');
+        const listed = ['approved', 'featured'].includes(app.status);
+        if (!listed && !['pending', 'rejected'].includes(app.status)) {
+          fail('Appen är avlistad och ändras inte här. Skicka in den på nytt med submit_app.');
         }
         const patch = Object.fromEntries(Object.entries(fields).filter(([, v]) => v !== undefined));
         if (image_url) patch.image_url = (await images.download(image_url)).url;
+        if (listed) {
+          if (!Object.keys(patch).length && !category_ids && !curriculum_ids) fail('Inget att ändra.');
+          if (curriculum_ids) { const unknown = curriculum?.sort(curriculum_ids).unknown || []; if (unknown.length) fail(`Okända punkter i Lgr22: ${unknown.join(', ')}. Hämta id med get_curriculum.`); }
+          store.proposeChange(id, { patch, category_ids, curriculum_ids });
+          return { ...store.appStatus(id), next: 'Ändringen granskas, oftast inom ett dygn. Den publicerade versionen ligger kvar tills dess. Läs läget med app_status.' };
+        }
         if (app.status === 'rejected') patch.status = 'pending';
         if (!Object.keys(patch).length && !category_ids && !curriculum_ids) fail('Inget att ändra.');
         if (curriculum_ids) linkCurriculum(id, curriculum_ids);
         if (Object.keys(patch).length || category_ids) store.updateApp(id, patch, category_ids);
         return store.appStatus(id);
+      },
+    },
+    {
+      name: 'recover_app_keys',
+      title: 'Nya nycklar via e-post',
+      description:
+        'Har nyckeln (app_key) tappats bort? Ange förälderns e-postadress. Skolappar mejlar en länk dit; föräldern öppnar den och får en ny nyckel per app ' +
+        'som hen gett dig. De gamla nycklarna slutar då gälla. Svaret är detsamma oavsett om adressen finns hos oss, och ingenting ändras förrän länken öppnas.',
+      inputSchema: obj({ email: { type: 'string', format: 'email', maxLength: 254 } }, ['email']),
+      annotations: { readOnlyHint: false, openWorldHint: true },
+      handler: async ({ email }, ctx) => {
+        const limit = ctx.recoverAllowed?.();
+        if (limit && !limit.ok) fail(`För många förfrågningar härifrån just nu. Försök igen om ${Math.ceil((limit.retryAfter || 3600) / 60)} minuter.`);
+        await store.startKeyRecovery(email);
+        return { sent: true, next: 'Om adressen har appar hos Skolappar har ett mejl skickats dit. Be föräldern öppna länken (den gäller ett dygn) och ge dig nyckeln.' };
       },
     },
     {

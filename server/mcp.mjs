@@ -58,6 +58,27 @@ export function createTools({ store, images }) {
         .sort((a, b) => a.created_at.localeCompare(b.created_at)).slice(0, limit),
     },
     {
+      name: 'list_changes',
+      title: 'Lista ändringar som väntar',
+      description:
+        'Ändringar som skaparna föreslagit för publicerade appar (text, kategorier, Lgr22, kortbild), äldst först, med den publicerade versionen bredvid. ' +
+        'Den publicerade versionen ligger kvar tills ändringen godkänns med review_change.',
+      inputSchema: obj({}),
+      annotations: RO,
+      handler: () => store.listChanges(),
+    },
+    {
+      name: 'review_change',
+      title: 'Godkänn eller avslå en ändring',
+      description: 'approve true: ändringen ersätter den publicerade versionen. approve false: ändringen kastas och reason visas för skaparens agent i app_status.',
+      inputSchema: obj({ id: uuid, approve: { type: 'boolean' }, reason: { type: 'string', maxLength: 500 } }, ['id', 'approve']),
+      annotations: RW,
+      handler: ({ id, approve, reason }) => {
+        if (!approve && !reason) return fail('Ange reason när en ändring avslås: skaparens agent behöver veta vad som ska rättas.');
+        return store.reviewChange(id, approve, reason) ?? fail('Ingen ändring väntar för den appen.');
+      },
+    },
+    {
       name: 'resend_mail',
       title: 'Skicka mejl till tipsaren igen',
       description:
@@ -440,7 +461,7 @@ export function createMcpHandler({ store, images, checkApp, content, curriculum,
             capabilities: { tools: { listChanged: false } },
             serverInfo: { name: 'skolappar', title: ctx.role === 'admin' ? 'Skolappar admin' : 'Skolappar', version: '1.1.0' },
             instructions: ctx.role === 'admin'
-              ? 'Administrera skolappar.com: granska tips (list_submissions), prova appen, sätt kategorier och bild, ' +
+              ? 'Administrera skolappar.com: granska tips (list_submissions) och ändringar av publicerade appar (list_changes, review_change), prova appen, sätt kategorier och bild, ' +
                 'godkänn (update_app status approved, bara när e-postadressen är bekräftad) eller avslå (rejected). ' +
                 'Hantera även idéer, resurser, kategorier och inställningar.'
               : PUBLIC_INSTRUCTIONS,

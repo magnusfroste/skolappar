@@ -114,8 +114,11 @@ npm test            # node --test: server tests in server/test/
   `app_key` for that one app – shown once, only its SHA-256 is kept – which `update_my_app`, `set_my_app_image` (while the app
   waits or was rejected) and `withdraw_my_app` take. The card image is given as SVG text, as an address, or uploaded as
   a file: `PUT /api/apps/<id>/image` with the header `X-App-Key` and the file as the body (20 an hour per address).
-  An app without an image gets a card in its subject's colour with the subject's symbol. A listed app is not changed with the key: withdraw
-  and submit again, so nothing unreviewed reaches the catalogue. The e-mail address is never returned.
+  An app without an image gets a card in its subject's colour with the subject's symbol. On a listed app a change with the key waits for review
+  (`proposed_change`; the reviewer's `list_changes` / `review_change`) while the listed version stays, so nothing
+  unreviewed reaches the catalogue. A lost key: `recover_app_keys(email)` mails a link to that address
+  (`/nyckel/<token>`, a day, once, three a day per address); the page gives a new key per app and the old ones
+  stop working. The address is never an identifier by itself – it only receives the link. The e-mail address is never returned.
 
 ## Import from Supabase
 

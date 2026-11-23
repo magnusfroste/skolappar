@@ -168,6 +168,20 @@ const MIGRATIONS = [
   ALTER TABLE apps ADD COLUMN origin_url TEXT;
   ALTER TABLE apps ADD COLUMN address_note TEXT;
   `,
+  // 7: a listed app's creator proposes a change (text, categories, image); it waits for review while
+  // the listed version stays (proposed_change: JSON, change_note: why the last one was turned down).
+  // key_recoveries: a mailed link that hands out new app keys for every app of one e-mail address.
+  `
+  ALTER TABLE apps ADD COLUMN proposed_change TEXT;
+  ALTER TABLE apps ADD COLUMN change_note TEXT;
+  CREATE TABLE key_recoveries (
+    token_hash TEXT PRIMARY KEY,
+    email TEXT NOT NULL,
+    created_at TEXT NOT NULL,
+    used_at TEXT
+  );
+  CREATE INDEX key_recoveries_email_idx ON key_recoveries(email, created_at);
+  `,
 ];
 
 export function openDatabase(dataDir) {
