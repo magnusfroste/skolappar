@@ -14,7 +14,7 @@ import { BuildYourOwn } from "@/components/BuildYourOwn";
 import { SEO, buildWebsiteSchema, buildOrganizationSchema, buildFaqSchema } from "@/components/SEO";
 import { useSiteConfig } from "@/hooks/useSiteConfig";
 import { useApps, useCategories } from "@/hooks/useApps";
-import { Kotten } from "@/components/Kotten";
+import { KottenHello } from "@/components/KottenHello";
 
 const HOME_LIMIT = 12;
 const HOME_PAGE = 8;
@@ -97,7 +97,7 @@ export default function Index() {
               ))}
             </ul>
           </div>
-          <Kotten mood="hej" className="h-36 w-36 flex-none md:h-64 md:w-64" title="Kotten, skolappars maskot" />
+          <KottenHello className="h-40 w-40 flex-none md:h-64 md:w-64" />
         </div>
 
         {(subjects.length > 0 || ages.length > 0) && (
