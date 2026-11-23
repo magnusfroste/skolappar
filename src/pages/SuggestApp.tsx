@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useSearchParams } from 'react-router-dom';
 import { CheckCircle2, Loader2, Rocket } from 'lucide-react';
 import { PublicNav } from '@/components/PublicNav';
 import { PublicFooter } from '@/components/PublicFooter';
@@ -32,10 +32,13 @@ function errorMessage(err: unknown) {
 
 export default function SuggestApp() {
   const submit = useSubmitSuggestion();
-  const [url, setUrl] = useState('');
+  // A builder (Shipholm Studio's "Share on Skolappar") may fill in what it knows: ?url=…&title=…&description=…
+  const [given] = useSearchParams();
+  const from = (key: string, max: number) => (given.get(key) || '').slice(0, max);
+  const [url, setUrl] = useState(() => (/^https:\/\//i.test(from('url', 2048)) ? from('url', 2048) : ''));
   const [email, setEmail] = useState('');
-  const [title, setTitle] = useState('');
-  const [description, setDescription] = useState('');
+  const [title, setTitle] = useState(() => from('title', 120));
+  const [description, setDescription] = useState(() => from('description', 500));
   const [note, setNote] = useState('');
   const [website, setWebsite] = useState(''); // honeypot
   const [touched, setTouched] = useState(false);
