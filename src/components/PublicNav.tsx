@@ -6,7 +6,7 @@ import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/co
 import { cn } from '@/lib/utils';
 import { useBranding } from '@/hooks/useBranding';
 import { DarkModeToggle } from '@/components/DarkModeToggle';
-import logoFallback from '@/assets/logo.png';
+import logoFallback from '@/assets/kotten-mark.svg';
 
 interface PublicNavProps {
   variant?: 'transparent' | 'solid';
