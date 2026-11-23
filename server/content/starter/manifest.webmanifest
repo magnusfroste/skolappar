@@ -1,0 +1,11 @@
+{
+  "name": "Tiokamrater",
+  "short_name": "Tiokamrater",
+  "lang": "sv",
+  "start_url": "./",
+  "display": "standalone",
+  "orientation": "any",
+  "background_color": "#f6f3ea",
+  "theme_color": "#1d3577",
+  "icons": [{ "src": "icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any" }]
+}

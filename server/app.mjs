@@ -1,5 +1,6 @@
 // The HTTP application: routes for the public API, admin API, MCP, images,
 // SEO files and the single-page frontend.
+import { loadContent } from './content.mjs';
 import { createSafeFetch } from './safefetch.mjs';
 import { createChecker } from './check.mjs';
 import { guide, guideMarkdown } from './guide.mjs';
@@ -77,13 +78,14 @@ export function createApp(config, { fetchImpl = globalThis.fetch, fetchOutside, 
   // addresses given by visitors and agents (images, check_app) are fetched with a guard against private networks
   fetchOutside ||= createSafeFetch({ allowPrivate: Boolean(config.allowPrivateFetch) });
   const checkApp = createChecker({ fetchPage: fetchOutside });
+  const content = loadContent();
   config.dataDir = usableDataDir(config.dataDir, log);
   const db = openDatabase(config.dataDir);
   const mailer = createMailer(config.env || {}, { fetchImpl, log });
   const store = createStore(db, { mailer, siteUrl: config.siteUrl, log });
   const images = createImageStore(config.dataDir, db);
   const importer = createImporter({ store, images, fetchImpl: fetchOutside, log });
-  const mcp = createMcpHandler({ store, images: { ...images, download: (u) => images.download(u, { fetchImpl: fetchOutside }) }, checkApp, siteUrl: config.siteUrl, log });
+  const mcp = createMcpHandler({ store, images: { ...images, download: (u) => images.download(u, { fetchImpl: fetchOutside }) }, checkApp, content, siteUrl: config.siteUrl, log });
   const statics = createStatic(config.distDir);
   const submitLimiter = createRateLimiter({ limit: config.submitLimit, windowMs: HOUR });
   const checkLimiter = createRateLimiter({ limit: config.checkLimit || 30, windowMs: HOUR });
@@ -508,6 +510,31 @@ a{display:inline-block;margin-top:16px;padding:12px 20px;border-radius:999px;bac
       if (req.method === 'HEAD') return res.end();
       f.stream().pipe(res);
       return;
+    }
+    // the starter template, live, and the skills as files
+    if (path === '/starter') {
+      res.writeHead(301, { Location: '/starter/' });
+      return res.end();
+    }
+    const starterFile = /^\/starter\/([\w.-]*)$/.exec(path);
+    if (starterFile) {
+      const f = content.starterFile(starterFile[1] || 'index.html');
+      if (f) {
+        return sendText(res, 200, f.content, f.type, {
+          'Cache-Control': 'public, max-age=3600', 'Access-Control-Allow-Origin': '*',
+          'Content-Security-Policy': "default-src 'self'; connect-src 'none'; object-src 'none'; base-uri 'none'; form-action 'none'",
+        });
+      }
+    }
+    if (path === '/skills' || path === '/skills/') {
+      return sendJson(res, 200, content.skills.map((s) => ({ name: s.name, description: s.description, url: `${config.siteUrl}/skills/${s.name}/SKILL.md` })),
+        { 'Cache-Control': 'public, max-age=3600', 'Access-Control-Allow-Origin': '*' });
+    }
+    const skillFile = /^\/skills\/([\w-]+)\/SKILL\.md$/.exec(path);
+    if (skillFile && content.skill(skillFile[1])) {
+      return sendText(res, 200, content.skill(skillFile[1]).content, 'text/markdown; charset=utf-8', {
+        'Cache-Control': 'public, max-age=3600', 'Access-Control-Allow-Origin': '*',
+      });
     }
     if (path === '/guide.md') {
       return sendText(res, 200, guideMarkdown(), 'text/markdown; charset=utf-8', {

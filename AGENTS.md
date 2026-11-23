@@ -13,6 +13,8 @@
   answer 503 and the public site keeps working. Never log the admin key or email addresses.
 - The build guide lives in `server/guide.mjs` only; the page `/bygg`, `/guide.md` and `get_guide` render it.
   A tool it names must exist in the open MCP part (a test checks that).
+- The starter template and the skills are files under `server/content/`. They name tools and guide sections;
+  a test checks that each exists, so rename in both places.
 - An address that a visitor or an agent gave us is fetched with `fetchOutside` (`server/safefetch.mjs`), never
   with plain `fetch`: the open MCP part must not be a way into the cluster's network.
 - Opening counts: `POST /api/apps/:id/click` counts only listed apps and logs a timestamped event without

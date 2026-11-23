@@ -38,6 +38,8 @@ export function buildLlmsTxt(store, siteUrl) {
   out += '## For AI agents\n\n' +
     `Building an educational web app for children? Read the build guide first: ${siteUrl}/guide.md ` +
     `(for people: ${siteUrl}/bygg). It says what an app must do to work for the children and to be listed.\n\n` +
+    `A starter template with the hard parts solved: ${siteUrl}/starter/ (files: get_starter over MCP). ` +
+    `Agent skills (SKILL.md): ${siteUrl}/skills\n\n` +
     `Submit the finished app over MCP at ${siteUrl}/mcp (streamable HTTP, no key): ` +
     'get_guide, list_categories, submit_app (needs the parent\'s first name and e-mail address), then app_status and app_stats.\n\n';
   if (extra) out += `${extra}\n\n`;

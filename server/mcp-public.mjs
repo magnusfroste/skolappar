@@ -14,7 +14,7 @@ const FIRST_NAME = '^[\\p{L}][\\p{L}\'’-]{0,39}$';
 
 export const PUBLIC_INSTRUCTIONS =
   'Skolappar.com är en katalog med pedagogiska webbappar som föräldrar byggt, ofta tillsammans med sina barn. ' +
-  'Du behöver ingen nyckel. Läs get_guide INNAN du bygger: den säger vad en skolapp ska klara (iPad och touch, inget konto, ' +
+  'Du behöver ingen nyckel. Arbetsgången finns som skills (list_skills, get_skill) och en färdig startmall med get_starter. Läs get_guide INNAN du bygger: den säger vad en skolapp ska klara (iPad och touch, inget konto, ' +
   'svenska, återkoppling) och slutar med en checklista. Gör så här när appen är byggd och ligger på en egen https-adress: ' +
   '0) check_app – kontrollera adressen och rätta det som är fail. ' +
   '1) list_categories – välj ämne, årskurs och typ. 2) list_apps – se att appen inte redan finns. ' +
@@ -24,7 +24,7 @@ export const PUBLIC_INSTRUCTIONS =
   'Saknas en idé? list_ideas visar vad lärare och föräldrar önskar sig.';
 
 /** Tools open to everyone. `fail` throws the caller's ToolFailure; ctx carries the request's rate limit. */
-export function createPublicTools({ store, images, checkApp, siteUrl, fail, imageHint, categoryHint }) {
+export function createPublicTools({ store, images, checkApp, content, siteUrl, fail, imageHint, categoryHint }) {
   const own = ({ id, app_key }) => {
     if (!store.appKeyMatches(id, app_key)) fail('Fel app eller nyckel. Nyckeln är den som submit_app svarade med.');
     return store.getApp(id, { admin: true });
@@ -50,6 +50,40 @@ export function createPublicTools({ store, images, checkApp, siteUrl, fail, imag
         sections: GUIDE_SECTIONS.map((s) => ({ id: s.id, title: s.title })),
         markdown: guideMarkdown(section),
       }),
+    },
+    {
+      name: 'get_starter',
+      title: 'Hämta startmallen',
+      description:
+        'Startmallen: en liten färdig skolapp i ren HTML, CSS och JavaScript (inget byggsteg) där touch för iPad, omgångar, återkoppling, ' +
+        'svårighet, ljud, uppläsning, belöning och sparning på enheten redan finns. Svarar med alla filer som text. ' +
+        'Skriv dem till en mapp, byt tasks.js (innehållet) och låt app.js (motorn) vara. README.md säger hur.',
+      inputSchema: obj({}),
+      annotations: RO,
+      handler: () => ({
+        demo: `${siteUrl}/starter/`,
+        license: 'Fri att använda och ändra.',
+        files: (content?.starter || []).map(({ path, content: text }) => ({ path, content: text })),
+      }),
+    },
+    {
+      name: 'list_skills',
+      title: 'Lista skills',
+      description: 'Skolappars skills för agenter (formatet SKILL.md): bygga en skolapp, publicera den och göra kortbilden. Hämta en med get_skill.',
+      inputSchema: obj({}),
+      annotations: RO,
+      handler: () => (content?.skills || []).map((s) => ({ name: s.name, description: s.description, url: `${siteUrl}/skills/${s.name}/SKILL.md` })),
+    },
+    {
+      name: 'get_skill',
+      title: 'Hämta en skill',
+      description: 'En skill som text (SKILL.md), att följa direkt eller spara i agentens skills-mapp som <name>/SKILL.md.',
+      inputSchema: obj({ name: { type: 'string', minLength: 1, maxLength: 60 } }, ['name']),
+      annotations: RO,
+      handler: ({ name }) => {
+        const skill = content?.skill(name) ?? fail('Ingen skill med det namnet. Se list_skills.');
+        return { name: skill.name, description: skill.description, markdown: skill.content };
+      },
     },
     {
       name: 'list_categories',
