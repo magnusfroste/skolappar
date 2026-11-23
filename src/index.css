@@ -4,7 +4,8 @@
 @tailwind components;
 @tailwind utilities;
 
-/* skolappar.com Design System - Lekfull & Färgglad */
+/* skolappar.com Design System – lekfull, med svensk skog: Kottens brunt, mossgrönt och gran,
+   orange som lekfärg. Ämnesfärgerna (kortramarna) är ett eget system och rörs inte här. */
 
 @layer base {
   :root {
@@ -23,9 +24,15 @@
     --primary: 12 90% 58%;
     --primary-foreground: 0 0% 100%;
 
-    /* Secondary - Turkos/Teal */
-    --secondary: 174 72% 46%;
+    /* Secondary – mossgrön */
+    --secondary: 98 42% 36%;
     --secondary-foreground: 0 0% 100%;
+
+    /* Skogen: Kottens brunt, granens gröna och mossans kulle (skogskanten, rubrikens toning) */
+    --cone: 27 50% 41%;
+    --moss: 98 42% 36%;
+    --spruce: 150 32% 27%;
+    --moss-hill: 98 40% 62%;
 
     /* Muted - Mjuk grå med varm ton */
     --muted: 45 30% 94%;
@@ -89,8 +96,14 @@
     --primary: 12 90% 58%;
     --primary-foreground: 0 0% 100%;
 
-    --secondary: 174 72% 46%;
+    --secondary: 98 40% 42%;
     --secondary-foreground: 0 0% 100%;
+
+    /* nattskog */
+    --cone: 30 60% 64%;
+    --moss: 100 42% 58%;
+    --spruce: 160 24% 19%;
+    --moss-hill: 110 22% 24%;
 
     --muted: 240 15% 18%;
     --muted-foreground: 45 20% 65%;
@@ -138,7 +151,9 @@
 
 @layer utilities {
   .text-gradient {
-    @apply bg-gradient-to-r from-primary via-secondary to-accent bg-clip-text text-transparent;
+    /* från kottebrunt till mossgrönt */
+    background-image: linear-gradient(90deg, hsl(var(--cone)), hsl(var(--moss)));
+    @apply bg-clip-text text-transparent;
   }
 
   .bg-gradient-playful {
@@ -154,9 +169,8 @@
     background: linear-gradient(
       160deg,
       hsl(var(--background)) 0%,
-      hsl(var(--primary) / 0.08) 30%,
-      hsl(var(--secondary) / 0.08) 60%,
-      hsl(var(--accent) / 0.12) 100%
+      hsl(var(--accent) / 0.10) 35%,
+      hsl(var(--secondary) / 0.10) 100%
     );
   }
 
