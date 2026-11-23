@@ -26,7 +26,7 @@ import { ADMIN_SECTIONS } from '@/lib/adminSections';
 import { ApiError, setAdminKey } from '@/lib/api';
 import { useIsAdmin } from '@/hooks/useAdmin';
 import { useBranding } from '@/hooks/useBranding';
-import logoFallback from '@/assets/logo.png';
+import logoFallback from '@/assets/kotten-mark.svg';
 
 function AdminSidebar({ onLogout }: { onLogout: () => void }) {
   const { state, toggleSidebar } = useSidebar();

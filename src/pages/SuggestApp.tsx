@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
-import { CheckCircle2, Loader2, Rocket } from 'lucide-react';
+import { Loader2, Rocket } from 'lucide-react';
+import { Kotten } from '@/components/Kotten';
 import { PublicNav } from '@/components/PublicNav';
 import { PublicFooter } from '@/components/PublicFooter';
 import { SEO } from '@/components/SEO';
@@ -75,7 +76,7 @@ export default function SuggestApp() {
         {done ? (
           <Card className="text-center">
             <CardContent className="py-10 space-y-4">
-              <CheckCircle2 className="h-12 w-12 mx-auto text-primary" />
+              <Kotten mood="vantar" className="h-28 w-28 mx-auto" title="Kotten väntar på din bekräftelse" />
               <h1 className="text-2xl font-heading font-bold">Tack för tipset!</h1>
               <p className="text-muted-foreground">
                 Vi tittar på appen och lägger upp den om den passar. Vi har skickat ett mejl där du kan bekräfta

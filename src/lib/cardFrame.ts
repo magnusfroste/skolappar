@@ -15,10 +15,6 @@ export interface ThumbnailCategory {
   name?: string;
 }
 
-/** Ämnets symbol (emoji), för kortet utan bild. */
-export function subjectIcon(categories?: ThumbnailCategory[]): string | null {
-  return categories?.find((c) => c.type === 'subject')?.icon || null;
-}
 
 export function frameColors(categories?: ThumbnailCategory[]): [string, string] {
   const subject = categories?.find((c) => c.type === 'subject')?.slug;

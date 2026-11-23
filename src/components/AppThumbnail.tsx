@@ -1,6 +1,7 @@
 import { useEffect, useState, type CSSProperties } from 'react';
 import { cn } from '@/lib/utils';
-import { frameColors, subjectIcon, type ThumbnailCategory } from '@/lib/cardFrame';
+import { frameColors, type ThumbnailCategory } from '@/lib/cardFrame';
+import { Kotten } from '@/components/Kotten';
 
 export type { ThumbnailCategory };
 
@@ -23,7 +24,6 @@ export function AppThumbnail({
   imageClassName,
 }: AppThumbnailProps) {
   const [frameDark, frameLight] = frameColors(categories);
-  const icon = subjectIcon(categories);
   const [broken, setBroken] = useState(false);
 
   useEffect(() => {
@@ -48,9 +48,10 @@ export function AppThumbnail({
             onError={() => setBroken(true)}
           />
         ) : (
-          <div className="flex h-full w-full flex-col items-center justify-center gap-[4cqw] p-[6cqw] text-center">
-            {icon && <span className="text-[18cqw] leading-none" aria-hidden="true">{icon}</span>}
-            <span className="font-heading text-[7cqw] font-bold leading-tight text-white/90 line-clamp-2">{title}</span>
+          <div className="flex h-full w-full items-center justify-center gap-[4cqw] p-[5cqw]">
+            {/* no picture yet: Kotten holds the place, on the subject's colour */}
+            <Kotten title="" attribute={false} className="h-[78%] w-auto flex-none" />
+            <span className="font-heading text-[7cqw] font-bold leading-tight text-white/90 line-clamp-3 min-w-0">{title}</span>
           </div>
         )}
       </div>
