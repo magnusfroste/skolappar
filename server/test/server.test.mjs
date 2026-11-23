@@ -504,7 +504,7 @@ describe('the open MCP: an agent submits an app and follows it', () => {
     const init = await rpc(pub, 'initialize', { protocolVersion: '2025-06-18', capabilities: {}, clientInfo: { name: 't', version: '1' } });
     assert.match(init.json.result.instructions, /submit_app/);
     const open = (await rpc(pub, 'tools/list')).json.result.tools.map((t) => t.name).sort();
-    assert.deepEqual(open, ['app_stats', 'app_status', 'check_app', 'get_app', 'get_guide', 'list_apps', 'list_categories', 'list_ideas', 'list_resources', 'submit_app', 'update_my_app', 'withdraw_my_app']);
+    assert.deepEqual(open, ['app_stats', 'app_status', 'check_app', 'get_app', 'get_guide', 'list_apps', 'list_categories', 'list_ideas', 'list_resources', 'set_my_app_image', 'submit_app', 'update_my_app', 'withdraw_my_app']);
     const keyed = (await rpc(admin, 'tools/list')).json.result.tools.map((t) => t.name);
     for (const name of ['update_app', 'list_submissions', 'submit_app', 'app_stats']) assert.ok(keyed.includes(name), name);
     assert.equal(keyed.length, new Set(keyed).size, 'no tool twice');
@@ -556,6 +556,29 @@ describe('the open MCP: an agent submits an app and follows it', () => {
     assert.equal((await call(pub, 'update_my_app', { id, app_key: key, title: 'Robotens räknespel' })).ok, true);
     assert.equal((await call(pub, 'app_status', { id })).data.title, 'Robotens räknespel');
 
+    // the card image: drawn as SVG, fetched from an address, or uploaded as a file – with the key only
+    const svg = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 900"><rect width="1200" height="900" fill="#fc0"/></svg>';
+    assert.equal((await call(pub, 'set_my_app_image', { id, app_key: 'sapp_wrongwrongwrongwrongwrongwrongwr', svg })).ok, false);
+    assert.match((await call(pub, 'set_my_app_image', { id, app_key: key })).text, /svg eller image_url/);
+    for (const evil of ['<svg xmlns="http://www.w3.org/2000/svg"><script>alert(1)</script></svg>',
+      '<svg xmlns="http://www.w3.org/2000/svg" onload="x()"><rect/></svg>',
+      '<svg xmlns="http://www.w3.org/2000/svg"><image href="https://evil.example/t.png"/></svg>']) {
+      assert.match((await call(pub, 'set_my_app_image', { id, app_key: key, svg: evil })).text, /får inte innehålla/);
+    }
+    const drawn = await call(pub, 'set_my_app_image', { id, app_key: key, svg });
+    assert.equal(drawn.ok, true, drawn.text);
+    assert.match(drawn.data.image_url, /^https:\/\/skolappar\.test\/images\/[0-9a-f]{32}\.svg$/);
+    assert.equal((await call(pub, 'set_my_app_image', { id, app_key: key, image_url: `${images.base}/pic.png` })).ok, true);
+
+    const put = (k, body) => pub('PUT', `/api/apps/${id}/image`, body, { 'Content-Type': 'image/png', ...(k ? { 'X-App-Key': k } : {}) });
+    assert.equal((await put(null, PNG)).status, 401);
+    assert.equal((await put('sapp_wrongwrongwrongwrongwrongwrongwr', PNG)).status, 401);
+    assert.equal((await put(key, Buffer.from('not an image'))).status, 415);
+    const uploaded = await put(key, PNG);
+    assert.equal(uploaded.status, 200, uploaded.text);
+    assert.match(s.app.db.prepare('SELECT image_url FROM apps WHERE id = ?').get(id).image_url, /^\/images\/[0-9a-f]{32}\.png$/);
+    assert.ok(!uploaded.text.includes('parent@example.com'));
+
     // the parent clicks the link; the reviewer approves; the app is public
     assert.equal((await pub('GET', `/bekrafta/${row.confirm_token}`)).status, 200);
     assert.equal((await call(pub, 'app_status', { id })).data.email_confirmed, true);
@@ -566,6 +589,8 @@ describe('the open MCP: an agent submits an app and follows it', () => {
 
     // published: no more changes with the key, but it can be withdrawn
     assert.match((await call(pub, 'update_my_app', { id, app_key: key, title: 'Något annat' })).text, /publicerad/);
+    assert.match((await call(pub, 'set_my_app_image', { id, app_key: key, svg })).text, /publicerad/);
+    assert.equal((await put(key, PNG)).status, 409);
     assert.equal((await call(pub, 'withdraw_my_app', { id, app_key: 'sapp_wrongwrongwrongwrongwrongwrongwr' })).ok, false);
     assert.deepEqual((await call(pub, 'withdraw_my_app', { id, app_key: key })).data, { id, withdrawn: true, status: 'delisted' });
     assert.equal((await call(pub, 'get_app', { id })).ok, false);

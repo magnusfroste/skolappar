@@ -11,6 +11,13 @@ const FRAME_NEUTRAL: [string, string] = ['#2b3038', '#4a515c'];
 export interface ThumbnailCategory {
   type?: string;
   slug?: string;
+  icon?: string | null;
+  name?: string;
+}
+
+/** Ämnets symbol (emoji), för kortet utan bild. */
+export function subjectIcon(categories?: ThumbnailCategory[]): string | null {
+  return categories?.find((c) => c.type === 'subject')?.icon || null;
 }
 
 export function frameColors(categories?: ThumbnailCategory[]): [string, string] {

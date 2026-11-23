@@ -24,7 +24,7 @@ export const PUBLIC_INSTRUCTIONS =
   'Saknas en idé? list_ideas visar vad lärare och föräldrar önskar sig.';
 
 /** Tools open to everyone. `fail` throws the caller's ToolFailure; ctx carries the request's rate limit. */
-export function createPublicTools({ store, images, checkApp, fail, imageHint, categoryHint }) {
+export function createPublicTools({ store, images, checkApp, siteUrl, fail, imageHint, categoryHint }) {
   const own = ({ id, app_key }) => {
     if (!store.appKeyMatches(id, app_key)) fail('Fel app eller nyckel. Nyckeln är den som submit_app svarade med.');
     return store.getApp(id, { admin: true });
@@ -141,7 +141,7 @@ export function createPublicTools({ store, images, checkApp, fail, imageHint, ca
         'Skicka in en app du har byggt och lagt ut på en egen https-adress. Den granskas (en gång om dagen) och publiceras sedan i katalogen. ' +
         'Kräver förälderns förnamn och e-postadress: föräldern får ett mejl med en länk att klicka på, och appen publiceras inte förrän det är gjort. ' +
         'Bara förnamnet visas; adressen visas aldrig. Svaret innehåller app_key – spara den, den visas bara nu – för update_my_app och withdraw_my_app. ' +
-        'Kortbild sätts efteråt med update_my_app.',
+        'Kortbild sätts efteråt med set_my_app_image.',
       inputSchema: obj({
         url: { type: 'string', format: 'uri', maxLength: 2048, description: 'Appens adress (https).' },
         title: { type: 'string', minLength: 2, maxLength: 120, description: 'Appens namn, två till fyra ord.' },
@@ -198,10 +198,45 @@ export function createPublicTools({ store, images, checkApp, fail, imageHint, ca
       handler: ({ id }) => store.appStats(id) ?? fail('Appen är inte publicerad (än). Läs läget med app_status.'),
     },
     {
+      name: 'set_my_app_image',
+      title: 'Sätt kortbilden på min app',
+      description:
+        'Sätter bilden som visas på appens kort, med appens app_key. Tre sätt: svg (bilden som SVG-text, det enklaste för en ritad bild), ' +
+        'image_url (en bild på en publik adress, laddas ner) eller – för en bildfil som en skärmdump – ladda upp filen direkt: ' +
+        `curl -X PUT --data-binary @bild.png -H "X-App-Key: <app_key>" ${siteUrl}/api/apps/<id>/image (png, jpg, webp, gif, avif eller svg, högst 10 MB). ` +
+        'Går så länge appen väntar på granskning eller har avslagits. Utan bild får kortet ämnets färg och symbol. ' + imageHint,
+      inputSchema: obj({
+        id: uuid,
+        app_key: { type: 'string', minLength: 10, maxLength: 100 },
+        svg: { type: 'string', minLength: 20, maxLength: 400000, description: 'Hela SVG-dokumentet, från <svg …> till </svg>. viewBox i 4:3, t.ex. 0 0 1200 900. Inga skript och inga externa bilder eller typsnitt.' },
+        image_url: { type: 'string', format: 'uri', maxLength: 2048 },
+      }, ['id', 'app_key']),
+      annotations: { ...RW, openWorldHint: true },
+      handler: async ({ id, app_key, svg, image_url }) => {
+        own({ id, app_key });
+        if (Boolean(svg) === Boolean(image_url)) fail('Ange svg eller image_url (en av dem). En bildfil laddas upp med PUT enligt beskrivningen.');
+        let saved;
+        try {
+          if (svg) {
+            if (/<script|\son\w+\s*=|<foreignObject|href\s*=\s*["'](?!#|data:image\/)/i.test(svg)) fail('SVG-bilden får inte innehålla skript, händelser, foreignObject eller länkar till andra adresser.');
+            saved = images.save(Buffer.from(svg, 'utf8'));
+          } else {
+            saved = await images.download(image_url);
+          }
+        } catch (err) {
+          if (err.constructor?.name === 'ToolFailure') throw err;
+          fail(`Bilden kunde inte sparas: ${err.message}`);
+        }
+        const out = store.setOwnImage(id, app_key, saved.url);
+        if (out.error) fail('Appen är publicerad och kan inte ändras här. Dra tillbaka den (withdraw_my_app) och skicka in på nytt.');
+        return { ...out, image_url: `${siteUrl}${saved.url}` };
+      },
+    },
+    {
       name: 'update_my_app',
       title: 'Ändra min inskickade app',
       description:
-        'Ändra text, kategorier eller kortbild på en app du skickat in, med dess app_key. Går så länge appen väntar på granskning, eller har avslagits ' +
+        'Ändra text eller kategorier (kortbilden: set_my_app_image) på en app du skickat in, med dess app_key. Går så länge appen väntar på granskning, eller har avslagits ' +
         '(den ställs då i kö igen). En publicerad app ändras inte här: dra tillbaka den och skicka in på nytt. ' + imageHint,
       inputSchema: obj({
         id: uuid,

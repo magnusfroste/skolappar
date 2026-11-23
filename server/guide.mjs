@@ -7,7 +7,7 @@ export const IMAGE_HINT =
   'pianotangenterna eller hjulet som snurrar. Liggande 4:3, minst 1200×900 px, motivet centrerat. ' +
   'INTE startsidan, INTE en ▶ Spela-skärm, ingen meny eller navigationsrad, ingen webbläsarram och ingen text som blir oläslig på kortet. ' +
   'Lägg INTE in appens namn, årskurs eller kategori i bilden. Rita ingen ram eller bakgrund runt bilden: kortet lägger själv en ram i ämnets färg. ' +
-  'Utelämnas bilden visas en automatisk skärmdump av appens url.';
+  'Utelämnas bilden får kortet ämnets färg och symbol.';
 
 export const GUIDE_TITLE = 'Så bygger du en skolapp';
 export const GUIDE_INTRO =
@@ -122,7 +122,7 @@ export const GUIDE_SECTIONS = [
 2. \`list_categories\` – hämta id för ämne, årskurs och typ.
 3. \`list_apps\` – se att appen inte redan finns.
 4. \`submit_app\` – adress, namn, beskrivning, kategorier samt förälderns förnamn och e-postadress. Spara \`app_key\` ur svaret; den visas en gång.
-5. \`update_my_app\` – sätt kortbilden.
+5. \`set_my_app_image\` – sätt kortbilden: som SVG, från en adress eller som uppladdad fil. Utan bild får kortet ämnets färg och symbol.
 6. Be föräldern klicka på länken i mejlet från Skolappar. Utan det publiceras appen inte.
 7. \`app_status\` – appar granskas en gång om dagen. Avslås appen står skälet där; rätta och uppdatera, så ställs den i kö igen.
 8. \`app_stats\` – berätta för barnet hur många gånger appen har öppnats.`,
