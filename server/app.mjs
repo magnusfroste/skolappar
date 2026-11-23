@@ -92,17 +92,24 @@ export function createApp(config, { fetchImpl = globalThis.fetch, log = console 
    * /mcp also accepts an agent key (Authorization: Bearer or X-Api-Key) whose
    * SHA-256 is listed in AGENT_KEY_HASHES. Agent keys open nothing but /mcp.
    */
-  function requireAgent(req) {
-    const hashes = config.agentKeyHashes || [];
-    if (!config.adminKey && !hashes.length) throw new HttpError(503, 'ADMIN_KEY not set');
+  /**
+   * Who is calling /mcp. No key at all: 'public' – the open tools. A key: it must be the admin key
+   * or an agent key (SHA-256 listed in AGENT_KEY_HASHES; opens nothing but /mcp), as
+   * Authorization: Bearer or X-Api-Key – a wrong key is refused, so a mistyped one is noticed.
+   */
+  function mcpRole(req) {
     const m = /^Bearer\s+(\S+)\s*$/i.exec(String(req.headers.authorization || ''));
     const key = m ? m[1] : String(req.headers['x-api-key'] || '').trim();
-    if (!key) throw new HttpError(401, 'Unauthorized');
-    if (config.adminKey && keyMatches(key, config.adminKey)) return;
+    if (!key) {
+      if (req.headers.authorization) throw new HttpError(401, 'Unauthorized');
+      return 'public';
+    }
+    if (config.adminKey && keyMatches(key, config.adminKey)) return 'admin';
     const presented = digest(key);
     let ok = false;
-    for (const h of hashes) if (timingSafeEqual(presented, Buffer.from(h, 'hex'))) ok = true;
+    for (const h of config.agentKeyHashes || []) if (timingSafeEqual(presented, Buffer.from(h, 'hex'))) ok = true;
     if (!ok) throw new HttpError(401, 'Unauthorized');
+    return 'admin';
   }
 
   function limit(limiter, req) {
@@ -278,8 +285,8 @@ export function createApp(config, { fetchImpl = globalThis.fetch, log = console 
     const body = check(SUBMISSION, await readJson(req));
     limit(submitLimiter, req);
     if (body.website) return { status: 201, body: { ok: true } };
-    const listed = db.prepare(`SELECT id FROM apps WHERE url = ? AND status IN ('approved','featured') LIMIT 1`).get(body.url);
-    if (listed) throw new HttpError(409, 'This app is already listed', { app_id: listed.id });
+    const listed = store.listedAt(body.url);
+    if (listed) throw new HttpError(409, 'This app is already listed', { app_id: listed });
     const { id } = store.createSubmission(body);
     log.info?.(`submission created ${id}`);
     store.sendConfirmation(id).catch(() => {});
@@ -385,7 +392,7 @@ export function createApp(config, { fetchImpl = globalThis.fetch, log = console 
       res.end();
       return;
     }
-    requireAgent(req);
+    const role = mcpRole(req);
     const type = String(req.headers['content-type'] || '').toLowerCase();
     if (!type.startsWith('application/json')) throw new HttpError(415, 'Content-Type must be application/json');
     let body;
@@ -396,7 +403,7 @@ export function createApp(config, { fetchImpl = globalThis.fetch, log = console 
       sendJson(res, 400, { jsonrpc: '2.0', id: null, error: { code: -32700, message: 'Parse error' } });
       return;
     }
-    const out = await mcp.handle(body);
+    const out = await mcp.handle(body, { role, submitAllowed: () => submitLimiter.hit(clientIp(req)) });
     if (out === null) {
       res.writeHead(202);
       res.end();

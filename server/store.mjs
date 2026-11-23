@@ -1,6 +1,6 @@
 // Data access: every read and write of the catalogue goes through here, so the
 // public API, the admin API and the MCP tools share one set of rules.
-import { randomUUID, randomBytes, createHash } from 'node:crypto';
+import { randomUUID, randomBytes, createHash, timingSafeEqual } from 'node:crypto';
 import { transaction, serverSecret } from './db.mjs';
 import { appPublishedMail, confirmSubmissionMail } from './mailer.mjs';
 
@@ -373,7 +373,11 @@ export function createStore(db, { mailer, siteUrl = 'https://www.skolappar.com',
 
   // ---------- submissions ----------
 
-  function createSubmission({ url, email, title, description, note }) {
+  /**
+   * A new suggestion, waiting for review. From the form: url and email. From an agent (MCP
+   * submit_app): also the creator's first name, categories and the hash of the app's own key.
+   */
+  function createSubmission({ url, email, title, description, long_description, note, creator_name, categoryIds, keyHash }) {
     const id = randomUUID();
     const token = randomBytes(24).toString('base64url');
     const t = now();
@@ -381,12 +385,82 @@ export function createStore(db, { mailer, siteUrl = 'https://www.skolappar.com',
     try {
       fallbackTitle = new URL(url).hostname.replace(/^www\./, '');
     } catch { /* keep url */ }
-    db.prepare(
-      `INSERT INTO apps (id, title, description, url, status, submitter_email, submitter_note,
-         email_confirmed, confirm_token, created_at, updated_at)
-       VALUES (?, ?, ?, ?, 'pending', ?, ?, 0, ?, ?, ?)`
-    ).run(id, title || fallbackTitle, description || '', url, email, nul(note), token, t, t);
-    return { id, token };
+    return transaction(db, () => {
+      db.prepare(
+        `INSERT INTO apps (id, title, description, long_description, url, status, creator_name, submitter_email, submitter_note,
+           email_confirmed, confirm_token, app_key_hash, created_at, updated_at)
+         VALUES (?, ?, ?, ?, ?, 'pending', ?, ?, ?, 0, ?, ?, ?, ?)`
+      ).run(id, title || fallbackTitle, description || '', nul(long_description), url, nul(creator_name), email, nul(note),
+        token, nul(keyHash), t, t);
+      const unknown = categoryIds?.length ? setAppCategories(id, categoryIds) : [];
+      return { id, token, unknown_category_ids: unknown };
+    });
+  }
+
+  /** Is this the key that submit_app handed out for the app? Constant-time on the hashes. */
+  function appKeyMatches(id, key) {
+    const row = db.prepare('SELECT app_key_hash FROM apps WHERE id = ?').get(id);
+    if (!row?.app_key_hash || typeof key !== 'string' || !key) return false;
+    const given = createHash('sha256').update(key).digest();
+    return timingSafeEqual(given, Buffer.from(row.app_key_hash, 'hex'));
+  }
+
+  /** Is a public app already listed at this address? */
+  function listedAt(url) {
+    return db.prepare(`SELECT id FROM apps WHERE url = ? AND status IN ('approved','featured') LIMIT 1`).get(url)?.id || null;
+  }
+
+  /** Where a submitted app is in the review – open to anyone who has its id, nothing about the submitter. */
+  function appStatus(id) {
+    const r = db.prepare('SELECT id, title, url, status, email_confirmed, delist_reason, created_at, updated_at FROM apps WHERE id = ?').get(id);
+    if (!r) return null;
+    const live = PUBLIC_STATUSES.includes(r.status);
+    return {
+      id: r.id, title: r.title, url: r.url, status: r.status, published: live,
+      email_confirmed: Boolean(r.email_confirmed),
+      page: live ? `${siteUrl}/app/${r.id}` : null,
+      reason: live ? null : r.delist_reason || null,
+      submitted_at: r.created_at, updated_at: r.updated_at,
+    };
+  }
+
+  /** How a public app is used: opens and likes as plain counts, never anything about a visitor. */
+  function appStats(id) {
+    const r = db.prepare(`SELECT id, title, clicks_count, upvotes_count FROM apps WHERE id = ? AND status IN ('approved','featured')`).get(id);
+    if (!r) return null;
+    const end = new Date();
+    const dayStart = (back) => new Date(Date.UTC(end.getUTCFullYear(), end.getUTCMonth(), end.getUTCDate() - back)).toISOString();
+    const opensSince = (from) => db.prepare('SELECT COUNT(*) AS n FROM app_open_events WHERE app_id = ? AND opened_at >= ?').get(id, from).n;
+    const days = new Map(
+      db.prepare('SELECT substr(opened_at, 1, 10) AS day, COUNT(*) AS n FROM app_open_events WHERE app_id = ? AND opened_at >= ? GROUP BY day')
+        .all(id, dayStart(29)).map((d) => [d.day, d.n])
+    );
+    const daily = [];
+    for (let back = 29; back >= 0; back--) {
+      const day = dayStart(back).slice(0, 10);
+      daily.push({ date: day, opens: days.get(day) || 0 });
+    }
+    const subject = db.prepare(
+      `SELECT c.id, c.name FROM app_categories ac JOIN categories c ON c.id = ac.category_id
+       WHERE ac.app_id = ? AND c.type = 'subject' ORDER BY c.sort_order LIMIT 1`
+    ).get(id);
+    let rank = null;
+    if (subject) {
+      const peers = db.prepare(
+        `SELECT a.clicks_count AS n FROM apps a JOIN app_categories ac ON ac.app_id = a.id
+         WHERE ac.category_id = ? AND a.status IN ('approved','featured')`
+      ).all(subject.id);
+      rank = { subject: subject.name, place: 1 + peers.filter((p) => p.n > r.clicks_count).length, of: peers.length };
+    }
+    return {
+      id: r.id, title: r.title, page: `${siteUrl}/app/${r.id}`,
+      opens: { today: opensSince(dayStart(0)), last_7_days: opensSince(dayStart(6)), last_30_days: opensSince(dayStart(29)), total: r.clicks_count || 0 },
+      likes: r.upvotes_count || 0,
+      rank_in_subject: rank,
+      daily,
+      timezone: 'UTC',
+      tracking_since: TRACKING_SINCE,
+    };
   }
 
   function confirmEmail(token) {
@@ -708,6 +782,7 @@ export function createStore(db, { mailer, siteUrl = 'https://www.skolappar.com',
     listPublicApps, listAdminApps, getApp, topApps, recentApps, relatedApps,
     createApp, updateApp, deleteApp, setAppCategories, trackClick,
     createSubmission, confirmEmail, sendConfirmation, resendMail,
+    appKeyMatches, listedAt, appStatus, appStats,
     toggleUpvote, myUpvotes,
     listResources, getResource, getResourceBySlug, createResource, updateResource, deleteResource,
     allSettings, listSettings, getSetting, setSetting,

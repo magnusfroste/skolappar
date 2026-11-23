@@ -1,8 +1,11 @@
 // MCP endpoint (POST /mcp): JSON-RPC 2.0 over "streamable HTTP" with plain JSON
-// responses. Tools are ported from the old Supabase mcp-key function, minus
-// users, roles and comments (there are no accounts any more).
+// responses. Two faces on one address: without a key, the open tools of mcp-public.mjs (read the
+// catalogue, submit an app, follow it); with the admin or an agent key, the administration below
+// (ported from the old Supabase mcp-key function, minus users, roles and comments) plus the
+// open tools that have no admin counterpart.
 import { validate, ValidationError } from './validate.mjs';
 import { APP_STATUSES, IDEA_STATUSES } from './store.mjs';
+import { createPublicTools, PUBLIC_INSTRUCTIONS } from './mcp-public.mjs';
 
 const PROTOCOL_VERSIONS = ['2025-06-18', '2025-03-26', '2024-11-05'];
 
@@ -48,9 +51,10 @@ export function createTools({ store, images }) {
       name: 'list_submissions',
       title: 'Lista inskickade tips',
       description:
-        'Appar som besökare tipsat om och som väntar på granskning (status pending), äldst först, med tipsarens e-post, ' +
+        'Appar som besökare eller deras agenter skickat in och som väntar på granskning (status pending), äldst först, med tipsarens e-post, ' +
         'om adressen är bekräftad, tipsarens meddelande och mail (utfallet av bekräftelse- och publiceringsmejlet: ' +
-        'status sent, not_configured eller failed med reason och tid). Godkänn med update_app (status approved) efter att ha provat appen.',
+        'status sent, not_configured eller failed med reason och tid). Godkänn med update_app (status approved) efter att ha provat appen – ' +
+        'och bara när email_confirmed är true: en obekräftad adress betyder att föräldern inte har klickat på länken i mejlet än.',
       inputSchema: obj({ limit: { type: 'integer', minimum: 1, maximum: 200, default: 50 } }),
       annotations: RO,
       handler: ({ limit }) => store.listAdminApps({ status: 'pending', limit: 1000 })
@@ -370,11 +374,21 @@ function fail(message) {
 }
 
 export function createMcpHandler({ store, images, log = console }) {
-  const tools = createTools({ store, images });
-  const byName = new Map(tools.map((t) => [t.name, t]));
+  const adminTools = createTools({ store, images });
+  const publicTools = createPublicTools({ store, images, fail, imageHint: IMAGE_HINT, categoryHint: CATEGORY_HINT });
+  // With a key: the administration, plus the open tools it has no version of (submit_app, app_status …).
+  const adminNames = new Set(adminTools.map((t) => t.name));
+  const toolsFor = {
+    public: publicTools,
+    admin: [...adminTools, ...publicTools.filter((t) => !adminNames.has(t.name))],
+  };
+  const byName = {
+    public: new Map(toolsFor.public.map((t) => [t.name, t])),
+    admin: new Map(toolsFor.admin.map((t) => [t.name, t])),
+  };
 
-  async function callTool(params) {
-    const tool = byName.get(params?.name);
+  async function callTool(params, ctx) {
+    const tool = byName[ctx.role].get(params?.name);
     if (!tool) return { error: { code: -32602, message: `Unknown tool: ${params?.name}` } };
     let input;
     try {
@@ -386,7 +400,7 @@ export function createMcpHandler({ store, images, log = console }) {
       throw err;
     }
     try {
-      const data = await tool.handler(input);
+      const data = await tool.handler(input, ctx);
       return {
         result: {
           content: [{ type: 'text', text: JSON.stringify(data, null, 2) }],
@@ -399,7 +413,7 @@ export function createMcpHandler({ store, images, log = console }) {
     }
   }
 
-  async function handleMessage(msg) {
+  async function handleMessage(msg, ctx) {
     if (!msg || msg.jsonrpc !== '2.0' || typeof msg.method !== 'string') {
       return { jsonrpc: '2.0', id: msg?.id ?? null, error: { code: -32600, message: 'Invalid Request' } };
     }
@@ -412,10 +426,12 @@ export function createMcpHandler({ store, images, log = console }) {
           result: {
             protocolVersion: PROTOCOL_VERSIONS.includes(requested) ? requested : PROTOCOL_VERSIONS[0],
             capabilities: { tools: { listChanged: false } },
-            serverInfo: { name: 'skolappar', title: 'Skolappar admin', version: '1.0.0' },
-            instructions:
-              'Administrera skolappar.com: granska tips (list_submissions), prova appen, sätt kategorier och bild, ' +
-              'godkänn (update_app status approved) eller avslå (rejected). Hantera även idéer, resurser, kategorier och inställningar.',
+            serverInfo: { name: 'skolappar', title: ctx.role === 'admin' ? 'Skolappar admin' : 'Skolappar', version: '1.1.0' },
+            instructions: ctx.role === 'admin'
+              ? 'Administrera skolappar.com: granska tips (list_submissions), prova appen, sätt kategorier och bild, ' +
+                'godkänn (update_app status approved, bara när e-postadressen är bekräftad) eller avslå (rejected). ' +
+                'Hantera även idéer, resurser, kategorier och inställningar.'
+              : PUBLIC_INSTRUCTIONS,
           },
         };
         break;
@@ -426,12 +442,12 @@ export function createMcpHandler({ store, images, log = console }) {
       case 'tools/list':
         outcome = {
           result: {
-            tools: tools.map(({ name, title, description, inputSchema, annotations }) => ({ name, title, description, inputSchema, annotations })),
+            tools: toolsFor[ctx.role].map(({ name, title, description, inputSchema, annotations }) => ({ name, title, description, inputSchema, annotations })),
           },
         };
         break;
       case 'tools/call':
-        outcome = await callTool(msg.params);
+        outcome = await callTool(msg.params, ctx);
         break;
       default:
         if (msg.method.startsWith('notifications/')) outcome = { result: null };
@@ -441,14 +457,17 @@ export function createMcpHandler({ store, images, log = console }) {
     return { jsonrpc: '2.0', id: msg.id, ...outcome };
   }
 
-  /** Handle a parsed JSON-RPC body (single message or batch). Returns the response body or null (202). */
-  async function handle(body) {
+  /**
+   * Handle a parsed JSON-RPC body (single message or batch). Returns the response body or null (202).
+   * ctx.role: 'admin' (a valid key) or 'public' (no key); ctx.submitAllowed: the caller's rate limit.
+   */
+  async function handle(body, ctx = { role: 'admin' }) {
     if (Array.isArray(body)) {
-      const out = (await Promise.all(body.map(handleMessage))).filter(Boolean);
+      const out = (await Promise.all(body.map((m) => handleMessage(m, ctx)))).filter(Boolean);
       return out.length ? out : null;
     }
-    return handleMessage(body);
+    return handleMessage(body, ctx);
   }
 
-  return { handle, tools };
+  return { handle, tools: toolsFor.admin, publicTools: toolsFor.public };
 }

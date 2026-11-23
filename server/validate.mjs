@@ -57,7 +57,7 @@ export function validate(schema, value, path = 'input') {
     if (schema.maxLength != null && value.length > schema.maxLength) {
       throw new ValidationError(`${path}: at most ${schema.maxLength} characters`);
     }
-    if (schema.pattern && !new RegExp(schema.pattern).test(value)) {
+    if (schema.pattern && !new RegExp(schema.pattern, 'u').test(value)) {
       throw new ValidationError(`${path}: invalid format`);
     }
     if (schema.format === 'uuid' && !isUuid(value)) throw new ValidationError(`${path}: must be a uuid`);

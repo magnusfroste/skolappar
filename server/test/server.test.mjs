@@ -45,13 +45,19 @@ describe('without ADMIN_KEY', () => {
     assert.equal(r.json.ok, true);
   });
 
-  test('admin API, import and MCP refuse with 503', async () => {
+  test('admin API and import refuse with 503; /mcp answers with the open tools only', async () => {
     const call = api(s.base, { key: 'anything' });
-    for (const [method, path, body] of [['GET', '/api/admin/check'], ['POST', '/api/admin/import', {}], ['POST', '/mcp', { jsonrpc: '2.0', id: 1, method: 'tools/list' }]]) {
+    for (const [method, path, body] of [['GET', '/api/admin/check'], ['POST', '/api/admin/import', {}]]) {
       const r = await call(method, path, body);
       assert.equal(r.status, 503, `${method} ${path}`);
       assert.equal(r.json.error, 'ADMIN_KEY not set');
     }
+    const list = { jsonrpc: '2.0', id: 1, method: 'tools/list' };
+    assert.equal((await call('POST', '/mcp', list)).status, 401, 'a key nobody issued is refused');
+    const open = await api(s.base)('POST', '/mcp', list);
+    assert.equal(open.status, 200);
+    assert.ok(open.json.result.tools.some((t) => t.name === 'submit_app'));
+    assert.ok(!open.json.result.tools.some((t) => t.name === 'update_app'));
   });
 
   test('public site still works', async () => {
@@ -442,5 +448,125 @@ describe('apex redirects to www', () => {
     assert.equal((await get('www.skolappar.test', '/')).statusCode, 200);
     assert.equal((await get('skolappar.shipholm.dev', '/')).statusCode, 200);
     assert.equal((await get('skolappar.test', '/healthz')).statusCode, 200);
+  });
+});
+
+describe('the open MCP: an agent submits an app and follows it', () => {
+  let s;
+  let images;
+  let admin;
+  let n = 0;
+  const rpc = (who, method, params) => who('POST', '/mcp', { jsonrpc: '2.0', id: ++n, method, params });
+  const call = async (who, name, args = {}) => {
+    const r = await rpc(who, 'tools/call', { name, arguments: args });
+    const result = r.json.result;
+    return { ok: !result.isError, text: result.content[0].text, data: result.structuredContent?.result };
+  };
+  let pub;
+  const submission = { url: 'https://robot.example', title: 'Roboträknaren', description: 'Räkna äpplen med roboten, för de yngsta.', first_name: 'Anna-Karin', email: 'parent@example.com' };
+
+  before(async () => {
+    images = await startImageServer();
+    s = await startServer({ adminKey: KEY, submitLimit: 3 });
+    admin = api(s.base, { key: KEY });
+    pub = api(s.base);
+    await admin('POST', '/api/admin/import', samplePayload(images.base));
+  });
+  after(async () => {
+    await s.stop();
+    await images.stop();
+  });
+
+  test('no key: the open tools and their instructions; a key: the administration as well', async () => {
+    const init = await rpc(pub, 'initialize', { protocolVersion: '2025-06-18', capabilities: {}, clientInfo: { name: 't', version: '1' } });
+    assert.match(init.json.result.instructions, /submit_app/);
+    const open = (await rpc(pub, 'tools/list')).json.result.tools.map((t) => t.name).sort();
+    assert.deepEqual(open, ['app_stats', 'app_status', 'get_app', 'list_apps', 'list_categories', 'list_ideas', 'list_resources', 'submit_app', 'update_my_app', 'withdraw_my_app']);
+    const keyed = (await rpc(admin, 'tools/list')).json.result.tools.map((t) => t.name);
+    for (const name of ['update_app', 'list_submissions', 'submit_app', 'app_stats']) assert.ok(keyed.includes(name), name);
+    assert.equal(keyed.length, new Set(keyed).size, 'no tool twice');
+    // an admin tool is unknown without a key, and the open list never shows what is not public
+    assert.equal((await rpc(pub, 'tools/call', { name: 'update_app', arguments: { id: APP1, status: 'rejected' } })).json.error.code, -32602);
+    assert.equal((await rpc(pub, 'tools/call', { name: 'list_submissions', arguments: {} })).json.error.code, -32602);
+    const apps = (await call(pub, 'list_apps')).data;
+    assert.deepEqual(apps.map((a) => a.id).sort(), [APP1, APP2]);
+    assert.ok(apps.every((a) => !('submitter_email' in a) && !('user_id' in a)));
+    assert.equal((await call(pub, 'get_app', { id: PENDING })).ok, false);
+    assert.deepEqual((await call(pub, 'list_categories', { type: 'subject' })).data.map((c) => c.slug), ['matte']);
+  });
+
+  test('submit_app: first name and e-mail required, a key for the app, the confirmation link, the daily review', async () => {
+    for (const bad of [{ first_name: undefined }, { email: undefined }, { first_name: 'Anna Svensson' }, { email: 'nope' }]) {
+      const r = await call(pub, 'submit_app', { ...submission, ...bad });
+      assert.equal(r.ok, false, JSON.stringify(bad));
+      assert.match(r.text, /Ogiltig indata/);
+    }
+    assert.match((await call(pub, 'submit_app', { ...submission, url: 'http://robot.example' })).text, /https/);
+    assert.match((await call(pub, 'submit_app', { ...submission, url: 'https://plus.example' })).text, /finns redan/);
+
+    const sent = await call(pub, 'submit_app', { ...submission, category_ids: [CAT.math, CAT.age] });
+    assert.equal(sent.ok, true, sent.text);
+    const { id, app_key: key } = sent.data;
+    assert.match(key, /^sapp_[A-Za-z0-9_-]{32}$/);
+    assert.equal(sent.data.status, 'pending');
+    // only the hash of the key is stored
+    const row = s.app.db.prepare('SELECT app_key_hash, confirm_token, creator_name, submitter_email FROM apps WHERE id = ?').get(id);
+    assert.match(row.app_key_hash, /^[0-9a-f]{64}$/);
+    assert.ok(!row.app_key_hash.includes(key));
+    assert.equal(row.creator_name, 'Anna-Karin');
+
+    // not public, and its status says why: waiting, the address not confirmed
+    assert.equal((await call(pub, 'get_app', { id })).ok, false);
+    assert.equal((await call(pub, 'app_stats', { id })).ok, false);
+    let status = (await call(pub, 'app_status', { id })).data;
+    assert.deepEqual([status.status, status.published, status.email_confirmed, status.page], ['pending', false, false, null]);
+    assert.ok(!JSON.stringify(status).includes('parent@example.com'), 'the status never shows the address');
+
+    // the reviewer sees it in the same queue as the form's suggestions, with the address and its state
+    const queued = (await call(admin, 'list_submissions')).data.find((a) => a.id === id);
+    assert.equal(queued.submitter_email, 'parent@example.com');
+    assert.equal(queued.email_confirmed, false);
+    assert.deepEqual(queued.categories.map((c) => c.slug).sort(), ['fk-2', 'matte']);
+
+    // the agent may still change it, with the key only
+    assert.equal((await call(pub, 'update_my_app', { id, app_key: 'sapp_wrongwrongwrongwrongwrongwrongwr', title: 'Kapad' })).ok, false);
+    assert.equal((await call(pub, 'update_my_app', { id, app_key: key, title: 'Robotens räknespel' })).ok, true);
+    assert.equal((await call(pub, 'app_status', { id })).data.title, 'Robotens räknespel');
+
+    // the parent clicks the link; the reviewer approves; the app is public
+    assert.equal((await pub('GET', `/bekrafta/${row.confirm_token}`)).status, 200);
+    assert.equal((await call(pub, 'app_status', { id })).data.email_confirmed, true);
+    assert.equal((await call(admin, 'update_app', { id, status: 'approved' })).ok, true);
+    status = (await call(pub, 'app_status', { id })).data;
+    assert.deepEqual([status.status, status.published, status.page], ['approved', true, `https://skolappar.test/app/${id}`]);
+    assert.equal((await call(pub, 'get_app', { id })).data.creator_name, 'Anna-Karin');
+
+    // published: no more changes with the key, but it can be withdrawn
+    assert.match((await call(pub, 'update_my_app', { id, app_key: key, title: 'Något annat' })).text, /publicerad/);
+    assert.equal((await call(pub, 'withdraw_my_app', { id, app_key: 'sapp_wrongwrongwrongwrongwrongwrongwr' })).ok, false);
+    assert.deepEqual((await call(pub, 'withdraw_my_app', { id, app_key: key })).data, { id, withdrawn: true, status: 'delisted' });
+    assert.equal((await call(pub, 'get_app', { id })).ok, false);
+    assert.equal((await call(pub, 'app_status', { id })).data.reason, 'Tillbakadragen av skaparen');
+  });
+
+  test('app_stats: opens and likes as counts, the place within the subject', async () => {
+    for (let i = 0; i < 3; i++) await pub('POST', `/api/apps/${APP1}/click`);
+    const stats = (await call(pub, 'app_stats', { id: APP1 })).data;
+    assert.deepEqual(stats.opens, { today: 3, last_7_days: 3, last_30_days: 3, total: 13 });
+    assert.equal(stats.likes, 3);
+    assert.deepEqual(stats.rank_in_subject, { subject: 'Matte', place: 1, of: 2 });
+    assert.equal(stats.daily.length, 30);
+    assert.equal(stats.daily.at(-1).opens, 3);
+    assert.equal((await call(pub, 'app_stats', { id: PENDING })).ok, false);
+  });
+
+  test('a waiting app is withdrawn for good, and submissions share the form\'s rate limit', async () => {
+    const one = await call(pub, 'submit_app', { ...submission, url: 'https://two.example' });
+    assert.equal(one.ok, true, one.text);
+    assert.deepEqual((await call(pub, 'withdraw_my_app', { id: one.data.id, app_key: one.data.app_key })).data.status, 'deleted');
+    assert.equal((await call(pub, 'app_status', { id: one.data.id })).ok, false);
+    // the limit is 3 an hour here: two used above, the third passes, the fourth does not
+    assert.equal((await call(pub, 'submit_app', { ...submission, url: 'https://three.example' })).ok, true);
+    assert.match((await call(pub, 'submit_app', { ...submission, url: 'https://four.example' })).text, /För många inskick/);
   });
 });

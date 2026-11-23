@@ -18,7 +18,8 @@ export function AgentInfoPanel() {
         </div>
         <CardDescription>
           En agent kan administrera sajten via MCP: granska tips, prova och klassa appar, godkänna, redigera,
-          hantera kategorier, resurser, idéer och inställningar samt läsa statistik.
+          hantera kategorier, resurser, idéer och inställningar samt läsa statistik. Utan nyckel är samma adress
+          öppen för föräldrars agenter: de läser katalogen, skickar in sin app och följer den.
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-4 text-sm">

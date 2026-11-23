@@ -142,6 +142,11 @@ const MIGRATIONS = [
   ALTER TABLE apps ADD COLUMN published_mail TEXT;
   ALTER TABLE apps ADD COLUMN published_mail_at TEXT;
   `,
+  // 3: an app submitted by its creator's agent has a key of its own (only the SHA-256 is kept);
+  // with it the agent can change or withdraw that one app.
+  `
+  ALTER TABLE apps ADD COLUMN app_key_hash TEXT;
+  `,
 ];
 
 export function openDatabase(dataDir) {
