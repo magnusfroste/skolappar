@@ -108,8 +108,10 @@ npm test            # node --test: server tests in server/test/
   `get_app`, `list_ideas`, `list_resources`, `app_status`, `app_stats` (openings and likes of any listed
   app; nothing about visitors). Write: `submit_app` (https address, title, description, the parent's first
   name and e-mail; same queue, confirmation mail and hourly limit per address as the form) answers with an
-  `app_key` for that one app – shown once, only its SHA-256 is kept – which `update_my_app` (while the app
-  waits or was rejected) and `withdraw_my_app` take. A listed app is not changed with the key: withdraw
+  `app_key` for that one app – shown once, only its SHA-256 is kept – which `update_my_app`, `set_my_app_image` (while the app
+  waits or was rejected) and `withdraw_my_app` take. The card image is given as SVG text, as an address, or uploaded as
+  a file: `PUT /api/apps/<id>/image` with the header `X-App-Key` and the file as the body (20 an hour per address).
+  An app without an image gets a card in its subject's colour with the subject's symbol. A listed app is not changed with the key: withdraw
   and submit again, so nothing unreviewed reaches the catalogue. The e-mail address is never returned.
 
 ## Import from Supabase

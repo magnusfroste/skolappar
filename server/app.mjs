@@ -83,10 +83,11 @@ export function createApp(config, { fetchImpl = globalThis.fetch, fetchOutside, 
   const store = createStore(db, { mailer, siteUrl: config.siteUrl, log });
   const images = createImageStore(config.dataDir, db);
   const importer = createImporter({ store, images, fetchImpl: fetchOutside, log });
-  const mcp = createMcpHandler({ store, images: { ...images, download: (u) => images.download(u, { fetchImpl: fetchOutside }) }, checkApp, log });
+  const mcp = createMcpHandler({ store, images: { ...images, download: (u) => images.download(u, { fetchImpl: fetchOutside }) }, checkApp, siteUrl: config.siteUrl, log });
   const statics = createStatic(config.distDir);
   const submitLimiter = createRateLimiter({ limit: config.submitLimit, windowMs: HOUR });
   const checkLimiter = createRateLimiter({ limit: config.checkLimit || 30, windowMs: HOUR });
+  const uploadLimiter = createRateLimiter({ limit: 20, windowMs: HOUR });
   const ideaLimiter = createRateLimiter({ limit: config.submitLimit, windowMs: HOUR });
   const voteLimiter = createRateLimiter({ limit: config.voteLimit, windowMs: HOUR });
 
@@ -305,6 +306,20 @@ export function createApp(config, { fetchImpl = globalThis.fetch, fetchOutside, 
   });
 
   // Admin API (Authorization: Bearer $ADMIN_KEY)
+  // A creator's agent uploads the card image as a file, with the key submit_app gave it:
+  //   curl -X PUT --data-binary @card.png -H "X-App-Key: sapp_…" https://www.skolappar.com/api/apps/<id>/image
+  route('PUT', '/api/apps/:id/image', async ({ req, params }) => {
+    limit(uploadLimiter, req);
+    const id = needId(params.id);
+    const key = String(req.headers['x-app-key'] || '').trim();
+    if (!key || !store.appKeyMatches(id, key)) throw new HttpError(401, 'Unknown app or wrong X-App-Key');
+    const buf = await readBody(req, MAX_IMAGE_BYTES);
+    if (!sniffImage(buf)) throw new HttpError(415, 'Not a supported image (png, jpg, gif, webp, avif, svg)');
+    const out = store.setOwnImage(id, key, images.save(buf).url);
+    if (out.error) throw new HttpError(409, 'A listed app is not changed with its key: withdraw it and submit again');
+    return out;
+  });
+
   const admin = (method, pattern, handler) => route(method, pattern, (ctx) => {
     requireAdmin(ctx.req);
     return handler(ctx);
@@ -543,6 +558,7 @@ a{display:inline-block;margin-top:16px;padding:12px 20px;border-radius:999px;bac
   function close() {
     submitLimiter.stop();
     checkLimiter.stop();
+    uploadLimiter.stop();
     ideaLimiter.stop();
     voteLimiter.stop();
     return new Promise((resolve) => {

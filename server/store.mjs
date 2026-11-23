@@ -98,6 +98,19 @@ export function createStore(db, { mailer, siteUrl = 'https://www.skolappar.com',
     return { passed: r.check_passed === 1, checked_at: r.checked_at, failed: of('fail'), warnings: of('warn') };
   }
 
+  /**
+   * Set the card image of an app its creator's agent submitted. Only while the app waits or was
+   * rejected (it is then queued again): a listed app does not change without a review.
+   * Returns the app's status, or {error} with 'key' or 'listed'.
+   */
+  function setOwnImage(id, key, imageUrl) {
+    if (!appKeyMatches(id, key)) return { error: 'key' };
+    const r = db.prepare('SELECT status FROM apps WHERE id = ?').get(id);
+    if (!['pending', 'rejected'].includes(r.status)) return { error: 'listed' };
+    updateApp(id, { image_url: imageUrl, ...(r.status === 'rejected' ? { status: 'pending' } : {}) });
+    return appStatus(id);
+  }
+
   /** Keep the outcome of a check on the app. */
   function saveCheck(id, result) {
     db.prepare('UPDATE apps SET check_result = ?, check_passed = ?, checked_at = ? WHERE id = ?')
@@ -801,7 +814,7 @@ export function createStore(db, { mailer, siteUrl = 'https://www.skolappar.com',
     listPublicApps, listAdminApps, getApp, topApps, recentApps, relatedApps,
     createApp, updateApp, deleteApp, setAppCategories, trackClick,
     createSubmission, confirmEmail, sendConfirmation, resendMail,
-    appKeyMatches, saveCheck, listedAt, appStatus, appStats,
+    appKeyMatches, saveCheck, setOwnImage, listedAt, appStatus, appStats,
     toggleUpvote, myUpvotes,
     listResources, getResource, getResourceBySlug, createResource, updateResource, deleteResource,
     allSettings, listSettings, getSetting, setSetting,
