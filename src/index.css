@@ -238,3 +238,20 @@ img {
     padding-bottom: env(safe-area-inset-bottom);
   }
 }
+
+/* App-kortens ram: bilden ligger på en mörk toning i ämnets färg, lika i ljust och mörkt läge.
+   Färgerna sätts av AppThumbnail (--frame-dark, --frame-light). */
+.app-frame {
+  container-type: inline-size;
+  padding: 5%;
+  background: radial-gradient(120% 120% at 20% 0%, var(--frame-light), var(--frame-dark) 70%);
+}
+.app-frame-inner {
+  height: 100%;
+  width: 100%;
+  overflow: hidden;
+  border-radius: 12px;                      /* äldre webbläsare */
+  border-radius: clamp(6px, 3cqw, 28px);    /* ca 3 % av kortets bredd */
+  box-shadow: 0 6px 18px rgb(0 0 0 / 0.28), 0 0 0 1px rgb(255 255 255 / 0.18);
+  background: rgb(255 255 255 / 0.08);
+}

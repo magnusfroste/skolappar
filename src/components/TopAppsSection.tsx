@@ -62,6 +62,7 @@ export function TopAppsSection() {
                       title={app.title}
                       imageUrl={app.image_url || undefined}
                       appUrl={app.url}
+                      categories={app.categories}
                       imageClassName="group-hover:scale-105 transition-transform duration-300"
                     />
                   </div>

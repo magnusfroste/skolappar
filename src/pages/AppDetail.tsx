@@ -112,7 +112,7 @@ export default function AppDetail() {
             }}
             className="w-full sm:w-64 shrink-0 aspect-[4/3] rounded-2xl overflow-hidden shadow-playful-lg bg-card"
           >
-            <AppThumbnail title={app.title} imageUrl={app.image_url || undefined} appUrl={app.url} className="w-full h-full" />
+            <AppThumbnail title={app.title} imageUrl={app.image_url || undefined} appUrl={app.url} categories={app.categories} className="w-full h-full" />
           </button>
           <div className="min-w-0 flex-1 space-y-4">
         {/* Title & actions */}

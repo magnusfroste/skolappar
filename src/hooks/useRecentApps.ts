@@ -11,6 +11,7 @@ interface RecentApp {
   upvotes_count: number;
   user_id: string | null;
   created_at: string;
+  categories?: { type: string; slug: string }[];
 }
 
 export const useRecentApps = (enabled: boolean = true) => {

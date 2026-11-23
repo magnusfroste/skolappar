@@ -11,6 +11,7 @@ interface TopApp {
   upvotes_count: number;
   user_id: string | null;
   score: number;
+  categories?: { type: string; slug: string }[];
 }
 
 /** Top five by a simple score: clicks + upvotes × 2. */

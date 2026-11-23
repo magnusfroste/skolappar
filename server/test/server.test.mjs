@@ -167,6 +167,13 @@ describe('with ADMIN_KEY', () => {
     assert.equal((await pub('GET', `/api/apps/${PENDING}`)).status, 404);
     const related = (await pub('GET', `/api/apps/${APP1}/related`)).json;
     assert.deepEqual(related.map((a) => a.id), [APP2]);
+    // every card frames its image in the subject's colour, so each list carries the subject's slug and type
+    const subject = (list) => list.map((a) => a.categories.find((c) => c.type === 'subject')?.slug);
+    assert.deepEqual(subject(related), ['matte']);
+    for (const path of ['/api/apps/top', '/api/apps/recent']) {
+      const list = (await pub('GET', path)).json;
+      assert.ok(list.length && subject(list).every((slug) => slug === 'matte'), path);
+    }
     const stats = (await pub('GET', '/api/stats')).json;
     assert.deepEqual(stats, { apps: 2, creators: 2, subjects: 1, upvotes: 4 });
     assert.equal((await pub('GET', '/api/resources')).json.length, 1);
@@ -318,6 +325,12 @@ describe('with ADMIN_KEY', () => {
 
     const list = await admin('POST', '/mcp', { jsonrpc: '2.0', id: 2, method: 'tools/list' });
     const names = list.json.result.tools.map((t) => t.name);
+    // the image guideline: a moment inside the game, no bright start page, and the card draws the frame
+    const hint = list.json.result.tools.find((t) => t.name === 'set_app_image').description;
+    assert.match(hint, /inifrån själva spelet/);
+    assert.match(hint, /1200×900/);
+    assert.match(hint, /kortet lägger själv en ram/);
+    assert.doesNotMatch(hint, /ljus bild/);
     for (const n of ['list_submissions', 'resend_mail', 'list_apps', 'update_app', 'set_app_image', 'list_categories', 'set_setting', 'app_analytics', 'platform_stats']) {
       assert.ok(names.includes(n), n);
     }

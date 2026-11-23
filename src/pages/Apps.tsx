@@ -326,6 +326,7 @@ export default function Apps() {
                       title={app.title}
                       imageUrl={app.image_url || undefined}
                       url={app.url}
+                      categories={app.categories}
                     />
                   ) : (
                     <AppCardVisual

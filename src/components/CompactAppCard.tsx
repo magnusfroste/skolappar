@@ -1,15 +1,16 @@
 import { Link } from 'react-router-dom';
 import { Card } from '@/components/ui/card';
-import { AppThumbnail } from '@/components/AppThumbnail';
+import { AppThumbnail, type ThumbnailCategory } from '@/components/AppThumbnail';
 
 interface CompactAppCardProps {
   id: string;
   title: string;
   imageUrl?: string;
   url?: string;
+  categories?: ThumbnailCategory[];
 }
 
-export function CompactAppCard({ id, title, imageUrl, url }: CompactAppCardProps) {
+export function CompactAppCard({ id, title, imageUrl, url, categories }: CompactAppCardProps) {
   return (
     <Link to={`/app/${id}`} className="block group">
       <Card className="overflow-hidden border-0 bg-card/90 backdrop-blur-sm shadow-playful hover:shadow-playful-lg transition-all duration-300 hover:-translate-y-1 hover:border-primary/20 aspect-square">
@@ -19,6 +20,7 @@ export function CompactAppCard({ id, title, imageUrl, url }: CompactAppCardProps
             title={title}
             imageUrl={imageUrl}
             appUrl={url}
+            categories={categories}
             imageClassName="group-hover:scale-105 transition-transform duration-300"
           />
           

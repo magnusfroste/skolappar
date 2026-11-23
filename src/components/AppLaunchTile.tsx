@@ -1,5 +1,5 @@
 import { Link } from "react-router-dom";
-import { AppThumbnail } from "@/components/AppThumbnail";
+import { AppThumbnail, type ThumbnailCategory } from "@/components/AppThumbnail";
 import { CategoryIcon } from "@/components/CategoryIcon";
 
 interface AppLaunchTileProps {
@@ -10,6 +10,7 @@ interface AppLaunchTileProps {
   age?: string;
   ageIcon?: string;
   ageColor?: string;
+  categories?: ThumbnailCategory[];
   subjectIcon?: string;
   subjectColor?: string;
   typeIcon?: string;
@@ -18,7 +19,7 @@ interface AppLaunchTileProps {
 }
 
 /** App Store-läge: ett tryck på bilden startar appen, titelraden med symboler går till detaljer. */
-export function AppLaunchTile({ id, title, url, imageUrl, age, ageIcon, ageColor, subjectIcon, subjectColor, typeIcon, typeColor, onLaunch }: AppLaunchTileProps) {
+export function AppLaunchTile({ id, title, url, imageUrl, age, ageIcon, ageColor, subjectIcon, subjectColor, typeIcon, typeColor, categories, onLaunch }: AppLaunchTileProps) {
   return (
     <div className="group">
       <button
@@ -27,7 +28,7 @@ export function AppLaunchTile({ id, title, url, imageUrl, age, ageIcon, ageColor
         aria-label={`Starta ${title}`}
         className="relative block w-full aspect-[4/3] overflow-hidden rounded-3xl shadow-playful transition-transform duration-200 active:scale-95 hover:-translate-y-1 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-primary"
       >
-        <AppThumbnail title={title} imageUrl={imageUrl} appUrl={url} imageClassName="transition-transform duration-500 group-hover:scale-105" />
+        <AppThumbnail title={title} imageUrl={imageUrl} appUrl={url} categories={categories} imageClassName="transition-transform duration-500 group-hover:scale-105" />
       </button>
       <Link
         to={`/app/${id}`}

@@ -201,19 +201,20 @@ export function createStore(db, { mailer, siteUrl = 'https://www.skolappar.com',
     const rows = db.prepare(
       `SELECT * FROM apps WHERE status IN ('approved','featured') ORDER BY clicks_count DESC LIMIT 6`
     ).all();
-    return rows
+    // with categories: the cards frame the image in the colour of the app's subject
+    return withCategories(rows
       .map((r) => {
         const a = appRow(r);
         return { ...a, score: (a.clicks_count || 0) + (a.upvotes_count || 0) * 2 };
       })
       .sort((a, b) => b.score - a.score)
-      .slice(0, limit);
+      .slice(0, limit));
   }
 
   function recentApps(limit = 6) {
-    return db.prepare(
+    return withCategories(db.prepare(
       `SELECT * FROM apps WHERE status IN ('approved','featured') ORDER BY created_at DESC LIMIT ?`
-    ).all(limit).map((r) => appRow(r));
+    ).all(limit).map((r) => appRow(r)));
   }
 
   /** Up to 4 public apps sharing the most (non-device) categories with the app. */
@@ -231,7 +232,7 @@ export function createStore(db, { mailer, siteUrl = 'https://www.skolappar.com',
     ).all(id, limit);
     return withCategories(rows.map((r) => appRow(r))).map((a) => ({
       id: a.id, title: a.title, description: a.description, image_url: a.image_url, url: a.url,
-      categories: a.categories.filter((c) => c.type !== 'device').map((c) => ({ id: c.id, name: c.name, icon: c.icon })),
+      categories: a.categories.filter((c) => c.type !== 'device').map((c) => ({ id: c.id, name: c.name, icon: c.icon, slug: c.slug, type: c.type })),
     }));
   }
 
