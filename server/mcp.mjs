@@ -8,8 +8,10 @@ const PROTOCOL_VERSIONS = ['2025-06-18', '2025-03-26', '2024-11-05'];
 
 const uuid = { type: 'string', format: 'uuid' };
 const IMAGE_HINT =
-  'Bild som visas på app-korten. Korten beskär bilden till liggande 4:3-format – använd en attraktiv, ljus bild på minst 800×600 px med motivet centrerat. ' +
-  'Bilden ska ge ett tydligt visuellt intryck av vad spelet/appen handlar om. Lägg INTE in appens namn, årskurs eller kategori i bilden. ' +
+  'Bild som visas på app-korten: ett ögonblick inifrån själva spelet, inzoomat på spelytan – till exempel roboten vid äpplet, ' +
+  'pianotangenterna eller hjulet som snurrar. Liggande 4:3, minst 1200×900 px, motivet centrerat. ' +
+  'INTE startsidan, INTE en ▶ Spela-skärm, ingen meny eller navigationsrad, ingen webbläsarram och ingen text som blir oläslig på kortet. ' +
+  'Lägg INTE in appens namn, årskurs eller kategori i bilden. Rita ingen ram eller bakgrund runt bilden: kortet lägger själv en ram i ämnets färg. ' +
   'Utelämnas bilden visas en automatisk skärmdump av appens url.';
 const CATEGORY_HINT =
   'Appens kategorier. Ange exakt en av varje typ: subject (ämne), age (årskurs) och app_type (typ), ' +

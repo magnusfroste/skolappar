@@ -55,6 +55,7 @@ export function AppCardVisual({
             title={title}
             imageUrl={imageUrl}
             appUrl={url}
+            categories={categories}
             imageClassName="group-hover:scale-110 transition-transform duration-500 ease-out"
           />
           

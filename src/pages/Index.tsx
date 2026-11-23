@@ -128,6 +128,7 @@ export default function Index() {
                 title={app.title}
                 url={app.url}
                 imageUrl={app.image_url}
+                categories={app.categories}
                 age={app.categories.find((c) => c.type === "age")?.name}
                 ageIcon={app.categories.find((c) => c.type === "age")?.icon}
                 ageColor={app.categories.find((c) => c.type === "age")?.color}
