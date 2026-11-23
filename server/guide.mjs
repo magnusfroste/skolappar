@@ -1,0 +1,166 @@
+// "Så bygger du en skolapp": the one guide that parents read on the site (/bygg) and agents read
+// over MCP (get_guide), as /guide.md and from llms.txt. Edit it here and nowhere else.
+
+/** What a card image should look like; also used in the MCP tools that set an image. */
+export const IMAGE_HINT =
+  'Bild som visas på app-korten: ett ögonblick inifrån själva spelet, inzoomat på spelytan – till exempel roboten vid äpplet, ' +
+  'pianotangenterna eller hjulet som snurrar. Liggande 4:3, minst 1200×900 px, motivet centrerat. ' +
+  'INTE startsidan, INTE en ▶ Spela-skärm, ingen meny eller navigationsrad, ingen webbläsarram och ingen text som blir oläslig på kortet. ' +
+  'Lägg INTE in appens namn, årskurs eller kategori i bilden. Rita ingen ram eller bakgrund runt bilden: kortet lägger själv en ram i ämnets färg. ' +
+  'Utelämnas bilden visas en automatisk skärmdump av appens url.';
+
+export const GUIDE_TITLE = 'Så bygger du en skolapp';
+export const GUIDE_INTRO =
+  'En skolapp är en liten webbapp som tränar en sak och som ett barn kan börja använda direkt, utan konto och utan hjälp. ' +
+  'Den här guiden är till för dig som bygger – själv, med ditt barn eller med en AI-agent. Följer appen guiden fungerar den ' +
+  'för barnen som spelar, och den blir godkänd på skolappar.com.';
+
+/** Sections in reading order. `id` is what get_guide takes; `body` is Markdown without a heading. */
+export const GUIDE_SECTIONS = [
+  {
+    id: 'ide',
+    title: 'Idén: en sak per app',
+    body: `- Välj **ett** tydligt mål, till exempel "öva tiokamrater" eller "känna igen klockslag". En app som gör en sak bra slår en som gör fem saker halvbra.
+- Bestäm **ämne och årskurs** innan du bygger. Det styr språk, svårighet och hur mycket text som får finnas.
+- Utgå gärna från barnets egen idé. Saknas en idé finns en lista på skolappar.com/ideer (verktyget \`list_ideas\`) med vad lärare och föräldrar önskar sig.
+- Se efter i katalogen (\`list_apps\`) om något liknande redan finns, och gör då något eget av det.`,
+  },
+  {
+    id: 'enheter',
+    title: 'Enheter: iPad först',
+    body: `- De flesta barn spelar på **iPad**. Appen ska fungera där först, både liggande och stående.
+- Den ska också fungera på **dator** med mus och tangentbord, och helst på **mobil** om innehållet får plats.
+- Låt spelytan fylla skärmen och skala med den. Inga fasta bredder i pixlar, ingen sidledes rullning.
+- Allt viktigt ska synas utan att rulla: uppgiften, svarsalternativen och knappen för nästa steg.`,
+  },
+  {
+    id: 'touch',
+    title: 'Touch',
+    body: `- Tryckytor minst **44 × 44 px**, gärna större för de yngsta, med luft emellan.
+- Bygg inget på hover, högerklick eller dubbelklick – det finns inte på en platta.
+- Stäng av zoom vid dubbeltryck och dra-för-att-ladda-om på spelytan: \`touch-action: manipulation\` och \`overscroll-behavior: none\`.
+- Håll innehållet innanför säkra kanter: \`viewport-fit=cover\` och \`env(safe-area-inset-*)\`.
+- Dra-och-släpp ska gå med fingret (pointer events), inte bara med mus. Markera inte text av misstag: \`user-select: none\` på spelytan.
+- Ljud startar först efter att barnet tryckt på något. Ha en tydlig knapp för ljud av och på.`,
+  },
+  {
+    id: 'barnet',
+    title: 'Barnet: tryggt och utan konto',
+    body: `- **Ingen inloggning**, inget konto, ingen e-postadress. Appen startar direkt.
+- **Ingen reklam, inga köp** och inga länkar som leder ut ur appen.
+- **Samla inte in något** om barnet: inget namn som skickas iväg, ingen spårning, inga analysskript från tredje part.
+- Spara framsteg **bara på den egna enheten** (\`localStorage\`). Ett smeknamn som stannar på enheten går bra.
+- Ingen chatt och inget innehåll från andra användare.
+- Använder appen AI ska nyckeln ligga på en server, aldrig i koden som skickas till webbläsaren, och barnets svar ska inte sparas.`,
+  },
+  {
+    id: 'pedagogik',
+    title: 'Pedagogik',
+    body: `- **Direkt återkoppling**: barnet ser genast om svaret var rätt, och vid fel vad det rätta är eller en ledtråd.
+- **Få försöka igen** utan straff. Inget ska kunna förloras för gott – inga liv som tar slut, ingen nedräkning som stressar de yngsta.
+- **Stigande svårighet**: börja lätt, öka i små steg, och gå tillbaka ett steg när det blir för svårt.
+- **Korta omgångar**, fem till tio uppgifter, med ett tydligt slut och en belöning (stjärnor, en animation, ett ljud).
+- Slumpa uppgifterna så att appen tål att spelas många gånger.
+- **Uppläst text** för dem som inte läser än (förskoleklass till årskurs 2): en högtalarknapp vid varje instruktion, till exempel med webbläsarens talsyntes på svenska.
+- Visa framsteg på ett sätt barnet förstår: en stapel som fylls, en samling som växer.`,
+  },
+  {
+    id: 'laroplan',
+    title: 'Läroplanen (Lgr22)',
+    body: `- Läroplanen för grundskolan, Lgr22, är offentlig och finns på skolverket.se. Varje ämne har ett **centralt innehåll** per stadium: årskurs 1–3, 4–6 och 7–9.
+- Välj den punkt i det centrala innehållet som appen tränar och håll dig till den.
+- Skriv i appens långa beskrivning vad den täcker, till exempel: *"Tränar: taluppfattning, de naturliga talens egenskaper – matematik, årskurs 1–3 (Lgr22)."* Det ger lärare och föräldrar ett skäl att lita på appen.
+- Skolappars årsgrupper är förskola, FK–2, 3–6 och 7–9. Ligger appen mellan två, välj den grupp där de flesta som har nytta av den går.`,
+  },
+  {
+    id: 'sprak',
+    title: 'Språk',
+    body: `- **Svenska**, med riktiga å, ä och ö i all text. Sätt \`<html lang="sv">\`.
+- Korta meningar och ord som åldern kan. Hellre en bild eller en symbol än en lång instruktion.
+- Tilltala barnet med "du". Uppmuntra utan att överdriva; "Nästan! Prova igen" fungerar bättre än "Fel".
+- Tal, datum och enheter skrivs på svenskt vis: decimalkomma, 24-timmarsklocka, kronor.`,
+  },
+  {
+    id: 'tillganglighet',
+    title: 'Tillgänglighet',
+    body: `- God **kontrast** mellan text och bakgrund, och text som är minst 18 px i spelytan.
+- Appen ska gå att använda **utan ljud**, och rätt eller fel ska inte bara visas med färg – lägg till en symbol eller en text.
+- Inget som blinkar snabbt. Respektera \`prefers-reduced-motion\`.
+- Tydliga, lättlästa typsnitt. Undvik text i versaler och text ovanpå bilder.
+- Knappar ska ha namn (\`aria-label\`) så att uppläsning fungerar.`,
+  },
+  {
+    id: 'teknik',
+    title: 'Teknik',
+    body: `- En **egen adress med https** som fungerar när man öppnar den direkt – inte en förhandsvisning som kräver inloggning hos byggverktyget.
+- **Laddar snabbt**: första skärmen inom ett par sekunder på en vanlig platta. Komprimera bilder och ljud, ladda inte ner mer än spelet behöver.
+- **En statisk app räcker** nästan alltid: HTML, CSS och JavaScript utan server och utan databas.
+- Sidan har en \`<title>\` med appens namn, en ikon och \`<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">\`.
+- Gärna ett webbmanifest med ikon, så att appen går att lägga på hemskärmen.
+- Tål dålig uppkoppling: när appen väl är laddad ska den inte behöva nätet för att fungera.
+- Typsnitt, bilder och ljud ska vara dina egna eller fria att använda. Lägg dem i appen i stället för att hämta dem från andra webbplatser.
+- Prova på en riktig iPad eller i webbläsarens enhetsläge (1024 × 768 och 768 × 1024) innan du skickar in.`,
+  },
+  {
+    id: 'presentation',
+    title: 'Presentation i katalogen',
+    body: `- **Namn**: två till fyra ord som säger vad appen är, till exempel "Klockjakten" eller "Tiokamrater med roboten".
+- **Kort beskrivning**: en eller två meningar om vad man övar på och hur.
+- **Lång beskrivning** (valfri): hur appen fungerar, för vilken ålder, och vad i Lgr22 den tränar.
+- **Kategorier**: exakt ett ämne, en årskurs och en typ, gärna även enhet. Utan dem syns appen inte i filtren.
+- **Kortbild**: ${IMAGE_HINT.replace(/^Bild som visas på app-korten: /, '')}
+- Skaparen visas med **förnamn**. Skriv inte barnets fullständiga namn någonstans i appen eller beskrivningen.`,
+  },
+  {
+    id: 'skicka-in',
+    title: 'Skicka in appen',
+    body: `**Som förälder:** fyll i formuläret på skolappar.com/tipsa med appens adress och din e-postadress.
+
+**Som agent:** anslut till \`https://www.skolappar.com/mcp\` (MCP över HTTP, ingen nyckel) och gör så här:
+
+1. \`list_categories\` – hämta id för ämne, årskurs och typ.
+2. \`list_apps\` – se att appen inte redan finns.
+3. \`submit_app\` – adress, namn, beskrivning, kategorier samt förälderns förnamn och e-postadress. Spara \`app_key\` ur svaret; den visas en gång.
+4. \`update_my_app\` – sätt kortbilden.
+5. Be föräldern klicka på länken i mejlet från Skolappar. Utan det publiceras appen inte.
+6. \`app_status\` – appar granskas en gång om dagen. Avslås appen står skälet där; rätta och uppdatera, så ställs den i kö igen.
+7. \`app_stats\` – berätta för barnet hur många gånger appen har öppnats.`,
+  },
+  {
+    id: 'checklista',
+    title: 'Checklista före inskick',
+    body: `- [ ] Appen öppnas på sin https-adress utan inloggning.
+- Den fungerar på iPad, liggande och stående, med bara fingret.
+- Alla knappar är minst 44 px och inget kräver hover eller dubbelklick.
+- Sidan zoomar inte vid dubbeltryck och rullar inte i sidled.
+- Ingen reklam, inga köp, inga länkar ut, ingen spårning.
+- Inget om barnet lämnar enheten.
+- Barnet får direkt återkoppling och kan alltid försöka igen.
+- Svårigheten stiger i små steg och en omgång har ett tydligt slut.
+- All text är på svenska med å, ä och ö, och passar åldern.
+- Appen går att använda utan ljud och har en ljudknapp.
+- Sidan har titel, ikon och rätt viewport.
+- Namn, beskrivning, ämne, årskurs, typ och kortbild är klara.
+- Beskrivningen säger vad i Lgr22 appen tränar.`,
+  },
+];
+
+const sectionMarkdown = (s) => `## ${s.title}\n\n${s.body}\n`;
+
+/** The whole guide, or one section, as Markdown. Null for an unknown section. */
+export function guideMarkdown(section) {
+  if (section) {
+    const s = GUIDE_SECTIONS.find((x) => x.id === section);
+    return s ? sectionMarkdown(s) : null;
+  }
+  return `# ${GUIDE_TITLE}\n\n${GUIDE_INTRO}\n\n${GUIDE_SECTIONS.map(sectionMarkdown).join('\n')}`;
+}
+
+export const guideSectionIds = () => GUIDE_SECTIONS.map((s) => s.id);
+
+/** What the page and the API return. */
+export const guide = () => ({
+  title: GUIDE_TITLE,
+  intro: GUIDE_INTRO,
+  sections: GUIDE_SECTIONS.map(({ id, title, body }) => ({ id, title, body })),
+});

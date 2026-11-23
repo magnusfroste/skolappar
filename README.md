@@ -11,7 +11,7 @@ part, without a key, where a parent's agent submits the app it built and follows
   JSON API through `src/lib/api.ts`.
 - **Server:** `server/` – plain Node (≥ 22.16, runs on 24) with no runtime npm dependencies: `node:http` and
   the built-in `node:sqlite`. It serves the built frontend (`dist/`, SPA fallback), the API under `/api`,
-  images under `/images`, `/mcp`, `/llms.txt`, `/sitemap.xml` and `/healthz`.
+  images under `/images`, `/mcp`, `/llms.txt`, `/guide.md`, `/sitemap.xml` and `/healthz`.
 - **Data:** SQLite at `$DATA_DIR/skolappar.db` (WAL mode; the schema is created and migrated at start, see
   `server/db.mjs`). Images live in `$DATA_DIR/images` (content-addressed file names).
 - **Container:** the root `Dockerfile` (build with Vite, run `node server/index.mjs` as uid 10001 on `$PORT`).
@@ -22,6 +22,7 @@ part, without a key, where a parent's agent submits the app it built and follows
 | `server/store.mjs` | all reads and writes (shared by API, admin and MCP) |
 | `server/mcp.mjs` | MCP endpoint and the administration tools (JSON-RPC 2.0, plain JSON responses) |
 | `server/mcp-public.mjs` | the open MCP tools: read the catalogue, submit an app, follow it |
+| `server/guide.mjs` | the build guide "Så bygger du en skolapp": one text for the page `/bygg`, `/guide.md`, `/api/guide`, `llms.txt` and the MCP tool `get_guide` |
 | `server/importer.mjs` | one-shot import of the old Supabase data (`POST /api/admin/import`) |
 | `server/mailer.mjs` | outgoing mail behind one interface: Cloudflare, Brevo, a Resend-compatible API or a logging stub |
 
@@ -99,7 +100,7 @@ npm test            # node --test: server tests in server/test/
 - MCP, administration: `POST /mcp` with `Authorization: Bearer $ADMIN_KEY` (or an agent key, see `AGENT_KEY_HASHES`). Tools: `list_submissions`, `resend_mail`, `list_apps`, `get_app`,
   `create_app`, `update_app`, `set_app_image`, `delete_app`, ideas, resources, categories, settings,
   `platform_stats` and `app_analytics` – plus the open tools below. A wrong key is 401, never the open part.
-- MCP, open: `POST /mcp` without a key (`server/mcp-public.mjs`). Read: `list_categories`, `list_apps`,
+- MCP, open: `POST /mcp` without a key (`server/mcp-public.mjs`). Read: `get_guide`, `list_categories`, `list_apps`,
   `get_app`, `list_ideas`, `list_resources`, `app_status`, `app_stats` (openings and likes of any listed
   app; nothing about visitors). Write: `submit_app` (https address, title, description, the parent's first
   name and e-mail; same queue, confirmation mail and hourly limit per address as the form) answers with an

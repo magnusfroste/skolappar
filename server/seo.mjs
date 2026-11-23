@@ -36,8 +36,10 @@ export function buildLlmsTxt(store, siteUrl) {
     out += '\n';
   }
   out += '## For AI agents\n\n' +
-    `Built an educational web app? Submit it over MCP at ${siteUrl}/mcp (streamable HTTP, no key): ` +
-    'list_categories, submit_app (needs the parent\'s first name and e-mail address), then app_status and app_stats.\n\n';
+    `Building an educational web app for children? Read the build guide first: ${siteUrl}/guide.md ` +
+    `(for people: ${siteUrl}/bygg). It says what an app must do to work for the children and to be listed.\n\n` +
+    `Submit the finished app over MCP at ${siteUrl}/mcp (streamable HTTP, no key): ` +
+    'get_guide, list_categories, submit_app (needs the parent\'s first name and e-mail address), then app_status and app_stats.\n\n';
   if (extra) out += `${extra}\n\n`;
   out += `---\nGenerated: ${day()}\n`;
   return out;
@@ -48,6 +50,7 @@ const STATIC_PAGES = [
   ['/apps', 'daily', '0.9'],
   ['/ideer', 'daily', '0.8'],
   ['/resurser', 'weekly', '0.8'],
+  ['/bygg', 'monthly', '0.8'],
   ['/tipsa', 'monthly', '0.6'],
   ['/startmall', 'monthly', '0.6'],
   ['/testa-din-app', 'monthly', '0.5'],

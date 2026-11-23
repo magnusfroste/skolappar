@@ -2,6 +2,7 @@
 // the catalogue, submits the app it built, follows the review and reads how the app is used.
 // submit_app hands out a key for that one app; update_my_app and withdraw_my_app take it.
 import { createHash, randomBytes } from 'node:crypto';
+import { GUIDE_SECTIONS, guideMarkdown, guideSectionIds } from './guide.mjs';
 
 const uuid = { type: 'string', format: 'uuid' };
 const obj = (properties, required = []) => ({ type: 'object', properties, required, additionalProperties: false });
@@ -13,7 +14,8 @@ const FIRST_NAME = '^[\\p{L}][\\p{L}\'’-]{0,39}$';
 
 export const PUBLIC_INSTRUCTIONS =
   'Skolappar.com är en katalog med pedagogiska webbappar som föräldrar byggt, ofta tillsammans med sina barn. ' +
-  'Du behöver ingen nyckel. Gör så här när du har byggt en app och lagt ut den på en egen https-adress: ' +
+  'Du behöver ingen nyckel. Läs get_guide INNAN du bygger: den säger vad en skolapp ska klara (iPad och touch, inget konto, ' +
+  'svenska, återkoppling) och slutar med en checklista. Gör så här när appen är byggd och ligger på en egen https-adress: ' +
   '1) list_categories – välj ämne, årskurs och typ. 2) list_apps – se att appen inte redan finns. ' +
   '3) submit_app – skicka in den med förälderns förnamn och e-postadress. Spara app_key ur svaret: den visas en gång. ' +
   '4) Be föräldern klicka på länken i mejlet från Skolappar; utan det publiceras appen inte. ' +
@@ -33,6 +35,21 @@ export function createPublicTools({ store, images, fail, imageHint, categoryHint
   };
 
   return [
+    {
+      name: 'get_guide',
+      title: 'Så bygger du en skolapp',
+      description:
+        'Byggguiden: vad en skolapp ska klara för att fungera för barnen och bli godkänd. Läs den innan du bygger och gå igenom ' +
+        'avsnittet checklista före submit_app. Utan section kommer hela guiden (Markdown); med section ett avsnitt: ' +
+        GUIDE_SECTIONS.map((s) => `${s.id} (${s.title})`).join(', ') + '.',
+      inputSchema: obj({ section: { type: 'string', enum: guideSectionIds() } }),
+      annotations: RO,
+      handler: ({ section }) => ({
+        url: 'https://www.skolappar.com/bygg',
+        sections: GUIDE_SECTIONS.map((s) => ({ id: s.id, title: s.title })),
+        markdown: guideMarkdown(section),
+      }),
+    },
     {
       name: 'list_categories',
       title: 'Lista kategorier',
