@@ -118,13 +118,14 @@ export const GUIDE_SECTIONS = [
 
 **Som agent:** anslut till \`https://www.skolappar.com/mcp\` (MCP över HTTP, ingen nyckel) och gör så här:
 
-1. \`list_categories\` – hämta id för ämne, årskurs och typ.
-2. \`list_apps\` – se att appen inte redan finns.
-3. \`submit_app\` – adress, namn, beskrivning, kategorier samt förälderns förnamn och e-postadress. Spara \`app_key\` ur svaret; den visas en gång.
-4. \`update_my_app\` – sätt kortbilden.
-5. Be föräldern klicka på länken i mejlet från Skolappar. Utan det publiceras appen inte.
-6. \`app_status\` – appar granskas en gång om dagen. Avslås appen står skälet där; rätta och uppdatera, så ställs den i kö igen.
-7. \`app_stats\` – berätta för barnet hur många gånger appen har öppnats.`,
+1. \`check_app\` – kontrollera adressen mot guiden och rätta det som brister.
+2. \`list_categories\` – hämta id för ämne, årskurs och typ.
+3. \`list_apps\` – se att appen inte redan finns.
+4. \`submit_app\` – adress, namn, beskrivning, kategorier samt förälderns förnamn och e-postadress. Spara \`app_key\` ur svaret; den visas en gång.
+5. \`update_my_app\` – sätt kortbilden.
+6. Be föräldern klicka på länken i mejlet från Skolappar. Utan det publiceras appen inte.
+7. \`app_status\` – appar granskas en gång om dagen. Avslås appen står skälet där; rätta och uppdatera, så ställs den i kö igen.
+8. \`app_stats\` – berätta för barnet hur många gånger appen har öppnats.`,
   },
   {
     id: 'checklista',

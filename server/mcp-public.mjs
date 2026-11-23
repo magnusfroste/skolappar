@@ -16,6 +16,7 @@ export const PUBLIC_INSTRUCTIONS =
   'Skolappar.com är en katalog med pedagogiska webbappar som föräldrar byggt, ofta tillsammans med sina barn. ' +
   'Du behöver ingen nyckel. Läs get_guide INNAN du bygger: den säger vad en skolapp ska klara (iPad och touch, inget konto, ' +
   'svenska, återkoppling) och slutar med en checklista. Gör så här när appen är byggd och ligger på en egen https-adress: ' +
+  '0) check_app – kontrollera adressen och rätta det som är fail. ' +
   '1) list_categories – välj ämne, årskurs och typ. 2) list_apps – se att appen inte redan finns. ' +
   '3) submit_app – skicka in den med förälderns förnamn och e-postadress. Spara app_key ur svaret: den visas en gång. ' +
   '4) Be föräldern klicka på länken i mejlet från Skolappar; utan det publiceras appen inte. ' +
@@ -23,7 +24,7 @@ export const PUBLIC_INSTRUCTIONS =
   'Saknas en idé? list_ideas visar vad lärare och föräldrar önskar sig.';
 
 /** Tools open to everyone. `fail` throws the caller's ToolFailure; ctx carries the request's rate limit. */
-export function createPublicTools({ store, images, fail, imageHint, categoryHint }) {
+export function createPublicTools({ store, images, checkApp, fail, imageHint, categoryHint }) {
   const own = ({ id, app_key }) => {
     if (!store.appKeyMatches(id, app_key)) fail('Fel app eller nyckel. Nyckeln är den som submit_app svarade med.');
     return store.getApp(id, { admin: true });
@@ -107,6 +108,33 @@ export function createPublicTools({ store, images, fail, imageHint, categoryHint
       handler: ({ category, with_content = false }) => store.listResources({ category, publishedOnly: true, withContent: with_content }),
     },
     {
+      name: 'check_app',
+      title: 'Kontrollera en app mot byggguiden',
+      description:
+        'Öppnar appens adress och svarar med en lista: https, öppnas utan inloggning, titel, lang, viewport, ikon, reklam eller spårning, ' +
+        'skript från andra webbplatser, länkar ut, touch-action och vikt. Varje punkt är ok, warn eller fail och pekar på ett avsnitt i get_guide. ' +
+        'Kör den före submit_app, rätta det som är fail och kör igen. Kontrollen spelar inte appen: not_checked säger vad den inte ser.',
+      inputSchema: obj({
+        url: { type: 'string', format: 'uri', maxLength: 2048, description: 'Appens adress (https).' },
+        id: { ...uuid, description: 'I stället för url: en app i katalogen eller kön. Resultatet sparas på appen (kräver administrationsnyckel).' },
+      }),
+      annotations: { readOnlyHint: true, openWorldHint: true },
+      handler: async ({ url, id }, ctx) => {
+        if (!checkApp) fail('Kontrollen är inte tillgänglig just nu.');
+        if (id) {
+          if (ctx.role !== 'admin') fail('Kontroll med id kräver administrationsnyckel. Ange appens url.');
+          const app = store.getApp(id, { admin: true }) ?? fail('Appen hittades inte.');
+          const result = await checkApp(app.url);
+          store.saveCheck(id, result);
+          return result;
+        }
+        if (!url) fail('Ange appens url.');
+        const limit = ctx.checkAllowed?.();
+        if (limit && !limit.ok) fail(`För många kontroller härifrån just nu. Försök igen om ${Math.ceil((limit.retryAfter || 3600) / 60)} minuter.`);
+        return checkApp(url);
+      },
+    },
+    {
       name: 'submit_app',
       title: 'Skicka in en app',
       description:
@@ -138,6 +166,8 @@ export function createPublicTools({ store, images, fail, imageHint, categoryHint
           categoryIds: input.category_ids, keyHash: createHash('sha256').update(appKey).digest('hex'),
         });
         store.sendConfirmation(id).catch(() => {});
+        // the reviewer sees the outcome next to the submission; app_status shows it to the agent
+        checkApp?.(input.url).then((result) => store.saveCheck(id, result)).catch(() => {});
         return {
           id, app_key: appKey, status: 'pending',
           next: [

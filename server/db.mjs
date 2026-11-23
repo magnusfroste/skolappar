@@ -147,6 +147,12 @@ const MIGRATIONS = [
   `
   ALTER TABLE apps ADD COLUMN app_key_hash TEXT;
   `,
+  // 4: the last automatic check of the app's address against the build guide (JSON) and whether it passed.
+  `
+  ALTER TABLE apps ADD COLUMN check_result TEXT;
+  ALTER TABLE apps ADD COLUMN check_passed INTEGER;
+  ALTER TABLE apps ADD COLUMN checked_at TEXT;
+  `,
 ];
 
 export function openDatabase(dataDir) {

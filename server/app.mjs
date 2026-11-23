@@ -1,5 +1,7 @@
 // The HTTP application: routes for the public API, admin API, MCP, images,
 // SEO files and the single-page frontend.
+import { createSafeFetch } from './safefetch.mjs';
+import { createChecker } from './check.mjs';
 import { guide, guideMarkdown } from './guide.mjs';
 import http from 'node:http';
 import { createHash, timingSafeEqual } from 'node:crypto';
@@ -31,6 +33,9 @@ export function loadConfig(env = process.env) {
     adminKey: env.ADMIN_KEY || '',
     agentKeyHashes: parseKeyHashes(env.AGENT_KEY_HASHES),
     submitLimit: Number(env.SUBMIT_RATE_LIMIT) || 5,
+    checkLimit: Number(env.CHECK_RATE_LIMIT) || 30,
+    // only for local development and tests: lets check_app and image downloads reach private addresses
+    allowPrivateFetch: env.ALLOW_PRIVATE_FETCH === 'true',
     voteLimit: Number(env.VOTE_RATE_LIMIT) || 120,
     env,
   };
@@ -68,16 +73,20 @@ export function usableDataDir(dataDir, log = console) {
   }
 }
 
-export function createApp(config, { fetchImpl = globalThis.fetch, log = console } = {}) {
+export function createApp(config, { fetchImpl = globalThis.fetch, fetchOutside, log = console } = {}) {
+  // addresses given by visitors and agents (images, check_app) are fetched with a guard against private networks
+  fetchOutside ||= createSafeFetch({ allowPrivate: Boolean(config.allowPrivateFetch) });
+  const checkApp = createChecker({ fetchPage: fetchOutside });
   config.dataDir = usableDataDir(config.dataDir, log);
   const db = openDatabase(config.dataDir);
   const mailer = createMailer(config.env || {}, { fetchImpl, log });
   const store = createStore(db, { mailer, siteUrl: config.siteUrl, log });
   const images = createImageStore(config.dataDir, db);
-  const importer = createImporter({ store, images, fetchImpl, log });
-  const mcp = createMcpHandler({ store, images: { ...images, download: (u) => images.download(u, { fetchImpl }) }, log });
+  const importer = createImporter({ store, images, fetchImpl: fetchOutside, log });
+  const mcp = createMcpHandler({ store, images: { ...images, download: (u) => images.download(u, { fetchImpl: fetchOutside }) }, checkApp, log });
   const statics = createStatic(config.distDir);
   const submitLimiter = createRateLimiter({ limit: config.submitLimit, windowMs: HOUR });
+  const checkLimiter = createRateLimiter({ limit: config.checkLimit || 30, windowMs: HOUR });
   const ideaLimiter = createRateLimiter({ limit: config.submitLimit, windowMs: HOUR });
   const voteLimiter = createRateLimiter({ limit: config.voteLimit, windowMs: HOUR });
 
@@ -336,7 +345,7 @@ export function createApp(config, { fetchImpl = globalThis.fetch, log = console 
     found(store.getApp(needId(params.id), { admin: true }), 'App not found');
     let saved;
     try {
-      saved = await images.download(body.url, { fetchImpl });
+      saved = await images.download(body.url, { fetchImpl: fetchOutside });
     } catch (err) {
       throw new HttpError(422, `Could not fetch image: ${err.message}`);
     }
@@ -405,7 +414,11 @@ export function createApp(config, { fetchImpl = globalThis.fetch, log = console 
       sendJson(res, 400, { jsonrpc: '2.0', id: null, error: { code: -32700, message: 'Parse error' } });
       return;
     }
-    const out = await mcp.handle(body, { role, submitAllowed: () => submitLimiter.hit(clientIp(req)) });
+    const out = await mcp.handle(body, {
+      role,
+      submitAllowed: () => submitLimiter.hit(clientIp(req)),
+      checkAllowed: () => (role === 'admin' ? { ok: true } : checkLimiter.hit(clientIp(req))),
+    });
     if (out === null) {
       res.writeHead(202);
       res.end();
@@ -529,6 +542,7 @@ a{display:inline-block;margin-top:16px;padding:12px 20px;border-radius:999px;bac
 
   function close() {
     submitLimiter.stop();
+    checkLimiter.stop();
     ideaLimiter.stop();
     voteLimiter.stop();
     return new Promise((resolve) => {

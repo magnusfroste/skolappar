@@ -23,7 +23,7 @@ export function quietLog() {
 }
 
 /** Start the app on a random port with a temp DATA_DIR and a fake dist/. */
-export async function startServer({ adminKey = 'test-admin-key', agentKeyHashes = [], env = {}, submitLimit = 5, siteUrl = 'https://skolappar.test' } = {}) {
+export async function startServer({ adminKey = 'test-admin-key', agentKeyHashes = [], env = {}, submitLimit = 5, checkLimit = 30, fetchOutside, siteUrl = 'https://skolappar.test' } = {}) {
   const root = mkdtempSync(join(tmpdir(), 'skolappar-test-'));
   const distDir = join(root, 'dist');
   mkdirSync(join(distDir, 'assets'), { recursive: true });
@@ -38,9 +38,11 @@ export async function startServer({ adminKey = 'test-admin-key', agentKeyHashes 
     adminKey,
     agentKeyHashes,
     submitLimit,
+    checkLimit,
     voteLimit: 1000,
+    allowPrivateFetch: true,
     env,
-  }, { log });
+  }, { log, fetchOutside });
   await new Promise((r) => app.server.listen(0, '127.0.0.1', r));
   const base = `http://127.0.0.1:${app.server.address().port}`;
   return {

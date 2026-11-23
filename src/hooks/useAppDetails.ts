@@ -31,6 +31,8 @@ export interface AppDetails {
   creator_name: string | null;
   profile: Profile | null;
   categories: Category[];
+  /** The last automatic check of the address found nothing that breaks the build guide. */
+  guide_ok?: boolean;
 }
 
 export function useAppDetails(appId: string | undefined) {
