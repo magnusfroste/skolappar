@@ -500,11 +500,50 @@ describe('the open MCP: an agent submits an app and follows it', () => {
     assert.match((await pub('GET', '/sitemap.xml')).text, /\/bygg</);
   });
 
+  test('the starter template and the skills: as files and over MCP, and they name only what exists', async () => {
+    const open = (await rpc(pub, 'tools/list')).json.result.tools.map((t) => t.name);
+    const guideSections = (await pub('GET', '/api/guide')).json.sections.map((x) => x.id);
+
+    const starter = (await call(pub, 'get_starter')).data;
+    const names = starter.files.map((f) => f.path);
+    for (const f of ['index.html', 'style.css', 'app.js', 'tasks.js', 'manifest.webmanifest', 'icon.svg', 'README.md']) assert.ok(names.includes(f), f);
+    const index = await pub('GET', '/starter/');
+    assert.equal(index.status, 200);
+    assert.match(index.headers.get('content-type'), /text\/html/);
+    assert.match(index.headers.get('content-security-policy'), /connect-src 'none'/);
+    assert.equal(index.text, starter.files.find((f) => f.path === 'index.html').content);
+    // the starter follows the guide it ships with: every file it refers to is there, nothing from elsewhere
+    for (const [, ref] of index.text.matchAll(/(?:href|src)="([^"]+)"/g)) assert.ok(names.includes(ref), ref);
+    assert.match(index.text, /<html lang="sv">/);
+    assert.match(index.text, /viewport-fit=cover/);
+    assert.match((await pub('GET', '/starter/style.css')).text, /touch-action: manipulation/);
+    assert.match((await pub('GET', '/starter/app.js')).headers.get('content-type'), /javascript/);
+    assert.equal((await pub('GET', '/starter/../app.mjs')).status === 200 && /createApp/.test((await pub('GET', '/starter/../app.mjs')).text), false);
+    for (const f of starter.files) assert.doesNotMatch(f.content, /https?:\/\/(?!www\.skolappar\.com|www\.w3\.org)/, f.path);
+
+    const skills = (await call(pub, 'list_skills')).data;
+    assert.deepEqual(skills.map((x) => x.name), ['skolappar-bygg', 'skolappar-kortbild', 'skolappar-publicera']);
+    assert.deepEqual((await pub('GET', '/skills')).json.map((x) => x.name), skills.map((x) => x.name));
+    for (const skill of skills) {
+      assert.ok(skill.description.length > 40, skill.name);
+      const md = (await pub('GET', `/skills/${skill.name}/SKILL.md`)).text;
+      assert.equal(md, (await call(pub, 'get_skill', { name: skill.name })).data.markdown);
+      assert.match(md, new RegExp(`^---\\nname: ${skill.name}\\ndescription: `));
+      for (const [, tool] of md.matchAll(/`([a-z]+(?:_[a-z]+)+)`/g)) {
+        if (!['app_key', 'long_description', 'image_url'].includes(tool)) assert.ok(open.includes(tool), `${skill.name}: ${tool}`);
+      }
+      for (const [, section] of md.matchAll(/avsnitt(?:et)? `([a-z-]+)`/g)) assert.ok(guideSections.includes(section), `${skill.name}: ${section}`);
+    }
+    assert.equal((await call(pub, 'get_skill', { name: 'nope' })).ok, false);
+    assert.equal((await pub('GET', '/skills/nope/SKILL.md')).status === 200 && /^---/.test((await pub('GET', '/skills/nope/SKILL.md')).text), false);
+    assert.match((await pub('GET', '/llms.txt')).text, /\/starter\//);
+  });
+
   test('no key: the open tools and their instructions; a key: the administration as well', async () => {
     const init = await rpc(pub, 'initialize', { protocolVersion: '2025-06-18', capabilities: {}, clientInfo: { name: 't', version: '1' } });
     assert.match(init.json.result.instructions, /submit_app/);
     const open = (await rpc(pub, 'tools/list')).json.result.tools.map((t) => t.name).sort();
-    assert.deepEqual(open, ['app_stats', 'app_status', 'check_app', 'get_app', 'get_guide', 'list_apps', 'list_categories', 'list_ideas', 'list_resources', 'set_my_app_image', 'submit_app', 'update_my_app', 'withdraw_my_app']);
+    assert.deepEqual(open, ['app_stats', 'app_status', 'check_app', 'get_app', 'get_guide', 'get_skill', 'get_starter', 'list_apps', 'list_categories', 'list_ideas', 'list_resources', 'list_skills', 'set_my_app_image', 'submit_app', 'update_my_app', 'withdraw_my_app']);
     const keyed = (await rpc(admin, 'tools/list')).json.result.tools.map((t) => t.name);
     for (const name of ['update_app', 'list_submissions', 'submit_app', 'app_stats']) assert.ok(keyed.includes(name), name);
     assert.equal(keyed.length, new Set(keyed).size, 'no tool twice');

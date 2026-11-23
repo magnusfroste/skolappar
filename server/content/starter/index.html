@@ -1,0 +1,52 @@
+<!doctype html>
+<html lang="sv">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>Tiokamrater</title>
+  <meta name="description" content="Öva tiokamrater: vilket tal fattas för att det ska bli tio?">
+  <meta name="theme-color" content="#1d3577">
+  <link rel="icon" href="icon.svg" type="image/svg+xml">
+  <link rel="apple-touch-icon" href="icon.svg">
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <main id="app" class="app">
+    <header class="bar">
+      <div class="progress" role="progressbar" aria-label="Hur långt du har kommit" aria-valuemin="0" aria-valuemax="10" aria-valuenow="0">
+        <div class="progress-fill" id="progress"></div>
+      </div>
+      <button class="icon-button" id="sound" type="button" aria-label="Ljud på" aria-pressed="true">🔊</button>
+    </header>
+
+    <!-- Start: one button, nothing to read first -->
+    <section class="screen" id="start">
+      <h1 id="title">Tiokamrater</h1>
+      <p class="lead" id="lead">Vilket tal fattas för att det ska bli tio?</p>
+      <button class="primary" id="play" type="button">Spela</button>
+      <p class="stars" id="best" aria-live="polite"></p>
+    </section>
+
+    <!-- A task: the question, a picture of it, the answers -->
+    <section class="screen" id="task" hidden>
+      <div class="question">
+        <p class="prompt" id="prompt"></p>
+        <button class="icon-button" id="speak" type="button" aria-label="Läs upp frågan">🗣️</button>
+      </div>
+      <div class="picture" id="picture" aria-hidden="true"></div>
+      <div class="answers" id="answers"></div>
+      <p class="feedback" id="feedback" aria-live="assertive"></p>
+    </section>
+
+    <!-- The end of a round: a reward and one way on -->
+    <section class="screen" id="done" hidden>
+      <div class="reward" id="reward" aria-hidden="true"></div>
+      <h2 id="done-title">Bra jobbat!</h2>
+      <p class="stars" id="result"></p>
+      <button class="primary" id="again" type="button">Spela igen</button>
+    </section>
+  </main>
+  <script type="module" src="app.js"></script>
+</body>
+</html>

@@ -14,6 +14,8 @@ export default defineConfig(() => ({
       "/mcp": "http://localhost:8787",
       "/llms.txt": "http://localhost:8787",
       "/guide.md": "http://localhost:8787",
+      "/starter": "http://localhost:8787",
+      "/skills": "http://localhost:8787",
       "/sitemap.xml": "http://localhost:8787",
       "/bekrafta": "http://localhost:8787",
     },

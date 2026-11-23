@@ -98,8 +98,47 @@ export const GUIDE_SECTIONS = [
 - Sidan har en \`<title>\` med appens namn, en ikon och \`<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">\`.
 - Gärna ett webbmanifest med ikon, så att appen går att lägga på hemskärmen.
 - Tål dålig uppkoppling: när appen väl är laddad ska den inte behöva nätet för att fungera.
-- Typsnitt, bilder och ljud ska vara dina egna eller fria att använda. Lägg dem i appen i stället för att hämta dem från andra webbplatser.
+- Typsnitt, bilder och ljud ska vara dina egna eller fria att använda (se avsnittet om fria bilder, ljud och typsnitt). Lägg dem i appen i stället för att hämta dem från andra webbplatser.
 - Prova på en riktig iPad eller i webbläsarens enhetsläge (1024 × 768 och 768 × 1024) innan du skickar in.`,
+  },
+  {
+    id: 'startmall',
+    title: 'Startmallen',
+    body: `- Skolappars startmall är en liten färdig app där det svåra redan är löst: touch-inställningarna för iPad, omgångar med återkoppling och ledtråd, stigande svårighet, ljud av och på, uppläsning på svenska, belöning, sparning på enheten, ikon och webbmanifest.
+- Prova den på skolappar.com/starter/ och hämta filerna med \`get_starter\`. Den är ren HTML, CSS och JavaScript utan byggsteg.
+- Innehållet ligger i \`tasks.js\` och motorn i \`app.js\`. Byt innehållet och låt motorn vara.
+- Mallen är fri att använda och ändra. Du behöver den inte – men det den gör ska din app också göra.`,
+  },
+  {
+    id: 'resurser',
+    title: 'Fria bilder, ljud och typsnitt',
+    body: `Använd bara material som du gjort själv eller som får användas fritt, och lägg filerna i appen i stället för att länka till dem. Licenser ändras: läs vad som står hos källan innan du använder något, och spara var du tog det.
+
+**Bilder och symboler**
+- **Emoji från systemet**: kräver inga filer och ingen licens, och barn känner igen dem.
+- **Egen SVG**: enkla former ritade i koden. Skalar till alla skärmar och väger nästan ingenting.
+- **OpenMoji** (openmoji.org): emoji som SVG, CC BY-SA 4.0 – ange källan.
+- **Kenney** (kenney.nl): spelgrafik, figurer och gränssnitt, CC0 – fritt utan krav.
+- **Lucide** (lucide.dev) och **Tabler Icons** (tabler.io/icons): ikoner med fri licens (ISC respektive MIT).
+- **Wikimedia Commons** och **Openverse** (openverse.org): foton och illustrationer. Licensen står vid varje bild; välj CC0 eller CC BY och ange upphovspersonen.
+
+**Ljud**
+- **Gör ljuden i webbläsaren** med Web Audio, som startmallen: inga filer, ingen licens, fungerar utan nät.
+- **Kenney** (kenney.nl): ljudeffekter för spel, CC0.
+- **Freesound** (freesound.org): licensen står vid varje ljud. Välj CC0; undvik ljud märkta NC.
+- Håll ljuden korta och lågmälda, och låt appen fungera med ljudet av.
+
+**Typsnitt**
+- **Systemets typsnitt** (\`system-ui\`) laddar inget och är lättläst.
+- **Google Fonts** (fonts.google.com): de flesta har licensen OFL och får läggas i appen. Ladda ner filerna i stället för att länka, så skickas ingenting om barnet till Google. Lättlästa val: Atkinson Hyperlegible, Lexend, Andika, Nunito.
+
+**Uppläsning på svenska**
+- Webbläsarens talsyntes (\`speechSynthesis\` med \`lang = "sv-SE"\`): inga filer, rösten finns på enheten. Fungerar på iPad, där den måste startas av ett tryck.
+- Vill du ha samma röst överallt: spela in själv, gärna med barnet. Det är fritt, och roligare.
+
+**Ord och innehåll**
+- Läroplanen (Lgr22) på skolverket.se är offentlig.
+- Ordlistor och uppgifter skriver du bäst själv efter årskursen. Hämtar du från Wiktionary gäller CC BY-SA.`,
   },
   {
     id: 'presentation',

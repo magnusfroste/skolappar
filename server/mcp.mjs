@@ -369,9 +369,9 @@ function fail(message) {
   throw new ToolFailure(message);
 }
 
-export function createMcpHandler({ store, images, checkApp, siteUrl = 'https://www.skolappar.com', log = console }) {
+export function createMcpHandler({ store, images, checkApp, content, siteUrl = 'https://www.skolappar.com', log = console }) {
   const adminTools = createTools({ store, images });
-  const publicTools = createPublicTools({ store, images, checkApp, siteUrl, fail, imageHint: IMAGE_HINT, categoryHint: CATEGORY_HINT });
+  const publicTools = createPublicTools({ store, images, checkApp, content, siteUrl, fail, imageHint: IMAGE_HINT, categoryHint: CATEGORY_HINT });
   // With a key: the administration, plus the open tools it has no version of (submit_app, app_status …).
   const adminNames = new Set(adminTools.map((t) => t.name));
   const toolsFor = {
