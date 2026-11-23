@@ -11,6 +11,8 @@
   `/mcp` without a key is the open part (`server/mcp-public.mjs`): it must never return an e-mail address or
   let anything unreviewed into the catalogue. Without `ADMIN_KEY` the admin endpoints
   answer 503 and the public site keeps working. Never log the admin key or email addresses.
+- The build guide lives in `server/guide.mjs` only; the page `/bygg`, `/guide.md` and `get_guide` render it.
+  A tool it names must exist in the open MCP part (a test checks that).
 - Opening counts: `POST /api/apps/:id/click` counts only listed apps and logs a timestamped event without
   visitor identity; the admin view and the `app_analytics` MCP tool read the same report.
 - Reuse a shared app-thumbnail component across card variants so screenshot and fallback behaviour stays consistent.

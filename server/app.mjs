@@ -1,5 +1,6 @@
 // The HTTP application: routes for the public API, admin API, MCP, images,
 // SEO files and the single-page frontend.
+import { guide, guideMarkdown } from './guide.mjs';
 import http from 'node:http';
 import { createHash, timingSafeEqual } from 'node:crypto';
 import { resolve as resolvePath, dirname, join } from 'node:path';
@@ -256,6 +257,7 @@ export function createApp(config, { fetchImpl = globalThis.fetch, log = console 
   });
   route('GET', '/api/upvotes', ({ req }) => store.myUpvotes(voterId(req)));
   route('GET', '/api/stats', () => store.publicStats());
+  route('GET', '/api/guide', () => guide());
   route('GET', '/api/resources', ({ query }) => store.listResources({ category: query.get('category') || undefined }));
   route('GET', '/api/resources/:slug', ({ params }) => found(store.getResourceBySlug(params.slug), 'Resource not found'));
   route('GET', '/api/settings', () => store.allSettings());
@@ -478,6 +480,11 @@ a{display:inline-block;margin-top:16px;padding:12px 20px;border-radius:999px;bac
       if (req.method === 'HEAD') return res.end();
       f.stream().pipe(res);
       return;
+    }
+    if (path === '/guide.md') {
+      return sendText(res, 200, guideMarkdown(), 'text/markdown; charset=utf-8', {
+        'Cache-Control': 'public, max-age=3600', 'Access-Control-Allow-Origin': '*',
+      });
     }
     if (path === '/llms.txt') {
       return sendText(res, 200, buildLlmsTxt(store, config.siteUrl), 'text/plain; charset=utf-8', {

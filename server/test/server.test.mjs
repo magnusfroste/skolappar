@@ -477,11 +477,34 @@ describe('the open MCP: an agent submits an app and follows it', () => {
     await images.stop();
   });
 
+  test('the build guide is one text: get_guide, /guide.md, /api/guide and llms.txt', async () => {
+    const whole = await call(pub, 'get_guide');
+    assert.ok(whole.ok);
+    assert.match(whole.text, /Så bygger du en skolapp/);
+    assert.match(whole.text, /Checklista före inskick/);
+    const one = await call(pub, 'get_guide', { section: 'touch' });
+    assert.match(one.text, /44 × 44 px/);
+    assert.doesNotMatch(one.text, /Checklista före inskick\\n\\n- \[/);
+    assert.equal((await call(pub, 'get_guide', { section: 'nope' })).ok, false);
+
+    const md = await pub('GET', '/guide.md');
+    assert.equal(md.status, 200);
+    assert.match(md.text, /^# Så bygger du en skolapp/);
+    const json = (await pub('GET', '/api/guide')).json;
+    assert.ok(json.sections.length >= 10);
+    for (const sec of json.sections) assert.ok(md.text.includes(`## ${sec.title}`), sec.id);
+    // every tool the guide names exists in the open part
+    const open = (await rpc(pub, 'tools/list')).json.result.tools.map((t) => t.name);
+    for (const [, name] of md.text.matchAll(/`([a-z]+(?:_[a-z]+)+)`/g)) if (name !== 'app_key') assert.ok(open.includes(name), name);
+    assert.match((await pub('GET', '/llms.txt')).text, /https:\/\/skolappar\.test\/guide\.md/);
+    assert.match((await pub('GET', '/sitemap.xml')).text, /\/bygg</);
+  });
+
   test('no key: the open tools and their instructions; a key: the administration as well', async () => {
     const init = await rpc(pub, 'initialize', { protocolVersion: '2025-06-18', capabilities: {}, clientInfo: { name: 't', version: '1' } });
     assert.match(init.json.result.instructions, /submit_app/);
     const open = (await rpc(pub, 'tools/list')).json.result.tools.map((t) => t.name).sort();
-    assert.deepEqual(open, ['app_stats', 'app_status', 'get_app', 'list_apps', 'list_categories', 'list_ideas', 'list_resources', 'submit_app', 'update_my_app', 'withdraw_my_app']);
+    assert.deepEqual(open, ['app_stats', 'app_status', 'get_app', 'get_guide', 'list_apps', 'list_categories', 'list_ideas', 'list_resources', 'submit_app', 'update_my_app', 'withdraw_my_app']);
     const keyed = (await rpc(admin, 'tools/list')).json.result.tools.map((t) => t.name);
     for (const name of ['update_app', 'list_submissions', 'submit_app', 'app_stats']) assert.ok(keyed.includes(name), name);
     assert.equal(keyed.length, new Set(keyed).size, 'no tool twice');

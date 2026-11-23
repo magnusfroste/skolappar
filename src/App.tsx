@@ -26,6 +26,7 @@ const StarterDemo = lazy(() => import("./pages/StarterDemo"));
 const Terms = lazy(() => import("./pages/Terms"));
 const Privacy = lazy(() => import("./pages/Privacy"));
 const TestYourApp = lazy(() => import("./pages/TestYourApp"));
+const BuildGuide = lazy(() => import("./pages/BuildGuide"));
 
 
 const queryClient = new QueryClient({
@@ -60,6 +61,7 @@ const App = () => (
             <Route path="/villkor" element={<Terms />} />
             <Route path="/integritet" element={<Privacy />} />
             <Route path="/testa-din-app" element={<TestYourApp />} />
+            <Route path="/bygg" element={<BuildGuide />} />
 
             {/* Old account pages (there are no accounts any more) */}
             <Route path="/min-sida/ny" element={<Navigate to="/tipsa" replace />} />

@@ -13,6 +13,7 @@ export default defineConfig(() => ({
       "/images": "http://localhost:8787",
       "/mcp": "http://localhost:8787",
       "/llms.txt": "http://localhost:8787",
+      "/guide.md": "http://localhost:8787",
       "/sitemap.xml": "http://localhost:8787",
       "/bekrafta": "http://localhost:8787",
     },

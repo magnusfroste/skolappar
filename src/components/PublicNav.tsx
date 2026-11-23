@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { Sparkles, Menu, BookOpen, TestTube2, Lightbulb, Home } from 'lucide-react';
+import { Hammer, Sparkles, Menu, BookOpen, TestTube2, Lightbulb, Home } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
 import { cn } from '@/lib/utils';
@@ -55,6 +55,9 @@ export function PublicNav({ variant = 'transparent' }: PublicNavProps) {
                 <Lightbulb className="w-4 h-4" />
                 App-idéer
               </Link>
+            </Button>
+            <Button variant="ghost" size="sm" asChild className={cn(isActive('/bygg') && "bg-muted text-foreground")}>
+              <Link to="/bygg">Bygg</Link>
             </Button>
             <Button variant="ghost" size="sm" asChild className={cn(isActive('/resurser') && "bg-muted text-foreground")}>
               <Link to="/resurser">Resurser</Link>
@@ -116,6 +119,18 @@ export function PublicNav({ variant = 'transparent' }: PublicNavProps) {
                     <span className="font-medium">App-idéer</span>
                   </Link>
                   
+                  <Link
+                    to="/bygg"
+                    onClick={closeMobileMenu}
+                    className={cn(
+                      "flex items-center gap-3 px-3 py-3 rounded-xl transition-colors",
+                      isActive('/bygg') ? "bg-primary/10 text-primary" : "text-foreground hover:bg-muted"
+                    )}
+                  >
+                    <Hammer className="w-5 h-5" />
+                    <span className="font-medium">Så bygger du en skolapp</span>
+                  </Link>
+
                   <Link 
                     to="/resurser" 
                     onClick={closeMobileMenu}

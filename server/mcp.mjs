@@ -3,6 +3,7 @@
 // catalogue, submit an app, follow it); with the admin or an agent key, the administration below
 // (ported from the old Supabase mcp-key function, minus users, roles and comments) plus the
 // open tools that have no admin counterpart.
+import { IMAGE_HINT } from './guide.mjs';
 import { validate, ValidationError } from './validate.mjs';
 import { APP_STATUSES, IDEA_STATUSES } from './store.mjs';
 import { createPublicTools, PUBLIC_INSTRUCTIONS } from './mcp-public.mjs';
@@ -10,12 +11,6 @@ import { createPublicTools, PUBLIC_INSTRUCTIONS } from './mcp-public.mjs';
 const PROTOCOL_VERSIONS = ['2025-06-18', '2025-03-26', '2024-11-05'];
 
 const uuid = { type: 'string', format: 'uuid' };
-const IMAGE_HINT =
-  'Bild som visas på app-korten: ett ögonblick inifrån själva spelet, inzoomat på spelytan – till exempel roboten vid äpplet, ' +
-  'pianotangenterna eller hjulet som snurrar. Liggande 4:3, minst 1200×900 px, motivet centrerat. ' +
-  'INTE startsidan, INTE en ▶ Spela-skärm, ingen meny eller navigationsrad, ingen webbläsarram och ingen text som blir oläslig på kortet. ' +
-  'Lägg INTE in appens namn, årskurs eller kategori i bilden. Rita ingen ram eller bakgrund runt bilden: kortet lägger själv en ram i ämnets färg. ' +
-  'Utelämnas bilden visas en automatisk skärmdump av appens url.';
 const CATEGORY_HINT =
   'Appens kategorier. Ange exakt en av varje typ: subject (ämne), age (årskurs) och app_type (typ), ' +
   'gärna även device. Hämta id:n med list_categories. Utan rätt kategorier syns inte appen i startsidans filter.';
