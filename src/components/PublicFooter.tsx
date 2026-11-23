@@ -1,6 +1,7 @@
 import { Link } from "react-router-dom";
 import { Heart } from "lucide-react";
 import { useBranding } from '@/hooks/useBranding';
+import kottenMark from '@/assets/kotten-mark.svg';
 
 export function PublicFooter() {
   const currentYear = new Date().getFullYear();
@@ -12,7 +13,7 @@ export function PublicFooter() {
         <div className="flex flex-col md:flex-row items-center justify-between gap-4">
           {/* Logo & Copyright */}
           <div className="flex items-center gap-2 text-sm text-muted-foreground">
-            <span className="text-lg">{branding.brand_primary_emoji}</span>
+            <img src={kottenMark} alt="" className="h-6 w-6" />
             <span>© {currentYear} {branding.brand_domain}</span>
             <span className="hidden sm:inline">·</span>
             <span className="hidden sm:inline-flex items-center gap-1">
@@ -39,7 +40,7 @@ export function PublicFooter() {
         </div>
         {/* What the gallery stands on – and where a parent can start */}
         <p className="mt-4 text-center text-xs text-muted-foreground">
-          Byggs i{" "}
+          Från Sverige{" · "}följer Lgr22{" · "}byggs i{" "}
           <a href="https://studio.shipholm.com/?utm_source=skolappar&utm_medium=referral" target="_blank" rel="noopener" className="underline underline-offset-4 hover:text-foreground">Shipholm Studio</a>
           {" · "}körs på{" "}
           <a href="https://shipholm.com/?utm_source=skolappar&utm_medium=referral" target="_blank" rel="noopener" className="underline underline-offset-4 hover:text-foreground">Shipholm</a>

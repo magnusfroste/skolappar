@@ -14,6 +14,7 @@ import { BuildYourOwn } from "@/components/BuildYourOwn";
 import { SEO, buildWebsiteSchema, buildOrganizationSchema, buildFaqSchema } from "@/components/SEO";
 import { useSiteConfig } from "@/hooks/useSiteConfig";
 import { useApps, useCategories } from "@/hooks/useApps";
+import { Kotten } from "@/components/Kotten";
 
 const HOME_LIMIT = 12;
 const HOME_PAGE = 8;
@@ -73,18 +74,34 @@ export default function Index() {
 
       {/* Kompakt intro + filter */}
       <section className="container mx-auto px-4 pt-8 md:pt-14 pb-6">
-        <div className="text-center">
-          <h1 className="text-4xl md:text-6xl font-heading font-black leading-tight">
-            Skolappar av <span className="text-gradient">föräldrar</span>
-          </h1>
-          <p className="mt-3 text-lg text-muted-foreground">Gratis appar som gör lärande kul.</p>
-          <a href="#bygg-egen" className="mt-2 inline-block text-sm font-medium text-primary underline-offset-4 hover:underline">
-            Saknas en app? Bygg den själv ↓
-          </a>
+        {/* Kotten says hello; the text says what is new (build with your AI) and where we come from */}
+        <div className="mx-auto flex max-w-5xl flex-col-reverse items-center gap-4 md:flex-row md:gap-10">
+          <div className="min-w-0 flex-1 text-center md:text-left">
+            <h1 className="text-4xl md:text-6xl font-heading font-black leading-tight text-balance">
+              Bygg en skolapp med <span className="text-gradient">din AI</span>
+            </h1>
+            <p className="mt-3 text-lg text-muted-foreground">
+              Svenska föräldrar bygger appar åt sina barn, med läroplanen som karta. Spela dem gratis här – eller bygg en egen i kväll.
+            </p>
+            <div className="mt-5 flex flex-wrap justify-center gap-3 md:justify-start">
+              <Button size="lg" className="h-12 rounded-full shadow-playful-lg" asChild>
+                <Link to="/bygg">Så bygger du</Link>
+              </Button>
+              <Button size="lg" variant="outline" className="h-12 rounded-full" asChild>
+                <a href="#appar">Spela apparna ↓</a>
+              </Button>
+            </div>
+            <ul className="mt-5 flex flex-wrap justify-center gap-2 text-sm md:justify-start">
+              {["Lgr22 som karta", "Ingen reklam, ingen spårning", "Drift i Europa"].map((t) => (
+                <li key={t} className="rounded-full border border-border bg-card/70 px-3 py-1 text-muted-foreground">{t}</li>
+              ))}
+            </ul>
+          </div>
+          <Kotten mood="hej" className="h-36 w-36 flex-none md:h-64 md:w-64" title="Kotten, skolappars maskot" />
         </div>
 
         {(subjects.length > 0 || ages.length > 0) && (
-          <div className="mt-6 flex flex-wrap items-center gap-2">
+          <div id="appar" className="mt-8 flex flex-wrap items-center gap-2 scroll-mt-24">
             {subjects.length > 0 && (
               <div className="flex gap-2 overflow-x-auto scrollbar-none w-full md:w-auto md:flex-wrap md:overflow-visible">
                 <Chip active={!subject} onClick={() => setSubject(null)}>Alla</Chip>
