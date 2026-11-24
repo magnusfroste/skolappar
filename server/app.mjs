@@ -20,7 +20,9 @@ import { createMcpHandler } from './mcp.mjs';
 import { createMailer } from './mailer.mjs';
 import { createRateLimiter } from './ratelimit.mjs';
 import { createStatic } from './static.mjs';
-import { buildLlmsTxt, buildSitemap, injectAppMeta } from './seo.mjs';
+import { buildLlmsTxt, buildSitemap } from './seo.mjs';
+import { pageFor, applyPage } from './prerender.mjs';
+import { landing } from './landing.mjs';
 import { validate, ValidationError, isUuid } from './validate.mjs';
 import { HttpError, MB, readBody, readJson, sendJson, sendText, sendError, clientIp, escapeHtml } from './http.mjs';
 
@@ -304,6 +306,8 @@ export function createApp(config, { fetchImpl = globalThis.fetch, fetchOutside, 
   route('GET', '/api/upvotes', ({ req }) => store.myUpvotes(voterId(req)));
   route('GET', '/api/stats', () => store.publicStats());
   route('GET', '/api/guide', () => guide());
+  route('GET', '/api/landing/:subject', ({ params }) => found(landing(store, params.subject), 'Page not found'));
+  route('GET', '/api/landing/:subject/:age', ({ params }) => found(landing(store, params.subject, params.age), 'Page not found'));
   // Lgr22: without a filter the subjects and their areas; with one, the points
   route('GET', '/api/curriculum', ({ query }) => {
     const filter = { subject: query.get('subject') || undefined, stage: query.get('stage') || undefined, area: query.get('area') || undefined, q: query.get('q') || undefined };
@@ -672,14 +676,12 @@ li{margin:12px 0}code{display:block;margin-top:4px;padding:8px 10px;background:#
 
     if (statics.serveFile(req, res, path)) return;
 
-    const appPage = /^\/app\/([^/]+)\/?$/.exec(path);
-    if (appPage) {
-      const app = store.getApp(appPage[1]);
-      if (app) return statics.serveIndex(req, res, (html) => injectAppMeta(html, app, config.siteUrl));
-    }
     // Missing build assets must not turn into HTML.
     if (path.startsWith('/assets/')) throw new HttpError(404, 'Not found');
-    return statics.serveIndex(req, res);
+    // Every page gets its own title, description, canonical address and text in the HTML itself
+    // (server/prerender.mjs); an address that is no page answers 404 with the app's "finns inte".
+    const page = pageFor(path, { store, siteUrl: config.siteUrl });
+    return statics.serveIndex(req, res, (html) => applyPage(html, page), page.status);
   }
 
   const server = http.createServer((req, res) => {

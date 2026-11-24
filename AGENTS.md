@@ -28,4 +28,9 @@
   never stored. A new event name goes in `EVENT_NAMES` in the store, the snippet and the guide section `kodsnutten`.
 - The recommended order is the same for every visitor; it uses nothing about the visitor. What a child played
   steers "Mer som det här" only inside the tab (`sessionStorage`), never on the server and never across visits.
+- Every public page is rendered by the server too (`server/prerender.mjs`): a new route in `src/App.tsx` needs a
+  case in `pageFor` (title, description, canonical, text) or it answers 404. Canonical addresses never point
+  to another page.
+- Articles (resources) are Markdown. Agents edit parts of one with `edit_resource` (old_str/new_str or a whole
+  section under a heading, all or nothing) after reading it with `get_resource`.
 - Reuse a shared app-thumbnail component across card variants so screenshot and fallback behaviour stays consistent.

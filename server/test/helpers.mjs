@@ -15,7 +15,9 @@ export const INDEX_HTML = `<!doctype html><html lang="sv"><head>
 <meta name="description" content="Standard">
 <meta property="og:title" content="Standard">
 <meta property="og:image" content="https://www.skolappar.com/og-image.jpg">
-</head><body><div id="root"></div></body></html>`;
+<meta name="robots" content="index, follow" />
+<link rel="canonical" href="https://www.skolappar.com/" />
+</head><body><div id="root"><div class="app-loading" role="status">Laddar</div></div></body></html>`;
 
 export function quietLog() {
   const lines = [];
