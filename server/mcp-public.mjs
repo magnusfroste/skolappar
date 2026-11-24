@@ -16,13 +16,18 @@ const FIRST_NAME = '^[\\p{L}][\\p{L}\'’-]{0,39}$';
 export const PUBLIC_INSTRUCTIONS =
   'Skolappar.com är en katalog med pedagogiska webbappar som föräldrar byggt, ofta tillsammans med sina barn. ' +
   'Du behöver ingen nyckel. Arbetsgången finns som skills (list_skills, get_skill) och en färdig startmall med get_starter. Läs get_guide INNAN du bygger: den säger vad en skolapp ska klara (iPad och touch, inget konto, ' +
-  'svenska, återkoppling) och slutar med en checklista. Gör så här när appen är byggd och ligger på en egen https-adress: ' +
+  'svenska, återkoppling) och slutar med en checklista. ' +
+  'Lägg in Skolappars kodsnutt (<script src="https://www.skolappar.com/kotten.js" defer></script>, guidens avsnitt kodsnutten) och rapportera ' +
+  'omgångar och nivåer med skolappar.event – anonymt, så ser föräldern hur långt barnen kommer. ' +
+  'Har appen ingen adress än: publish_on_shipholm lägger ut den gratis (föräldern godkänner i webbläsaren). ' +
+  'Gör så här när appen är byggd och ligger på en egen https-adress: ' +
   '0) check_app – kontrollera adressen och rätta det som är fail. ' +
   'Välj vad appen ska träna med get_curriculum (Lgr22) och ange punkterna som curriculum_ids. ' +
   '1) list_categories – välj ämne, årskurs och typ. 2) list_apps – se att appen inte redan finns. ' +
   '3) submit_app – skicka in den med förälderns förnamn och e-postadress. Spara app_key ur svaret: den visas en gång. ' +
   '4) Be föräldern klicka på länken i mejlet från Skolappar; utan det publiceras appen inte. ' +
-  '5) app_status – appar granskas en gång om dagen. 6) app_stats – berätta för barnet hur många som har spelat. ' +
+  '5) app_status – appar granskas en gång om dagen. 6) app_stats – berätta för barnet hur många som har spelat; med kodsnutten visar in_app ' +
+  'också omgångar, resultat och på vilken nivå barnen slutar. Samma siffror kommer som veckobrev till föräldern varje måndag. ' +
   'Ändringar av en publicerad app (update_my_app, set_my_app_image) granskas innan de syns. Tappad app_key: recover_app_keys. ' +
   'Saknas en idé? list_ideas visar vad lärare och föräldrar önskar sig.';
 
