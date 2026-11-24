@@ -26,4 +26,6 @@
   it must never set a cookie, use storage, send an id or anything typed by the child. `POST /api/events` keeps
   only counts and sums per app, day and event (`app_events_daily`); the IP address is a rate-limit key in memory,
   never stored. A new event name goes in `EVENT_NAMES` in the store, the snippet and the guide section `kodsnutten`.
+- The recommended order is the same for every visitor; it uses nothing about the visitor. What a child played
+  steers "Mer som det här" only inside the tab (`sessionStorage`), never on the server and never across visits.
 - Reuse a shared app-thumbnail component across card variants so screenshot and fallback behaviour stays consistent.

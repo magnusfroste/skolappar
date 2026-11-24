@@ -83,7 +83,7 @@ interface AppsFilters {
   types?: string[];
   /** An area of Lgr22, e.g. MA.1-3.1. */
   lgr?: string;
-  sort?: 'newest' | 'popular' | 'comments';
+  sort?: 'recommended' | 'newest' | 'popular' | 'comments';
 }
 
 export function useApps(filters: AppsFilters = {}) {

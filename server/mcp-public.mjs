@@ -155,11 +155,11 @@ export function createPublicTools({ store, images, checkApp, content, curriculum
         search: { type: 'string', minLength: 1, maxLength: 100 },
         subject: { type: 'string', maxLength: 60, description: 'Ämnets slug, t.ex. matte.' },
         age: { type: 'string', maxLength: 60, description: 'Årskursens slug, t.ex. fk-2.' },
-        sort: { type: 'string', enum: ['newest', 'popular', 'clicks'], default: 'popular' },
+        sort: { type: 'string', enum: ['recommended', 'newest', 'popular', 'clicks'], default: 'recommended', description: 'recommended: the order of the start page (played now, children stay, new, lifted by us).' },
         limit: { type: 'integer', minimum: 1, maximum: 200, default: 50 },
       }),
       annotations: RO,
-      handler: ({ search, subject, age, sort = 'popular', limit = 50 }) =>
+      handler: ({ search, subject, age, sort = 'recommended', limit = 50 }) =>
         store.listPublicApps({ search, subjects: subject ? [subject] : undefined, ages: age ? [age] : undefined, sort })
           .slice(0, limit).map(publicView),
     },

@@ -745,6 +745,21 @@ describe('the open MCP: an agent submits an app and follows it', () => {
     assert.equal((await call(pub, 'app_stats', { id: PENDING })).ok, false);
   });
 
+  test('the recommended order: played now and children stay count, the same for everyone, and only listed apps', async () => {
+    const order = async () => (await pub('GET', '/api/apps?sort=recommended')).json.map((a) => a.id);
+    const first = await order();
+    assert.deepEqual(new Set(first), new Set((await pub('GET', '/api/apps')).json.map((a) => a.id)));
+    assert.deepEqual(await order(), first, 'the same order on the same day');
+    // APP2 is played a lot this week and children finish its rounds: it goes first
+    for (let i = 0; i < 15; i++) await pub('POST', `/api/apps/${APP2}/click`);
+    const events = [];
+    for (let i = 0; i < 6; i++) events.push({ e: 'round_start' }, { e: 'round_done', v: 90 });
+    await pub('POST', '/api/events', JSON.stringify({ events }), { 'Content-Type': 'text/plain', Origin: 'https://minus.example' });
+    assert.equal((await order())[0], APP2);
+    const listed = (await call(pub, 'list_apps', {})).data;
+    assert.equal(listed[0].id, APP2, 'list_apps uses the same order');
+  });
+
   test('a waiting app is withdrawn for good, and submissions share the form\'s rate limit', async () => {
     const one = await call(pub, 'submit_app', { ...submission, url: 'https://two.example' });
     assert.equal(one.ok, true, one.text);

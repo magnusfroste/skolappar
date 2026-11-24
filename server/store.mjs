@@ -413,6 +413,44 @@ export function createStore(db, { mailer, curriculum, shipholm, siteUrl = 'https
     oldest: 'created_at ASC',
   };
 
+  // ---------- the recommended order ----------
+  // One score per app, the same for every visitor (nothing about the visitor goes in):
+  // played now (opens in 7 days), liked, children stay (finished rounds and minutes from the
+  // snippet; neutral without it), new (fading over 14 days), lifted by us (featured), and a small
+  // shake seeded by the date so near-equal apps change places from day to day.
+  const RANK = { opens: 1.0, likes: 0.4, stay: 0.8, fresh: 0.9, featured: 0.5, shake: 0.15, freshDays: 14, enough: 5 };
+
+  function rankScores(rows) {
+    const day = now().slice(0, 10);
+    const weekAgo = new Date(Date.now() - 7 * 86400000).toISOString();
+    const monthAgo = new Date(Date.now() - 29 * 86400000).toISOString().slice(0, 10);
+    const opens = new Map(db.prepare('SELECT app_id, COUNT(*) AS n FROM app_open_events WHERE opened_at >= ? GROUP BY app_id').all(weekAgo).map((r) => [r.app_id, r.n]));
+    const ev = new Map();
+    for (const r of db.prepare('SELECT app_id, event, SUM(n) AS n, SUM(total) AS total FROM app_events_daily WHERE day >= ? AND event IN (\'round_start\', \'round_done\', \'play_seconds\') GROUP BY app_id, event').all(monthAgo)) {
+      if (!ev.has(r.app_id)) ev.set(r.app_id, {});
+      ev.get(r.app_id)[r.event] = r;
+    }
+    const maxOpens = Math.log1p(Math.max(1, ...opens.values()));
+    const maxLikes = Math.log1p(Math.max(1, ...rows.map((r) => r.upvotes_count || 0)));
+    const scores = new Map();
+    for (const r of rows) {
+      const e = ev.get(r.id) || {};
+      const parts = [];
+      if ((e.round_start?.n || 0) >= RANK.enough) parts.push(Math.min(1, (e.round_done?.n || 0) / e.round_start.n));
+      if ((e.play_seconds?.n || 0) >= RANK.enough) parts.push(Math.min(1, e.play_seconds.total / e.play_seconds.n / 600));
+      const stay = parts.length ? parts.reduce((a, b) => a + b, 0) / parts.length : 0.5;
+      const ageDays = (Date.now() - Date.parse(r.created_at || 0)) / 86400000;
+      const fresh = Number.isFinite(ageDays) ? Math.max(0, 1 - ageDays / RANK.freshDays) : 0;
+      const featured = r.status === 'featured' || r.is_featured ? 1 : 0;
+      const shake = createHash('sha256').update(`${day}:${r.id}`).digest().readUInt32BE(0) / 0xffffffff;
+      scores.set(r.id,
+        RANK.opens * (Math.log1p(opens.get(r.id) || 0) / maxOpens)
+        + RANK.likes * (Math.log1p(r.upvotes_count || 0) / maxLikes)
+        + RANK.stay * stay + RANK.fresh * fresh + RANK.featured * featured + RANK.shake * shake);
+    }
+    return scores;
+  }
+
   function listPublicApps({ search, subjects, ages, types, curriculumArea, sort = 'newest' } = {}) {
     const where = [`status IN ('approved','featured')`];
     const params = [];
@@ -420,7 +458,11 @@ export function createStore(db, { mailer, curriculum, shipholm, siteUrl = 'https
       where.push(`(title LIKE ? ESCAPE '\\' OR description LIKE ? ESCAPE '\\')`);
       params.push(likeEscape(search), likeEscape(search));
     }
-    const rows = db.prepare(`SELECT * FROM apps WHERE ${where.join(' AND ')} ORDER BY ${SORTS[sort] || SORTS.newest}`).all(...params);
+    let rows = db.prepare(`SELECT * FROM apps WHERE ${where.join(' AND ')} ORDER BY ${SORTS[sort] || SORTS.newest}`).all(...params);
+    if (sort === 'recommended') {
+      const score = rankScores(rows);
+      rows = rows.sort((a, b) => score.get(b.id) - score.get(a.id));
+    }
     let apps = withCategories(rows.map((r) => appRow(r)));
     const filterBy = (type, slugs) => {
       if (!slugs?.length) return;
