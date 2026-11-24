@@ -105,7 +105,14 @@ export function pageFor(path, { store, siteUrl }) {
   const article = /^\/resurser\/([a-z0-9-]+)\/([a-z0-9-]+)$/.exec(p);
   if (article) {
     const r = store.getResourceBySlug(article[2]);
-    if (!r) return { status: 404, noindex: true };
+    if (!r) {
+      // a hidden or renamed article: where it went (setting resource_redirects, {slug: path})
+      const moved = store.getSetting('resource_redirects')?.[article[2]];
+      return typeof moved === 'string' && moved.startsWith('/')
+        ? { status: 301, location: moved }
+        : { status: 404, noindex: true };
+    }
+    if (resourcePath(r) !== p) return { status: 301, location: resourcePath(r) };   // /resurser/learn/x -> /resurser/lara/x
     const desc = r.excerpt || markdownText(r.content, 200);
     return {
       status: 200, canonical: canonical(resourcePath(r)), title: fullTitle(r.title), description: desc,
