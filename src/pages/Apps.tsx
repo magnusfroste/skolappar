@@ -39,7 +39,7 @@ export default function Apps() {
   const [selectedSubjects, setSelectedSubjects] = useState<string[]>([]);
   const [selectedAges, setSelectedAges] = useState<string[]>([]);
   const [selectedTypes, setSelectedTypes] = useState<string[]>([]);
-  const [sort, setSort] = useState<'newest' | 'popular' | 'comments'>('popular');
+  const [sort, setSort] = useState<'recommended' | 'newest' | 'popular' | 'comments'>('recommended');
   const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false);
   const [showFavoritesOnly, setShowFavoritesOnly] = useLocalStorage('apps-favorites-mode', false);
 
@@ -258,6 +258,7 @@ export default function Apps() {
                   <SelectValue placeholder="Sortera" />
                 </SelectTrigger>
                 <SelectContent>
+                  <SelectItem value="recommended">Rekommenderat</SelectItem>
                   <SelectItem value="popular">Populärast</SelectItem>
                   <SelectItem value="newest">Nyast</SelectItem>
                 </SelectContent>

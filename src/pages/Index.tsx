@@ -17,6 +17,8 @@ import { useApps, useCategories } from "@/hooks/useApps";
 import { KottenHello } from "@/components/KottenHello";
 import { ForestEdge } from "@/components/ForestEdge";
 import { WeeklyRocket } from "@/components/WeeklyRocket";
+import { MoreLikeThis } from "@/components/MoreLikeThis";
+import { usePlayedInTab } from "@/hooks/usePlayedInTab";
 
 const HOME_LIMIT = 12;
 const HOME_PAGE = 8;
@@ -32,8 +34,16 @@ export default function Index() {
   const { data: apps, isLoading } = useApps({
     subjects: subject ? [subject] : undefined,
     ages: age ? [age] : undefined,
-    sort: "popular",
+    sort: "recommended",
   });
+  // all apps in the same order, for "Mer som det här" (the same query as the gallery without filters)
+  const { data: allApps } = useApps({ sort: "recommended" });
+  const played = usePlayedInTab();
+  const play = (app: { id: string; url: string; title: string }) => {
+    trackClick.mutate(app.id);
+    played.add(app.id);
+    setPlaying({ url: app.url, title: app.title });
+  };
 
   const subjects = useMemo(() => categories?.filter((c) => c.type === "subject") ?? [], [categories]);
   const ages = useMemo(() => categories?.filter((c) => c.type === "age") ?? [], [categories]);
@@ -104,7 +114,9 @@ export default function Index() {
         <ForestEdge className="mt-4 block h-10 w-full rounded-b-3xl md:h-16" />
       </section>
 
-      <WeeklyRocket onPlay={(app) => { trackClick.mutate(app.id); setPlaying({ url: app.url, title: app.title }); }} />
+      <WeeklyRocket onPlay={play} />
+
+      <MoreLikeThis apps={allApps} played={played.ids} onPlay={play} />
 
       <section className="container mx-auto px-4 pt-2 pb-6">
 
@@ -161,10 +173,7 @@ export default function Index() {
                 subjectColor={app.categories.find((c) => c.type === "subject")?.color}
                 typeIcon={app.categories.find((c) => c.type === "app_type")?.icon}
                 typeColor={app.categories.find((c) => c.type === "app_type")?.color}
-                onLaunch={() => {
-                  trackClick.mutate(app.id);
-                  setPlaying({ url: app.url, title: app.title });
-                }}
+                onLaunch={() => play(app)}
               />
             ))}
           </div>
