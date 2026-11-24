@@ -578,7 +578,7 @@ li{margin:12px 0}code{display:block;margin-top:4px;padding:8px 10px;background:#
       return sendJson(res, 200, result);
     }
 
-    if (req.method !== 'GET' && req.method !== 'HEAD' && !(req.method === 'POST' && path.startsWith('/nyckel/'))) throw new HttpError(405, 'Method not allowed');
+    if (req.method !== 'GET' && req.method !== 'HEAD' && !(req.method === 'POST' && (path.startsWith('/nyckel/') || path.startsWith('/brev/av/')))) throw new HttpError(405, 'Method not allowed');
 
     if (path.startsWith('/images/')) {
       const f = images.file(path.slice('/images/'.length));
@@ -650,6 +650,20 @@ li{margin:12px 0}code{display:block;margin-top:4px;padding:8px 10px;background:#
         : page(410, simplePage('Länken fungerar inte', 'Länken är för gammal eller redan använd. Be din agent fråga efter nya nycklar igen.'));
     }
 
+    // stop the weekly letter: a button first, so a mail scanner opening the link changes nothing
+    const stop = /^\/brev\/av\/([^/]+)\/?$/.exec(path);
+    if (stop) {
+      const page = (status, html) => sendText(res, status, html, 'text/html; charset=utf-8', { 'Cache-Control': 'no-store', 'X-Robots-Tag': 'noindex' });
+      const gone = () => page(404, simplePage('Länken fungerar inte', 'Länken är inte giltig. Svara på veckobrevet om du vill sluta få det.'));
+      if (req.method === 'POST') {
+        return store.stopDigest(stop[1]) ? page(200, simplePage('Klart', 'Du får inga fler veckobrev från Skolappar. Apparna ligger kvar i katalogen som vanligt.', '<a class="btn" href="/">Till Skolappar</a>')) : gone();
+      }
+      return store.digestApp(stop[1])
+        ? page(200, simplePage('Sluta få veckobrevet?', 'Veckobrevet berättar hur era appar används. Tryck på knappen så slutar det komma, för alla era appar.',
+          '<form method="post"><button type="submit">Sluta skicka veckobrevet</button></form>'))
+        : gone();
+    }
+
     const confirm = /^\/bekrafta\/([^/]+)\/?$/.exec(path);
     if (confirm) {
       const ok = store.confirmEmail(confirm[1]);
@@ -675,15 +689,23 @@ li{margin:12px 0}code{display:block;margin-top:4px;padding:8px 10px;background:#
     res.on('finish', () => {
       const p = (req.url || '').split('?')[0];
       if (p === '/healthz' || p.startsWith('/assets/') || p.startsWith('/images/')) return;
-      const shown = p.startsWith('/bekrafta/') ? '/bekrafta/…' : p;
+      const shown = p.startsWith('/bekrafta/') ? '/bekrafta/…' : p.startsWith('/brev/av/') ? '/brev/av/…' : p;
       log.info?.(`${req.method} ${shown} ${res.statusCode} ${Date.now() - started}ms`);
     });
     handle(req, res).catch((err) => sendError(res, err));
   });
+  // the weekly letter: looked at every hour, sent on Monday morning once per week (DIGEST=off stops it)
+  const digestTimer = config.env?.DIGEST === 'off' ? null : setInterval(() => {
+    store.maybeSendWeeklyDigest().catch((err) => log.warn?.(`weekly letter failed: ${err?.message || err}`));
+  }, HOUR);
+  digestTimer?.unref?.();
+
   server.requestTimeout = 120_000;
   server.headersTimeout = 30_000;
 
   function close() {
+    if (digestTimer) clearInterval(digestTimer);
+    eventLimiter.stop();
     submitLimiter.stop();
     checkLimiter.stop();
     uploadLimiter.stop();

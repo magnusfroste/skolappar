@@ -10,7 +10,7 @@
 - Admin (`/api/admin/*`, `/admin`, the administration tools of `/mcp`) is protected by the `ADMIN_KEY` secret.
   `/mcp` without a key is the open part (`server/mcp-public.mjs`): it must never return an e-mail address or
   let anything unreviewed into the catalogue – a change to a listed app waits in `proposed_change` for
-  `review_change`. An e-mail address is never proof of anything: it only receives links. Without `ADMIN_KEY` the admin endpoints
+  `review_change`. An e-mail address is never proof of anything: it only receives links and the weekly letter (which must keep its stop link). Without `ADMIN_KEY` the admin endpoints
   answer 503 and the public site keeps working. Never log the admin key or email addresses.
 - The build guide lives in `server/guide.mjs` only; the page `/bygg`, `/guide.md` and `get_guide` render it.
   A tool it names must exist in the open MCP part (a test checks that).

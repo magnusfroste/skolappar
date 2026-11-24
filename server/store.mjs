@@ -2,7 +2,7 @@
 // public API, the admin API and the MCP tools share one set of rules.
 import { randomUUID, randomBytes, createHash, timingSafeEqual } from 'node:crypto';
 import { transaction, serverSecret } from './db.mjs';
-import { appKeysMail, appPublishedMail, confirmSubmissionMail } from './mailer.mjs';
+import { appKeysMail, appPublishedMail, confirmSubmissionMail, weeklyDigestMail } from './mailer.mjs';
 
 export const APP_STATUSES = ['pending', 'approved', 'rejected', 'featured', 'delisted'];
 export const PUBLIC_STATUSES = ['approved', 'featured'];
@@ -10,6 +10,16 @@ export const IDEA_STATUSES = ['open', 'claimed', 'built'];
 export const TRACKING_SINCE = '2026-11-18T00:00:00Z';
 
 const now = () => new Date().toISOString();
+
+/** ISO week, e.g. 2026-W48. */
+export function isoWeek(date = new Date()) {
+  const d = new Date(Date.UTC(date.getUTCFullYear(), date.getUTCMonth(), date.getUTCDate()));
+  const day = d.getUTCDay() || 7;
+  d.setUTCDate(d.getUTCDate() + 4 - day);
+  const yearStart = Date.UTC(d.getUTCFullYear(), 0, 1);
+  const week = Math.ceil(((d - yearStart) / 86400000 + 1) / 7);
+  return `${d.getUTCFullYear()}-W${String(week).padStart(2, '0')}`;
+}
 const nul = (v) => (v === undefined ? null : v);
 const bool = (v) => (v ? 1 : 0);
 const likeEscape = (s) => `%${String(s).replace(/[\\%_]/g, (c) => `\\${c}`)}%`;
@@ -269,15 +279,15 @@ export function createStore(db, { mailer, curriculum, shipholm, siteUrl = 'https
   }
 
   /** The snippet's numbers for the last 30 days, or null when the app has never reported. */
-  function inAppStats(appId) {
-    const since = new Date(Date.now() - 29 * 86400000).toISOString().slice(0, 10);
+  function inAppStats(appId, days = 30) {
+    const since = new Date(Date.now() - (days - 1) * 86400000).toISOString().slice(0, 10);
     const rows = db.prepare('SELECT event, SUM(n) AS n, SUM(total) AS total FROM app_events_daily WHERE app_id = ? AND day >= ? GROUP BY event').all(appId, since);
     if (!rows.length) return null;
     const by = Object.fromEntries(rows.map((r) => [r.event, r]));
     const n = (e) => by[e]?.n || 0;
     const avg = (e) => (by[e]?.n ? Math.round((by[e].total / by[e].n) * 10) / 10 : null);
     return {
-      period: 'last_30_days',
+      period: `last_${days}_days`,
       starts: n('start'),
       sessions_with_time: n('play_seconds'),
       average_minutes_played: by.play_seconds?.n ? Math.round((by.play_seconds.total / by.play_seconds.n / 60) * 10) / 10 : null,
@@ -292,6 +302,91 @@ export function createStore(db, { mailer, curriculum, shipholm, siteUrl = 'https
       sound_turned_off: n('sound_off'),
       note: 'Från kodsnutten i appen (kotten.js). Antal per dag, inget om enskilda barn.',
     };
+  }
+
+  // ---------- the weekly letter to makers ----------
+  // Once a week, every confirmed address behind listed apps gets how its apps did the last 7 days.
+  // The link to stop it carries the app's id and a signature, never the address.
+
+  const digestSecret = () => serverSecret(db, 'digest_secret');
+  const digestSig = (appId) => createHash('sha256').update(`${digestSecret()}:digest:${appId}`).digest('base64url').slice(0, 22);
+  const digestToken = (appId) => `${appId}.${digestSig(appId)}`;
+
+  function digestApp(token) {
+    const m = /^([0-9a-f-]{36})\.([A-Za-z0-9_-]{22})$/.exec(String(token || ''));
+    if (!m) return null;
+    const a = Buffer.from(m[2]);
+    const b = Buffer.from(digestSig(m[1]));
+    if (a.length !== b.length || !timingSafeEqual(a, b)) return null;
+    return db.prepare('SELECT id, submitter_email, digest_off FROM apps WHERE id = ?').get(m[1]) || null;
+  }
+
+  /** Stop the letter for every app of the address behind this link. True when the link is valid. */
+  function stopDigest(token) {
+    const r = digestApp(token);
+    if (!r) return false;
+    if (r.submitter_email) db.prepare('UPDATE apps SET digest_off = 1 WHERE lower(submitter_email) = lower(?)').run(r.submitter_email);
+    else db.prepare('UPDATE apps SET digest_off = 1 WHERE id = ?').run(r.id);
+    return true;
+  }
+
+  function opensBetween(appId, from, to) {
+    return db.prepare('SELECT COUNT(*) AS n FROM app_open_events WHERE app_id = ? AND opened_at >= ? AND opened_at < ?').get(appId, from, to).n;
+  }
+
+  /** One letter per address: {to, subject, text}. Addresses whose apps had no visit at all are left out. */
+  function weeklyDigests() {
+    const nowMs = Date.now();
+    const weekAgo = new Date(nowMs - 7 * 86400000).toISOString();
+    const twoWeeksAgo = new Date(nowMs - 14 * 86400000).toISOString();
+    const rows = db.prepare(
+      `SELECT id, title, submitter_email FROM apps
+       WHERE status IN ('approved','featured') AND email_confirmed = 1 AND digest_off = 0 AND submitter_email IS NOT NULL
+       ORDER BY created_at`
+    ).all();
+    const byAddress = new Map();
+    for (const r of rows) {
+      const key = r.submitter_email.toLowerCase();
+      if (!byAddress.has(key)) byAddress.set(key, { to: r.submitter_email, apps: [] });
+      byAddress.get(key).apps.push({
+        id: r.id, title: r.title,
+        opens: opensBetween(r.id, weekAgo, new Date(nowMs + 1000).toISOString()),
+        opens_before: opensBetween(r.id, twoWeeksAgo, weekAgo),
+        in_app: inAppStats(r.id, 7),
+      });
+    }
+    const letters = [];
+    for (const { to, apps } of byAddress.values()) {
+      if (!apps.some((a) => a.opens || a.in_app)) continue;
+      letters.push({ to, apps: apps.map((a) => a.title), ...weeklyDigestMail({ siteUrl, apps, stopToken: digestToken(apps[0].id) }) });
+    }
+    return letters;
+  }
+
+  /** Send this week's letters. dryRun: only say what would go out (without addresses). */
+  async function sendWeeklyDigest({ dryRun = false } = {}) {
+    const letters = weeklyDigests();
+    if (dryRun) return { would_send: letters.length, letters: letters.map(({ apps, subject, text }) => ({ apps, subject, text })) };
+    let sent = 0;
+    for (const l of letters) {
+      try {
+        const r = mailer ? await mailer.send({ to: l.to, subject: l.subject, text: l.text }) : { sent: false };
+        if (r.sent) sent++;
+      } catch { /* one failing address does not stop the others */ }
+    }
+    log.info?.(`weekly letter: ${sent} of ${letters.length} sent`);
+    return { sent, of: letters.length };
+  }
+
+  /** Called every hour: on Monday from 08:00 Swedish time, once per ISO week. */
+  async function maybeSendWeeklyDigest(date = new Date()) {
+    const parts = Object.fromEntries(new Intl.DateTimeFormat('en-GB', { timeZone: 'Europe/Stockholm', weekday: 'short', hour: '2-digit', hourCycle: 'h23' })
+      .formatToParts(date).map((p) => [p.type, p.value]));
+    if (parts.weekday !== 'Mon' || Number(parts.hour) < 8) return null;
+    const week = isoWeek(date);
+    if (getSetting('digest_week') === week) return null;
+    setSetting('digest_week', week);
+    return sendWeeklyDigest();
   }
 
   /** Keep the outcome of a check on the app. */
@@ -1141,7 +1236,7 @@ export function createStore(db, { mailer, curriculum, shipholm, siteUrl = 'https
     listPublicApps, listAdminApps, getApp, topApps, recentApps, relatedApps,
     createApp, updateApp, deleteApp, setAppCategories, trackClick,
     createSubmission, confirmEmail, sendConfirmation, resendMail,
-    appKeyMatches, saveCheck, appAtHost, recordEvents, inAppStats, proposeChange, listChanges, reviewChange, startKeyRecovery, keyRecoveryValid, finishKeyRecovery, setOwnImage, setCurriculum, curriculumUsed, syncAddress, releaseAddress, listedAt, appStatus, appStats,
+    appKeyMatches, saveCheck, appAtHost, recordEvents, inAppStats, stopDigest, digestApp, weeklyDigests, sendWeeklyDigest, maybeSendWeeklyDigest, proposeChange, listChanges, reviewChange, startKeyRecovery, keyRecoveryValid, finishKeyRecovery, setOwnImage, setCurriculum, curriculumUsed, syncAddress, releaseAddress, listedAt, appStatus, appStats,
     toggleUpvote, myUpvotes,
     listResources, getResource, getResourceBySlug, createResource, updateResource, deleteResource,
     allSettings, listSettings, getSetting, setSetting,

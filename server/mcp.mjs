@@ -382,6 +382,14 @@ export function createTools({ store, images }) {
       handler: ({ key_prefix }) => store.listSettings({ keyPrefix: key_prefix }),
     },
     {
+      name: 'send_weekly_letter',
+      title: 'Veckobrevet till skaparna',
+      description: 'Veckobrevet går ut av sig själv på måndagar kl. 08 (svensk tid). dry_run (standard) visar vad som skulle skickas, utan adresser; dry_run: false skickar nu.',
+      inputSchema: obj({ dry_run: { type: 'boolean', default: true } }),
+      annotations: RW,
+      handler: ({ dry_run = true }) => store.sendWeeklyDigest({ dryRun: dry_run }),
+    },
+    {
       name: 'set_setting',
       title: 'Ändra inställning',
       description: 'Skriv en plattformsinställning (varumärke, tema, typsnitt, SEO/AEO, analys, startsidans sektioner). Värdet är JSON.',

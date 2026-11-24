@@ -198,6 +198,10 @@ const MIGRATIONS = [
     PRIMARY KEY (app_id, day, event)
   );
   `,
+  // 10: the weekly letter to an app's maker can be turned off (for every app of that address)
+  `
+  ALTER TABLE apps ADD COLUMN digest_off INTEGER NOT NULL DEFAULT 0;
+  `,
 ];
 
 export function openDatabase(dataDir) {
