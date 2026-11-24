@@ -112,6 +112,27 @@ export const GUIDE_SECTIONS = [
 - Mallen är fri att använda och ändra. Du behöver den inte – men det den gör ska din app också göra.`,
   },
   {
+    id: 'kodsnutten',
+    title: 'Kodsnutten: se hur appen används',
+    body: `Lägg in en rad i appens \`<head>\`, så får du veta hur appen används – utan att något om barnet lämnar enheten:
+
+\`\`\`html
+<script src="https://www.skolappar.com/kotten.js" defer></script>
+\`\`\`
+
+- Den räknar själv att appen startas och hur länge den spelas.
+- Berätta resten när det händer:
+  - \`skolappar.event('round_start')\` – en omgång börjar
+  - \`skolappar.event('round_done', 80)\` – en omgång är klar; värdet är resultatet i procent
+  - \`skolappar.event('level', 2)\` – barnet når en nivå (1–50). Då ser du hur långt barnen kommer och på vilken nivå de slutar.
+  - \`skolappar.event('hint')\` – en ledtråd eller ett nytt försök behövdes
+  - \`skolappar.event('sound_off')\` – ljudet stängdes av
+- \`app_stats\` visar siffrorna under \`in_app\` för de senaste 30 dagarna: starter, minuter per besök, andel avslutade omgångar, medelresultat och, per nivå, hur många som nådde den och hur många som slutade där.
+- **Integritet:** inga cookies, ingen lagring på enheten, inga id:n. Skolappar sparar inte IP-adressen, bara antal och summor per app och dag. Appen känns igen på sin adress, så bara appar i katalogen räknas.
+- Appen fungerar som vanligt om skriptet inte laddas. Anropa \`skolappar.event\` med \`window.skolappar?.event(...)\`, så går ingenting sönder.
+- Startmallen har kodsnutten redan.`,
+  },
+  {
     id: 'resurser',
     title: 'Fria bilder, ljud och typsnitt',
     body: `Använd bara material som du gjort själv eller som får användas fritt, och lägg filerna i appen i stället för att länka till dem. Licenser ändras: läs vad som står hos källan innan du använder något, och spara var du tog det.
@@ -168,7 +189,7 @@ export const GUIDE_SECTIONS = [
 5. \`set_my_app_image\` – sätt kortbilden: som SVG, från en adress eller som uppladdad fil. Utan bild får kortet ämnets färg och symbol.
 6. Be föräldern klicka på länken i mejlet från Skolappar. Utan det publiceras appen inte.
 7. \`app_status\` – appar granskas en gång om dagen. Avslås appen står skälet där; rätta och uppdatera, så ställs den i kö igen.
-8. \`app_stats\` – berätta för barnet hur många gånger appen har öppnats.`,
+8. \`app_stats\` – berätta för barnet hur många gånger appen har öppnats, och med kodsnutten hur långt barnen kommer i den.`,
   },
   {
     id: 'checklista',

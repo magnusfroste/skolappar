@@ -109,6 +109,8 @@ export function createApp(config, { fetchImpl = globalThis.fetch, fetchOutside, 
   const partnerUploadLimiter = createRateLimiter({ limit: 200, windowMs: HOUR });
   const ideaLimiter = createRateLimiter({ limit: config.submitLimit, windowMs: HOUR });
   const voteLimiter = createRateLimiter({ limit: config.voteLimit, windowMs: HOUR });
+  // the snippet sends at most every 30 s and when the page is left; more than this from one address is not a child playing
+  const eventLimiter = createRateLimiter({ limit: Number(config.env?.EVENT_RATE_LIMIT) || 60, windowMs: 60_000 });
 
   // ---------- helpers ----------
 
@@ -332,6 +334,19 @@ export function createApp(config, { fetchImpl = globalThis.fetch, fetchOutside, 
     const idea = store.createIdea(body);
     log.info?.(`idea created ${idea.id}`);
     return { status: 201, body: { ok: true, id: idea.id } };
+  });
+  // The snippet (kotten.js) reports from inside a listed app. The app is known by the page's address
+  // (Origin, else Referer); nothing about the visitor is kept – the IP address is only the rate limit's key in memory.
+  route('POST', '/api/events', async ({ req, res }) => {
+    res.setHeader('Access-Control-Allow-Origin', '*');
+    let body = null;
+    try { body = JSON.parse((await readBody(req, 8 * 1024)).toString('utf8')); } catch { /* ignored below */ }
+    let host = '';
+    try { host = new URL(String(req.headers.origin || req.headers.referer || '')).hostname; } catch { /* none */ }
+    const appId = body && Array.isArray(body.events) && eventLimiter.hit(clientIp(req)).ok ? store.appAtHost(host) : null;
+    if (appId) store.recordEvents(appId, body.events, body.seconds);
+    res.writeHead(204);
+    res.end();
   });
   route('POST', '/api/submissions', async ({ req }) => {
     const body = check(SUBMISSION, await readJson(req));
@@ -589,9 +604,14 @@ li{margin:12px 0}code{display:block;margin-top:4px;padding:8px 10px;background:#
       if (f) {
         return sendText(res, 200, f.content, f.type, {
           'Cache-Control': 'public, max-age=3600', 'Access-Control-Allow-Origin': '*',
-          'Content-Security-Policy': "default-src 'self'; connect-src 'none'; object-src 'none'; base-uri 'none'; form-action 'none'",
+          'Content-Security-Policy': "default-src 'self'; connect-src 'self'; object-src 'none'; base-uri 'none'; form-action 'none'",
         });
       }
+    }
+    if (path === '/kotten.js') {
+      return sendText(res, 200, content.kotten, 'text/javascript; charset=utf-8', {
+        'Cache-Control': 'public, max-age=3600', 'Access-Control-Allow-Origin': '*', 'Cross-Origin-Resource-Policy': 'cross-origin',
+      });
     }
     if (path === '/skills' || path === '/skills/') {
       return sendJson(res, 200, content.skills.map((s) => ({ name: s.name, description: s.description, url: `${config.siteUrl}/skills/${s.name}/SKILL.md` })),

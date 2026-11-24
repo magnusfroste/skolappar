@@ -22,4 +22,8 @@
   `store.releaseAddress(id)` before a delete, or a `<name>.skolappar.com` address is left behind at Shipholm.
 - Opening counts: `POST /api/apps/:id/click` counts only listed apps and logs a timestamped event without
   visitor identity; the admin view and the `app_analytics` MCP tool read the same report.
+- The snippet (`server/content/kotten.js`, served at `/kotten.js`) runs inside other people's apps, for children:
+  it must never set a cookie, use storage, send an id or anything typed by the child. `POST /api/events` keeps
+  only counts and sums per app, day and event (`app_events_daily`); the IP address is a rate-limit key in memory,
+  never stored. A new event name goes in `EVENT_NAMES` in the store, the snippet and the guide section `kodsnutten`.
 - Reuse a shared app-thumbnail component across card variants so screenshot and fallback behaviour stays consistent.

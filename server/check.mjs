@@ -117,7 +117,9 @@ export function createChecker({ fetchPage, now = () => Date.now() }) {
     const scripts = tags(html, 'script').map((s) => attr(s, 'src')).filter(Boolean).map(resolve).filter(Boolean);
     const styles = links.filter((l) => /\bstylesheet\b/.test(l.rel) && l.href).map((l) => resolve(l.href)).filter(Boolean);
     const own = [...scripts, ...styles].filter((u) => u.host === final.host);
-    const foreignScripts = [...new Set(scripts.filter((u) => u.host !== final.host).map((u) => u.host))];
+    const isSkolappar = (u) => /(^|\.)skolappar\.com$/.test(u.host);
+    const foreignScripts = [...new Set(scripts.filter((u) => u.host !== final.host && !isSkolappar(u)).map((u) => u.host))];
+    const snippet = scripts.some((u) => isSkolappar(u) && u.pathname === '/kotten.js');
 
     let weight = Buffer.byteLength(html);
     let text = html;
@@ -138,6 +140,9 @@ export function createChecker({ fetchPage, now = () => Date.now() }) {
 
     if (foreignScripts.length) add('own_files', 'warn', `Skript hämtas från andra webbplatser: ${foreignScripts.join(', ')}. Lägg dem i appen, så fungerar den även när de inte svarar.`, 'teknik');
     else add('own_files', 'ok', 'Alla skript ligger på appens egen adress.', 'teknik');
+
+    if (snippet) add('snippet', 'ok', 'Kodsnutten kotten.js är med: skaparen får se hur appen används.', 'kodsnutten');
+    else add('snippet', 'warn', 'Kodsnutten kotten.js saknas. Med den ser skaparen hur långt barnen kommer och var de slutar – anonymt.', 'kodsnutten');
 
     const out = [...new Set(tags(html, 'a').map((a) => attr(a, 'href')).filter((h) => h && /^https?:/i.test(h)).map(resolve)
       .filter((u) => u && u.host !== final.host && !/(^|\.)skolappar\.com$/.test(u.host)).map((u) => u.host))];

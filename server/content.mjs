@@ -35,6 +35,7 @@ export function loadContent() {
   });
   return {
     starter,
+    kotten: readFileSync(join(root, 'kotten.js'), 'utf8'),
     starterFile: (path) => starter.find((f) => f.path === path) || null,
     skills,
     skill: (name) => skills.find((s) => s.name === name) || null,

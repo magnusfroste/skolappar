@@ -42,7 +42,8 @@ Kontrollen spelar inte appen – prova själv på iPad-storlek också.
 - `app_status` – appar granskas en gång om dagen. `rejected` har ett skäl: rätta, uppdatera med
   `update_my_app`, så ställs appen i kö igen.
 - `app_stats` när appen är publicerad – berätta för barnet hur många gånger den har öppnats och
-  hur den ligger till i sitt ämne.
+  hur den ligger till i sitt ämne. Med kodsnutten finns även fältet in_app: hur långt barnen kommer, på vilken nivå
+  de slutar och hur många omgångar som blir klara – underlag för nästa version.
 - Själva appen på sin adress kan du förbättra när som helst, utan att fråga skolappar.
 - Ska katalogens text, kategorier eller kortbild ändras på en publicerad app: `update_my_app` eller
   `set_my_app_image`. Ändringen granskas först; den publicerade versionen ligger kvar tills dess.

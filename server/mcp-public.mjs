@@ -288,6 +288,7 @@ export function createPublicTools({ store, images, checkApp, content, curriculum
       title: 'Hur används appen?',
       description:
         'Öppningar i dag, senaste 7 och 30 dagarna och totalt, gilla-markeringar, placering i sitt ämne och öppningar per dag i 30 dagar (UTC). ' +
+        'Med kodsnutten kotten.js i appen (guidens avsnitt kodsnutten) även in_app för 30 dagar: starter, minuter per besök, omgångar, medelresultat, ledtrådar och per nivå hur många som nådde den och slutade där. ' +
         'Öppet för alla publicerade appar. En öppning är inte en unik besökare; ingenting om enskilda besökare finns.',
       inputSchema: obj({ id: uuid }, ['id']),
       annotations: RO,

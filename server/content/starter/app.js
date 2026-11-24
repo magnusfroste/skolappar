@@ -16,6 +16,9 @@ const store = {
   },
 };
 
+// ---- what the maker learns: anonymous counts through skolappar's snippet (kotten.js), if it is loaded ----
+const report = (name, value) => window.skolappar?.event(name, value);
+
 // ---- sound: made in the browser, so there are no files to load or license ----
 let soundOn = store.read().sound !== false;
 let audio;
@@ -108,6 +111,7 @@ function choose(button, option) {
     button.textContent = `${option} ✗`;
     $('feedback').textContent = `Nästan! ${task.hint}`;
     sounds.wrong();
+    report('hint');
     return;
   }
   button.classList.add('right');
@@ -121,7 +125,7 @@ function choose(button, option) {
     round.streak += 1;
   }
   // difficulty: up after three right in a row, down after a task that took three tries
-  if (round.streak >= 3 && level < APP.maxLevel) { level += 1; round.streak = 0; }
+  if (round.streak >= 3 && level < APP.maxLevel) { level += 1; round.streak = 0; report('level', level); }
   else if ($('answers').querySelectorAll('.wrong').length >= 2 && level > 1) level -= 1;
   setTimeout(round.done >= APP.roundLength ? finish : nextTask, 900);
 }
@@ -135,6 +139,7 @@ function stars(n) {
 function finish() {
   const best = Math.max(store.read().best || 0, round.firstTry);
   store.write({ level, best });
+  report('round_done', Math.round((round.firstTry / APP.roundLength) * 100));
   $('progress').style.width = '100%';
   $('result').textContent = `${stars(round.firstTry)}  ${round.firstTry} av ${APP.roundLength} på första försöket`;
   const reward = $('reward');
@@ -154,6 +159,8 @@ function finish() {
 function start() {
   round = { done: 0, firstTry: 0, streak: 0, missed: false, task: null };
   show('task');
+  report('round_start');
+  report('level', level);
   nextTask();
   speak(round.task.say);
 }
@@ -172,5 +179,6 @@ $('sound').addEventListener('click', () => {
   soundOn = !soundOn;
   store.write({ sound: soundOn });
   if (!soundOn && 'speechSynthesis' in window) speechSynthesis.cancel();
+  if (!soundOn) report('sound_off');
   paintSound();
 });

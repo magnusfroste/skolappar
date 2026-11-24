@@ -495,7 +495,7 @@ describe('the open MCP: an agent submits an app and follows it', () => {
     for (const sec of json.sections) assert.ok(md.text.includes(`## ${sec.title}`), sec.id);
     // every tool the guide names exists in the open part
     const open = (await rpc(pub, 'tools/list')).json.result.tools.map((t) => t.name);
-    for (const [, name] of md.text.matchAll(/`([a-z]+(?:_[a-z]+)+)`/g)) if (!['app_key', 'curriculum_ids'].includes(name)) assert.ok(open.includes(name), name);
+    for (const [, name] of md.text.matchAll(/`([a-z]+(?:_[a-z]+)+)`/g)) if (!['app_key', 'curriculum_ids', 'in_app'].includes(name)) assert.ok(open.includes(name), name);
     assert.match((await pub('GET', '/llms.txt')).text, /https:\/\/skolappar\.test\/guide\.md/);
     assert.match((await pub('GET', '/sitemap.xml')).text, /\/bygg</);
   });
@@ -510,10 +510,10 @@ describe('the open MCP: an agent submits an app and follows it', () => {
     const index = await pub('GET', '/starter/');
     assert.equal(index.status, 200);
     assert.match(index.headers.get('content-type'), /text\/html/);
-    assert.match(index.headers.get('content-security-policy'), /connect-src 'none'/);
+    assert.match(index.headers.get('content-security-policy'), /connect-src 'self'/);
     assert.equal(index.text, starter.files.find((f) => f.path === 'index.html').content);
     // the starter follows the guide it ships with: every file it refers to is there, nothing from elsewhere
-    for (const [, ref] of index.text.matchAll(/(?:href|src)="([^"]+)"/g)) assert.ok(names.includes(ref), ref);
+    for (const [, ref] of index.text.matchAll(/(?:href|src)="([^"]+)"/g)) assert.ok(names.includes(ref) || ref === 'https://www.skolappar.com/kotten.js', ref);
     assert.match(index.text, /<html lang="sv">/);
     assert.match(index.text, /viewport-fit=cover/);
     assert.match((await pub('GET', '/starter/style.css')).text, /touch-action: manipulation/);
@@ -695,6 +695,43 @@ describe('the open MCP: an agent submits an app and follows it', () => {
     assert.deepEqual((await call(pub, 'withdraw_my_app', { id, app_key: key })).data, { id, withdrawn: true, status: 'delisted' });
     assert.equal((await call(pub, 'get_app', { id })).ok, false);
     assert.equal((await call(pub, 'app_status', { id })).data.reason, 'Tillbakadragen av skaparen');
+  });
+
+  test('the snippet: kotten.js is served, reports count per app and day, levels as a funnel, nothing else', async () => {
+    const js = await pub('GET', '/kotten.js');
+    assert.equal(js.status, 200);
+    assert.match(js.headers.get('content-type'), /javascript/);
+    assert.equal(js.headers.get('access-control-allow-origin'), '*');
+    assert.match(js.text, /\/api\/events/);
+    assert.doesNotMatch(js.text, /document\.cookie|localStorage|sessionStorage|indexedDB/);
+
+    const send = (body, origin = 'https://minus.example') =>
+      pub('POST', '/api/events', JSON.stringify(body), { 'Content-Type': 'text/plain;charset=UTF-8', Origin: origin });
+    const r = await send({ events: [{ e: 'start' }, { e: 'round_start' }, { e: 'level', v: 1 }, { e: 'level', v: 2 }, { e: 'hint' }, { e: 'round_done', v: 80 }, { e: 'made_up' }] });
+    assert.equal(r.status, 204);
+    assert.equal(r.headers.get('access-control-allow-origin'), '*');
+    await send({ events: [{ e: 'start' }, { e: 'round_start' }, { e: 'level', v: 1 }, { e: 'stop', v: 1 }], seconds: 240 });
+    await send({ events: [{ e: 'stop', v: 2 }], seconds: 120 });
+    // not a listed app, broken bodies, too large: answered the same, nothing kept
+    assert.equal((await send({ events: [{ e: 'start' }] }, 'https://elsewhere.example')).status, 204);
+    assert.equal((await pub('POST', '/api/events', 'not json', { 'Content-Type': 'text/plain', Origin: 'https://minus.example' })).status, 204);
+    assert.equal((await send({ events: [{ e: 'start' }], pad: 'x'.repeat(9000) })).status, 204);
+
+    const inApp = (await call(pub, 'app_stats', { id: APP2 })).data.in_app;
+    assert.equal(inApp.starts, 2);
+    assert.equal(inApp.rounds_started, 2);
+    assert.equal(inApp.rounds_done, 1);
+    assert.equal(inApp.share_of_rounds_finished, 0.5);
+    assert.equal(inApp.average_result, 80);
+    assert.equal(inApp.hints, 1);
+    assert.equal(inApp.sessions_with_time, 2);
+    assert.equal(inApp.average_minutes_played, 3);
+    assert.equal(inApp.average_level_at_stop, 1.5);
+    assert.deepEqual(inApp.levels, [
+      { level: 1, reached: 2, share_of_starts: 1, stopped_here: 1 },
+      { level: 2, reached: 1, share_of_starts: 0.5, stopped_here: 1 },
+    ]);
+    assert.equal((await call(pub, 'app_stats', { id: APP1 })).data.in_app, null, 'an app that never reported');
   });
 
   test('app_stats: opens and likes as counts, the place within the subject', async () => {
