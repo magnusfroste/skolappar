@@ -515,7 +515,11 @@ export function createMcpHandler({ store, images, checkApp, content, curriculum,
             instructions: ctx.role === 'admin'
               ? 'Administrera skolappar.com: granska tips (list_submissions) och ändringar av publicerade appar (list_changes, review_change), prova appen, sätt kategorier och bild, ' +
                 'godkänn (update_app status approved, bara när e-postadressen är bekräftad) eller avslå (rejected). ' +
-                'Hantera även idéer, resurser, kategorier och inställningar. Veckans spelraket på startsidan väljs med set_setting weekly_app_id (en publicerad apps id; tom sträng döljer platsen).'
+                'Hantera även idéer, resurser, kategorier och inställningar. Veckans spelraket på startsidan väljs med set_setting weekly_app_id (en publicerad apps id; tom sträng döljer platsen) – ' +
+                'helst en app där barnen stannar enligt in_app i app_stats (andel klara omgångar, minuter per besök). ' +
+                'Artiklar (resurser, Markdown): läs med get_resource, ändra delar med edit_resource (exakt text eller ett helt avsnitt), skapa eller ändra titel och publicering med upsert_resource; ' +
+                'en dold eller flyttad artikel pekas vidare med set_setting resource_redirects ({slug: sökväg}). ' +
+                'Veckobrevet till skaparna går ut av sig självt på måndagar kl. 08; send_weekly_letter visar vad som skulle skickas.'
               : PUBLIC_INSTRUCTIONS,
           },
         };
