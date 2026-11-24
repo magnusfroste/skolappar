@@ -771,6 +771,13 @@ describe('the open MCP: an agent submits an app and follows it', () => {
     assert.deepEqual(applied.curriculum.map((p) => p.id), ['MA.1-3.1.4']);
     assert.equal((await call(pub, 'app_status', { id })).data.change, null);
     assert.equal((await call(admin, 'review_change', { id, approve: true })).ok, false, 'nothing waits any more');
+    // the same review in the admin view (REST)
+    await call(pub, 'update_my_app', { id, app_key: key, title: 'Robotens räknebana 2' });
+    const waiting = (await admin('GET', '/api/admin/changes')).json.find((c) => c.id === id);
+    assert.equal(waiting.proposed.fields.title, 'Robotens räknebana 2');
+    assert.equal((await pub('GET', '/api/admin/changes')).status, 401, 'not without the key');
+    assert.equal((await admin('POST', `/api/admin/apps/${id}/change`, { approve: true })).json.title, 'Robotens räknebana 2');
+    assert.equal((await admin('POST', `/api/admin/apps/${id}/change`, { approve: true })).status, 404, 'nothing waits any more');
     assert.equal((await call(pub, 'withdraw_my_app', { id, app_key: 'sapp_wrongwrongwrongwrongwrongwrongwr' })).ok, false);
     assert.deepEqual((await call(pub, 'withdraw_my_app', { id, app_key: key })).data, { id, withdrawn: true, status: 'delisted' });
     assert.equal((await call(pub, 'get_app', { id })).ok, false);

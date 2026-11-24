@@ -2,6 +2,7 @@ import { useMemo, useState } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
 import { AppAnalyticsPanel } from '@/components/AppAnalyticsPanel';
 import { ADMIN_SECTIONS } from '@/lib/adminSections';
+import { ChangesReview } from '@/components/admin/ChangesReview';
 import { Check, X, Star, Clock, ExternalLink, Trash2, Plus, Edit2, Shield, Settings, FileText, Eye, EyeOff, Lightbulb, MessageSquare, ThumbsUp, TrendingUp, Search } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
@@ -483,6 +484,10 @@ function AdminContent() {
           </TabsContent>
 
           {/* All Apps Tab */}
+          <TabsContent value="changes">
+            <ChangesReview categories={categories ?? []} />
+          </TabsContent>
+
           <TabsContent value="all">
             <Card>
               <CardHeader className="flex flex-col gap-3">

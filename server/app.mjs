@@ -435,6 +435,12 @@ export function createApp(config, { fetchImpl = globalThis.fetch, fetchOutside, 
     }
     return store.updateApp(params.id, { image_url: saved.url });
   });
+  // changes the makers proposed to listed apps: the same review as list_changes / review_change over MCP
+  admin('GET', '/api/admin/changes', () => store.listChanges());
+  admin('POST', '/api/admin/apps/:id/change', async ({ req, params }) => {
+    const body = check({ type: 'object', properties: { approve: { type: 'boolean' }, reason: { type: 'string', maxLength: 500 } }, required: ['approve'] }, await readJson(req));
+    return found(store.reviewChange(needId(params.id), body.approve, body.reason || null), 'No change waits for this app');
+  });
   admin('POST', '/api/admin/upload', async ({ req }) => {
     const buf = await readBody(req, MAX_IMAGE_BYTES);
     if (!sniffImage(buf)) throw new HttpError(415, 'Not a supported image (png, jpg, gif, webp, avif, ico, svg)');
