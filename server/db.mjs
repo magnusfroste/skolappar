@@ -182,6 +182,10 @@ const MIGRATIONS = [
   );
   CREATE INDEX key_recoveries_email_idx ON key_recoveries(email, created_at);
   `,
+  // 8: where a submission came from (a partner's name, e.g. shipholm-studio; null = the form or any agent).
+  `
+  ALTER TABLE apps ADD COLUMN source TEXT;
+  `,
 ];
 
 export function openDatabase(dataDir) {

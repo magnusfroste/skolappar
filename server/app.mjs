@@ -35,6 +35,8 @@ export function loadConfig(env = process.env) {
     siteUrl: (env.SITE_URL || 'https://www.skolappar.com').replace(/\/+$/, ''),
     adminKey: env.ADMIN_KEY || '',
     agentKeyHashes: parseKeyHashes(env.AGENT_KEY_HASHES),
+    // partners such as Shipholm Studio: "name:sha256hex" pairs, comma separated (X-Partner-Key)
+    partnerKeys: parsePartnerKeys(env.PARTNER_KEYS),
     submitLimit: Number(env.SUBMIT_RATE_LIMIT) || 5,
     checkLimit: Number(env.CHECK_RATE_LIMIT) || 30,
     // only for local development and tests: lets check_app and image downloads reach private addresses
@@ -51,6 +53,12 @@ function digest(s) {
 /** Constant-time comparison of a presented key with the configured one. */
 function keyMatches(presented, expected) {
   return timingSafeEqual(digest(presented), digest(expected));
+}
+
+/** Partners from "name:sha256hex" pairs, comma or space separated. The name labels their submissions. */
+export function parsePartnerKeys(value) {
+  return String(value || '').split(/[\s,]+/).map((p) => /^([a-z0-9][a-z0-9-]{1,39}):([0-9a-fA-F]{64})$/.exec(p))
+    .filter(Boolean).map((m) => ({ name: m[1], hash: m[2].toLowerCase() }));
 }
 
 /** SHA-256 hashes (hex) of agent keys, from a comma or space separated list. */
@@ -95,6 +103,10 @@ export function createApp(config, { fetchImpl = globalThis.fetch, fetchOutside, 
   const checkLimiter = createRateLimiter({ limit: config.checkLimit || 30, windowMs: HOUR });
   const uploadLimiter = createRateLimiter({ limit: 20, windowMs: HOUR });
   const recoverLimiter = createRateLimiter({ limit: 5, windowMs: HOUR });
+  // per partner instead of per IP: a partner's server sends for many parents from one address
+  const partnerSubmitLimiter = createRateLimiter({ limit: 100, windowMs: HOUR });
+  const partnerCheckLimiter = createRateLimiter({ limit: 500, windowMs: HOUR });
+  const partnerUploadLimiter = createRateLimiter({ limit: 200, windowMs: HOUR });
   const ideaLimiter = createRateLimiter({ limit: config.submitLimit, windowMs: HOUR });
   const voteLimiter = createRateLimiter({ limit: config.voteLimit, windowMs: HOUR });
 
@@ -128,6 +140,20 @@ export function createApp(config, { fetchImpl = globalThis.fetch, fetchOutside, 
     for (const h of config.agentKeyHashes || []) if (timingSafeEqual(presented, Buffer.from(h, 'hex'))) ok = true;
     if (!ok) throw new HttpError(401, 'Unauthorized');
     return 'admin';
+  }
+
+  /**
+   * A partner (X-Partner-Key), or null. A partner key opens no admin tool: it only lifts the per-IP
+   * limits to per-partner ones and lets submissions carry the partner's name and vouch for an address.
+   * A key that matches no partner is refused, so a typo never falls back to the anonymous limits silently.
+   */
+  function partnerOf(req) {
+    const key = String(req.headers['x-partner-key'] || '').trim();
+    if (!key) return null;
+    const presented = digest(key);
+    const found = (config.partnerKeys || parsePartnerKeys(config.env?.PARTNER_KEYS)).find((p) => timingSafeEqual(presented, Buffer.from(p.hash, 'hex')));
+    if (!found) throw new HttpError(401, 'Unknown partner key');
+    return found.name;
   }
 
   function limit(limiter, req) {
@@ -323,7 +349,11 @@ export function createApp(config, { fetchImpl = globalThis.fetch, fetchOutside, 
   // A creator's agent uploads the card image as a file, with the key submit_app gave it:
   //   curl -X PUT --data-binary @card.png -H "X-App-Key: sapp_…" https://www.skolappar.com/api/apps/<id>/image
   route('PUT', '/api/apps/:id/image', async ({ req, params }) => {
-    limit(uploadLimiter, req);
+    const partner = partnerOf(req);
+    if (partner) {
+      const r = partnerUploadLimiter.hit(partner);
+      if (!r.ok) throw new HttpError(429, 'Too many requests', { retry_after: r.retryAfter });
+    } else limit(uploadLimiter, req);
     const id = needId(params.id);
     const key = String(req.headers['x-app-key'] || '').trim();
     if (!key || !store.appKeyMatches(id, key)) throw new HttpError(401, 'Unknown app or wrong X-App-Key');
@@ -439,6 +469,7 @@ export function createApp(config, { fetchImpl = globalThis.fetch, fetchOutside, 
       return;
     }
     const role = mcpRole(req);
+    const partner = partnerOf(req);
     const type = String(req.headers['content-type'] || '').toLowerCase();
     if (!type.startsWith('application/json')) throw new HttpError(415, 'Content-Type must be application/json');
     let body;
@@ -451,8 +482,9 @@ export function createApp(config, { fetchImpl = globalThis.fetch, fetchOutside, 
     }
     const out = await mcp.handle(body, {
       role,
-      submitAllowed: () => submitLimiter.hit(clientIp(req)),
-      checkAllowed: () => (role === 'admin' ? { ok: true } : checkLimiter.hit(clientIp(req))),
+      partner,
+      submitAllowed: () => (partner ? partnerSubmitLimiter.hit(partner) : submitLimiter.hit(clientIp(req))),
+      checkAllowed: () => (role === 'admin' ? { ok: true } : partner ? partnerCheckLimiter.hit(partner) : checkLimiter.hit(clientIp(req))),
       recoverAllowed: () => recoverLimiter.hit(clientIp(req)),
     });
     if (out === null) {
@@ -636,6 +668,9 @@ li{margin:12px 0}code{display:block;margin-top:4px;padding:8px 10px;background:#
     checkLimiter.stop();
     uploadLimiter.stop();
     recoverLimiter.stop();
+    partnerSubmitLimiter.stop();
+    partnerCheckLimiter.stop();
+    partnerUploadLimiter.stop();
     ideaLimiter.stop();
     voteLimiter.stop();
     return new Promise((resolve) => {

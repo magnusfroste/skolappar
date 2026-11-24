@@ -239,6 +239,7 @@ export function createPublicTools({ store, images, checkApp, content, curriculum
         category_ids: { type: 'array', items: uuid, maxItems: 20, description: categoryHint },
         curriculum_ids: curriculumIds,
         note: { type: 'string', maxLength: 2000, description: 'Valfritt meddelande till den som granskar.' },
+        email_verified: { type: 'boolean', description: 'Bara för partner med X-Partner-Key: e-postadressen är redan verifierad hos partnern, så bekräftelsemejlet hoppas över. Utan partnernyckel ignoreras fältet.' },
       }, ['url', 'title', 'description', 'first_name', 'email']),
       annotations: RW,
       handler: (input, ctx) => {
@@ -252,15 +253,20 @@ export function createPublicTools({ store, images, checkApp, content, curriculum
           url: input.url, email: input.email, title: input.title, description: input.description,
           long_description: input.long_description, note: input.note, creator_name: input.first_name,
           categoryIds: input.category_ids, keyHash: createHash('sha256').update(appKey).digest('hex'),
+          // a partner (e.g. Shipholm Studio) labels the submission and may vouch for the address
+          source: ctx.partner || null, emailVerified: Boolean(ctx.partner && input.email_verified),
         });
         const unknownPoints = input.curriculum_ids ? store.setCurriculum(id, input.curriculum_ids) : [];
-        store.sendConfirmation(id).catch(() => {});
+        const vouched = Boolean(ctx.partner && input.email_verified);
+        if (!vouched) store.sendConfirmation(id).catch(() => {});
         // the reviewer sees the outcome next to the submission; app_status shows it to the agent
         checkApp?.(input.url).then((result) => store.saveCheck(id, result)).catch(() => {});
         return {
           id, app_key: appKey, status: 'pending',
+          email_confirmed: vouched,
           next: [
-            `Be ${input.first_name} öppna mejlet från Skolappar och klicka på länken. Utan det publiceras appen inte.`,
+            vouched ? 'E-postadressen är verifierad av partnern; inget bekräftelsemejl skickas.'
+              : `Be ${input.first_name} öppna mejlet från Skolappar och klicka på länken. Utan det publiceras appen inte.`,
             'Appar granskas en gång om dagen. Läs läget med app_status.',
             'Spara app_key: den visas inte igen.',
           ],
