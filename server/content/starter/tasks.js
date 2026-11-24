@@ -3,9 +3,12 @@
 // makeTask(level) returns one task:
 //   prompt   what is shown, short
 //   say      what is read aloud (Swedish, a full sentence)
+//   sound    optional: the id of a recorded line in ljud/ (ljud/<id>.mp3) that says `say`; without it,
+//            or when the file is missing, the browser's own voice reads `say`
 //   options  the answers to choose from (2–4), as strings
 //   answer   the right one (must be one of options)
 //   hint     shown after a wrong answer – help, not the answer
+//   hintSound optional: a recorded line for "Nästan!" + the hint, like sound
 //   picture  optional: {filled, total} draws dots (see drawPicture in app.js)
 //
 // Levels start at 1 and go up when the child gets things right, down when it is hard.
@@ -29,9 +32,11 @@ export function makeTask(level) {
   return {
     prompt: `${n} + ? = 10`,
     say: `Vilket tal ska du lägga till ${n} för att få tio?`,
+    sound: `fraga-${n}`,   // ljud/fraga-1.mp3 … fraga-9.mp3, made with Shipholm's speak (see ljud/lines.json)
     options: shuffle([answer, ...wrong]).map(String),
     answer: String(answer),
     hint: level < 3 ? 'Räkna de tomma ringarna.' : `Räkna upp från ${n} till tio.`,
+    hintSound: level < 3 ? 'nastan-ringar' : null,
     picture: level < 3 ? { filled: n, total: 10 } : null,
   };
 }

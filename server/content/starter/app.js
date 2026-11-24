@@ -51,14 +51,25 @@ function paintSound() {
   $('sound').setAttribute('aria-label', soundOn ? 'Ljud på' : 'Ljud av');
 }
 
-// ---- speech: the browser's own Swedish voice, for those who do not read yet ----
-function speak(text) {
-  if (!soundOn || !('speechSynthesis' in window)) return;
+// ---- speech, for those who do not read yet: a recorded line (ljud/<id>.mp3) when there is one –
+// the same voice on every device, offline too – otherwise the browser's own Swedish voice ----
+let playing = null;
+function browserVoice(text) {
+  if (!('speechSynthesis' in window)) return;
   speechSynthesis.cancel();
   const u = new SpeechSynthesisUtterance(text);
   u.lang = 'sv-SE';
   u.rate = 0.9;
   speechSynthesis.speak(u);
+}
+function speak(text, sound) {
+  if (!soundOn) return;
+  if (playing) { playing.pause(); playing = null; }
+  if ('speechSynthesis' in window) speechSynthesis.cancel();
+  if (!sound) return browserVoice(text);
+  const audio = new Audio(`ljud/${sound}.mp3`);
+  playing = audio;
+  audio.play().catch(() => { if (playing === audio) browserVoice(text); });
 }
 
 // ---- a round ----
@@ -111,6 +122,7 @@ function choose(button, option) {
     button.textContent = `${option} ✗`;
     $('feedback').textContent = `Nästan! ${task.hint}`;
     sounds.wrong();
+    setTimeout(() => speak(`Nästan! ${task.hint}`, task.hintSound), 300);
     report('hint');
     return;
   }
@@ -154,6 +166,7 @@ function finish() {
   });
   show('done');
   sounds.done();
+  setTimeout(() => speak('Bra jobbat!', 'bra-jobbat'), 600);
 }
 
 function start() {
@@ -162,7 +175,7 @@ function start() {
   report('round_start');
   report('level', level);
   nextTask();
-  speak(round.task.say);
+  speak(round.task.say, round.task.sound);
 }
 
 // ---- wiring ----
@@ -174,11 +187,12 @@ if (saved.best) $('best').textContent = `Ditt bästa: ${stars(saved.best)}`;
 paintSound();
 $('play').addEventListener('click', start);
 $('again').addEventListener('click', start);
-$('speak').addEventListener('click', () => speak(round.task.say));
+$('speak').addEventListener('click', () => speak(round.task.say, round.task.sound));
 $('sound').addEventListener('click', () => {
   soundOn = !soundOn;
   store.write({ sound: soundOn });
   if (!soundOn && 'speechSynthesis' in window) speechSynthesis.cancel();
+  if (!soundOn && playing) { playing.pause(); playing = null; }
   if (!soundOn) report('sound_off');
   paintSound();
 });

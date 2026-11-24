@@ -28,3 +28,11 @@ It follows the build guide at https://www.skolappar.com/bygg:
 Then check and submit the app over MCP at https://www.skolappar.com/mcp (`check_app`, `submit_app`).
 
 The template is free to use and change, with or without saying where it came from.
+
+## Uppläsning
+
+Frågorna läses upp med inspelade repliker i `ljud/` (en MP3 per replik, gjorda med Shipholms
+`speak`, rösten `nst`). Texterna står i `ljud/lines.json`. Byter du innehåll i `tasks.js`: skriv nya
+repliker i `lines.json`, gör filerna med `speak` (skill `shipholm-voice`), ladda ner dem till `ljud/`
+och sätt `sound`/`hintSound` på uppgifterna. Saknas en fil läser webbläsarens egen röst upp `say` i
+stället, så appen fungerar även utan ljudfiler.

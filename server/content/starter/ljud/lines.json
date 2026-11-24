@@ -1,0 +1,46 @@
+[
+  {
+    "id": "fraga-1",
+    "text": "Vilket tal ska du lägga till 1 för att få tio?"
+  },
+  {
+    "id": "fraga-2",
+    "text": "Vilket tal ska du lägga till 2 för att få tio?"
+  },
+  {
+    "id": "fraga-3",
+    "text": "Vilket tal ska du lägga till 3 för att få tio?"
+  },
+  {
+    "id": "fraga-4",
+    "text": "Vilket tal ska du lägga till 4 för att få tio?"
+  },
+  {
+    "id": "fraga-5",
+    "text": "Vilket tal ska du lägga till 5 för att få tio?"
+  },
+  {
+    "id": "fraga-6",
+    "text": "Vilket tal ska du lägga till 6 för att få tio?"
+  },
+  {
+    "id": "fraga-7",
+    "text": "Vilket tal ska du lägga till 7 för att få tio?"
+  },
+  {
+    "id": "fraga-8",
+    "text": "Vilket tal ska du lägga till 8 för att få tio?"
+  },
+  {
+    "id": "fraga-9",
+    "text": "Vilket tal ska du lägga till 9 för att få tio?"
+  },
+  {
+    "id": "nastan-ringar",
+    "text": "Nästan! Räkna de tomma ringarna."
+  },
+  {
+    "id": "bra-jobbat",
+    "text": "Bra jobbat!"
+  }
+]

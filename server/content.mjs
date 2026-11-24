@@ -13,11 +13,20 @@ const TYPES = {
   '.svg': 'image/svg+xml',
   '.webmanifest': 'application/manifest+json; charset=utf-8',
   '.md': 'text/markdown; charset=utf-8',
+  '.json': 'application/json; charset=utf-8',
+  '.mp3': 'audio/mpeg',
 };
+const BINARY = new Set(['.mp3']);
 
-function readDir(dir) {
-  return readdirSync(dir).filter((name) => statSync(join(dir, name)).isFile()).sort()
-    .map((name) => ({ path: name, type: TYPES[extname(name)] || 'text/plain; charset=utf-8', content: readFileSync(join(dir, name), 'utf8') }));
+/** Every file under dir (one level of folders, e.g. ljud/), path relative to dir; recordings as Buffers. */
+function readDir(dir, prefix = '') {
+  return readdirSync(dir).sort().flatMap((name) => {
+    const full = join(dir, name);
+    if (statSync(full).isDirectory()) return prefix ? [] : readDir(full, `${name}/`);
+    const ext = extname(name);
+    return [{ path: prefix + name, type: TYPES[ext] || 'text/plain; charset=utf-8', binary: BINARY.has(ext),
+      content: BINARY.has(ext) ? readFileSync(full) : readFileSync(full, 'utf8') }];
+  });
 }
 
 /** name and description from the front matter of a SKILL.md. */

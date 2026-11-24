@@ -25,11 +25,14 @@ innehåll ligger på `https://www.skolappar.com/guide.md` och `https://www.skola
 5. **Lägg in kodsnutten** (startmallen har den): en rad `<script src="https://www.skolappar.com/kotten.js" defer>`
    och `skolappar.event('level', n)` när barnet når en nivå, `skolappar.event('round_start')` och `skolappar.event('round_done', procent)` runt en omgång.
    Då visar `app_stats` hur långt barnen kommer och var de slutar – anonymt. Guidens avsnitt `kodsnutten`.
-6. **Gör det till barnets app**: eget namn, egna färger, en figur eller ett tema barnet valt.
+6. **Ge appen en röst**: det appen säger varje gång (frågor, beröm) blir inspelade repliker – Shipholms
+   verktyg speak gör MP3-filer med en svensk röst, gratis (skill shipholm-voice). Ladda ner dem till
+   appen; webbläsarens röst läser resten. Guidens avsnitt `resurser`.
+7. **Gör det till barnets app**: eget namn, egna färger, en figur eller ett tema barnet valt.
    Material som får användas fritt står i guidens avsnitt `resurser`.
-7. **Prova som ett barn**: i webbläsarens enhetsläge 1024 × 768 och 768 × 1024, med bara klick.
+8. **Prova som ett barn**: i webbläsarens enhetsläge 1024 × 768 och 768 × 1024, med bara klick.
    Svara fel med flit – får man en ledtråd och ett nytt försök? Tar en omgång slut?
-8. **Gå igenom checklistan** (`get_guide` med `section: "checklista"`).
+9. **Gå igenom checklistan** (`get_guide` med `section: "checklista"`).
 
 ## Det som oftast går fel
 

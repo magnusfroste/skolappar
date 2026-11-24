@@ -651,7 +651,7 @@ a.btn{display:inline-block;margin-top:16px;padding:12px 22px;border-radius:999px
       res.writeHead(301, { Location: '/starter/' });
       return res.end();
     }
-    const starterFile = /^\/starter\/([\w.-]*)$/.exec(path);
+    const starterFile = /^\/starter\/((?:ljud\/)?[\w.-]*)$/.exec(path);
     if (starterFile) {
       const f = content.starterFile(starterFile[1] || 'index.html');
       if (f) {
