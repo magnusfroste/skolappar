@@ -248,6 +248,7 @@ export function createStore(db, { mailer, curriculum, shipholm, siteUrl = 'https
     if (admin) {
       app.check = checkSummary(r);
       app.origin_url = r.origin_url;
+      app.source = r.source;
       app.proposed_change = parseChange(r.proposed_change);
       app.address_note = r.address_note;
       app.submitter_email = r.submitter_email;
@@ -611,7 +612,7 @@ export function createStore(db, { mailer, curriculum, shipholm, siteUrl = 'https
    * A new suggestion, waiting for review. From the form: url and email. From an agent (MCP
    * submit_app): also the creator's first name, categories and the hash of the app's own key.
    */
-  function createSubmission({ url, email, title, description, long_description, note, creator_name, categoryIds, keyHash }) {
+  function createSubmission({ url, email, title, description, long_description, note, creator_name, categoryIds, keyHash, source = null, emailVerified = false }) {
     const id = randomUUID();
     const token = randomBytes(24).toString('base64url');
     const t = now();
@@ -622,10 +623,10 @@ export function createStore(db, { mailer, curriculum, shipholm, siteUrl = 'https
     return transaction(db, () => {
       db.prepare(
         `INSERT INTO apps (id, title, description, long_description, url, status, creator_name, submitter_email, submitter_note,
-           email_confirmed, confirm_token, app_key_hash, created_at, updated_at)
-         VALUES (?, ?, ?, ?, ?, 'pending', ?, ?, ?, 0, ?, ?, ?, ?)`
+           email_confirmed, confirm_token, app_key_hash, source, created_at, updated_at)
+         VALUES (?, ?, ?, ?, ?, 'pending', ?, ?, ?, ?, ?, ?, ?, ?, ?)`
       ).run(id, title || fallbackTitle, description || '', nul(long_description), url, nul(creator_name), email, nul(note),
-        token, nul(keyHash), t, t);
+        emailVerified ? 1 : 0, token, nul(keyHash), nul(source), t, t);
       const unknown = categoryIds?.length ? setAppCategories(id, categoryIds) : [];
       return { id, token, unknown_category_ids: unknown };
     });

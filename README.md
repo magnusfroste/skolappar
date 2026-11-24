@@ -46,6 +46,7 @@ part, without a key, where a parent's agent submits the app it built and follows
 | `MAIL_API_URL` | for `resend` | endpoint of a Resend-compatible API |
 | `SUBMIT_RATE_LIMIT` | no | submissions and ideas per IP and hour (default 5) |
 | `SHIPHOLM_API_KEY` | no (secret) | an API key of the Shipholm account that serves skolappar.com. With it an app at `<name>.shipholm.dev` gets `<name>.skolappar.com` when it is approved (Shipholm's `grant_subdomain`) and gives it back when it is delisted or deleted (`server/shipholm.mjs`, `syncAddress` in the store). Without it apps keep the address they came with |
+| `PARTNER_KEYS` | no (secret) | partners such as Shipholm Studio, as `name:sha256hex` pairs (comma separated). A partner sends its key as `X-Partner-Key` on `/mcp` and on the image upload. It opens no admin tool. It gets its own limits instead of the per-IP ones (submit 100, check 500, image 200 an hour), its submissions carry `source: <name>`, and `submit_app(email_verified: true)` skips the confirmation mail – for an address the partner has verified itself. A key that matches no partner is 401 |
 | `CHECK_RATE_LIMIT` | no | `check_app` calls without a key per IP and hour (default 30) |
 | `ALLOW_PRIVATE_FETCH` | no | `true` lets image downloads and `check_app` reach private addresses – local development only |
 
