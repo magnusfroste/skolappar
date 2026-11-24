@@ -16,6 +16,7 @@ import { useSiteConfig } from "@/hooks/useSiteConfig";
 import { useApps, useCategories } from "@/hooks/useApps";
 import { KottenHello } from "@/components/KottenHello";
 import { ForestEdge } from "@/components/ForestEdge";
+import { WeeklyRocket } from "@/components/WeeklyRocket";
 
 const HOME_LIMIT = 12;
 const HOME_PAGE = 8;
@@ -101,6 +102,11 @@ export default function Index() {
           <KottenHello className="h-40 w-40 flex-none md:h-64 md:w-64" />
         </div>
         <ForestEdge className="mt-4 block h-10 w-full rounded-b-3xl md:h-16" />
+      </section>
+
+      <WeeklyRocket onPlay={(app) => { trackClick.mutate(app.id); setPlaying({ url: app.url, title: app.title }); }} />
+
+      <section className="container mx-auto px-4 pt-2 pb-6">
 
         {(subjects.length > 0 || ages.length > 0) && (
           <div id="appar" className="mt-8 flex flex-wrap items-center gap-2 scroll-mt-24">

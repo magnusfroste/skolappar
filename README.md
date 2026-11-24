@@ -26,6 +26,7 @@ part, without a key, where a parent's agent submits the app it built and follows
 | `server/safefetch.mjs` | fetches addresses given by visitors and agents (card images, `check_app`); refuses private, loopback and link-local addresses at every hop |
 | `server/content.mjs`, `server/content/` | the starter template (`content/starter/`, live at `/starter/`, MCP `get_starter`) and the agent skills (`content/skills/<name>/SKILL.md`, `/skills`, MCP `list_skills`/`get_skill`): plain files, read at start |
 | `server/curriculum.mjs`, `server/content/lgr22.json` | Lgr22: the central content of 17 subjects from Skolverket's open Syllabus API, built by `node scripts/lgr22.mjs` (run again when a syllabus changes, and read the diff: ids are by position). MCP `get_curriculum`, `GET /api/curriculum`; an app is linked with `curriculum_ids` (table `app_curriculum`), shown on its page and filtered on with `/api/apps?lgr=<area>` |
+| `src/components/WeeklyRocket.tsx` | "Veckans spelraket" on the start page: the listed app whose id is in the setting `weekly_app_id` (set with `set_setting`; Hermes can rotate it weekly). Hidden when the setting is empty or the app is not listed |
 | `server/guide.mjs` | the build guide "Så bygger du en skolapp": one text for the page `/bygg`, `/guide.md`, `/api/guide`, `llms.txt` and the MCP tool `get_guide` |
 | `server/importer.mjs` | one-shot import of the old Supabase data (`POST /api/admin/import`) |
 | `server/mailer.mjs` | outgoing mail behind one interface: Cloudflare, Brevo, a Resend-compatible API or a logging stub |
