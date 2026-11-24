@@ -435,6 +435,17 @@ describe('with ADMIN_KEY', () => {
     assert.equal((await pub('GET', '/api/landing/nope')).status, 404);
     assert.match((await pub('GET', '/sitemap.xml')).text, /<loc>https:\/\/skolappar\.test\/appar\/matte<\/loc>/);
 
+    // a hidden article goes where the setting says; an article under another category moves to its own
+    const manual = (path) => fetch(s.base + path, { redirect: 'manual' });
+    assert.equal((await manual('/resurser/tips/gammal-artikel')).status, 404);
+    await admin('PUT', '/api/admin/settings/resource_redirects', { value: { 'gammal-artikel': '/resurser/tips/kom-igang' } });
+    const moved = await manual('/resurser/tips/gammal-artikel');
+    assert.equal(moved.status, 301);
+    assert.equal(moved.headers.get('location'), '/resurser/tips/kom-igang');
+    const wrongCategory = await manual('/resurser/lara/kom-igang');
+    assert.equal(wrongCategory.status, 301);
+    assert.equal(wrongCategory.headers.get('location'), '/resurser/tips/kom-igang');
+
     const none = await pub('GET', '/finns-inte');
     assert.equal(none.status, 404);
     assert.match(none.text, /name="robots" content="noindex, follow"/);

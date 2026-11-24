@@ -681,6 +681,10 @@ li{margin:12px 0}code{display:block;margin-top:4px;padding:8px 10px;background:#
     // Every page gets its own title, description, canonical address and text in the HTML itself
     // (server/prerender.mjs); an address that is no page answers 404 with the app's "finns inte".
     const page = pageFor(path, { store, siteUrl: config.siteUrl });
+    if (page.location) {
+      res.writeHead(page.status, { Location: page.location, 'Cache-Control': 'public, max-age=3600' });
+      return res.end();
+    }
     return statics.serveIndex(req, res, (html) => applyPage(html, page), page.status);
   }
 
