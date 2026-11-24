@@ -38,6 +38,12 @@ export function PublicFooter() {
             <span className="text-muted-foreground"># Magnus Froste</span>
           </div>
         </div>
+        {/* The apps per subject – pages search engines can find */}
+        <nav aria-label="Appar per ämne" className="mt-4 flex flex-wrap justify-center gap-x-3 gap-y-1 text-sm">
+          {[["matte", "Matteappar"], ["sprak", "Språkappar"], ["stem", "STEM-appar"], ["samhalle", "Samhällsappar"], ["kreativt", "Kreativa appar"]].map(([slug, name]) => (
+            <Link key={slug} to={`/appar/${slug}`} className="text-muted-foreground hover:text-foreground transition-colors">{name}</Link>
+          ))}
+        </nav>
         {/* What the gallery stands on – and where a parent can start */}
         <p className="mt-4 text-center text-xs text-muted-foreground">
           Från Sverige{" · "}följer Lgr22{" · "}byggs i{" "}

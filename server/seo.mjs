@@ -1,5 +1,6 @@
-// /llms.txt, /sitemap.xml and server-side meta tags for app pages.
-import { escapeHtml } from './http.mjs';
+// /llms.txt and /sitemap.xml. The meta tags and text of each page: prerender.mjs.
+import { resourcePath } from './prerender.mjs';
+import { landingPages, landingPath } from './landing.mjs';
 
 const xml = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
 const day = (iso) => (iso ? new Date(iso).toISOString().slice(0, 10) : new Date().toISOString().slice(0, 10));
@@ -30,9 +31,15 @@ export function buildLlmsTxt(store, siteUrl) {
     for (const a of apps) out += `- [${a.title}](${siteUrl}/app/${a.id}): ${a.description}\n`;
     out += '\n';
   }
+  const subjects = landingPages(store);
+  if (subjects.length) {
+    out += '## Apps by subject and grade\n\n';
+    for (const l of subjects) out += `- ${siteUrl}${landingPath(l.subject, l.age)} (${l.count} apps)\n`;
+    out += '\n';
+  }
   if (resources.length) {
     out += '## Resources & Guides\n\n';
-    for (const r of resources) out += `- [${r.title}](${siteUrl}/resurser/${r.category}/${r.slug})${r.excerpt ? `: ${r.excerpt}` : ''}\n`;
+    for (const r of resources) out += `- [${r.title}](${siteUrl}${resourcePath(r)})${r.excerpt ? `: ${r.excerpt}` : ''}\n`;
     out += '\n';
   }
   out += '## For AI agents\n\n' +
@@ -69,38 +76,10 @@ export function buildSitemap(store, siteUrl) {
     urls.push(`  <url>\n    <loc>${xml(`${siteUrl}/app/${a.id}`)}</loc>\n    <lastmod>${day(a.updated_at)}</lastmod>\n    <changefreq>weekly</changefreq>\n    <priority>0.7</priority>\n  </url>`);
   }
   for (const r of store.listResources({ withContent: false })) {
-    urls.push(`  <url>\n    <loc>${xml(`${siteUrl}/resurser/${r.category}/${r.slug}`)}</loc>\n    <lastmod>${day(r.updated_at)}</lastmod>\n    <changefreq>weekly</changefreq>\n    <priority>0.6</priority>\n  </url>`);
+    urls.push(`  <url>\n    <loc>${xml(siteUrl + resourcePath(r))}</loc>\n    <lastmod>${day(r.updated_at)}</lastmod>\n    <changefreq>weekly</changefreq>\n    <priority>0.6</priority>\n  </url>`);
+  }
+  for (const l of landingPages(store)) {
+    urls.push(`  <url>\n    <loc>${xml(siteUrl + landingPath(l.subject, l.age))}</loc>\n    <lastmod>${today}</lastmod>\n    <changefreq>weekly</changefreq>\n    <priority>${l.age ? '0.7' : '0.8'}</priority>\n  </url>`);
   }
   return `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n${urls.join('\n')}\n</urlset>\n`;
-}
-
-/**
- * Put an app's title, description and image into index.html, so link previews
- * and crawlers that do not run JavaScript see the right page.
- */
-export function injectAppMeta(html, app, siteUrl) {
-  const title = `${app.title} – Skolappar`;
-  const desc = (app.description || app.long_description || '').slice(0, 300);
-  const pageUrl = `${siteUrl}/app/${app.id}`;
-  let image = app.image_url || '';
-  if (image.startsWith('/')) image = siteUrl + image;
-  const t = escapeHtml(title);
-  const d = escapeHtml(desc);
-  const setMeta = (doc, attr, name, value) => {
-    const re = new RegExp(`<meta\\s+${attr}="${name}"\\s+content="[^"]*"\\s*/?>`, 'i');
-    const tag = `<meta ${attr}="${name}" content="${value}" />`;
-    return re.test(doc) ? doc.replace(re, tag) : doc.replace('</head>', `  ${tag}\n</head>`);
-  };
-  let out = html.replace(/<title>[^<]*<\/title>/i, `<title>${t}</title>`);
-  out = setMeta(out, 'name', 'description', d);
-  out = setMeta(out, 'property', 'og:title', t);
-  out = setMeta(out, 'property', 'og:description', d);
-  out = setMeta(out, 'property', 'og:url', escapeHtml(pageUrl));
-  out = setMeta(out, 'name', 'twitter:title', t);
-  out = setMeta(out, 'name', 'twitter:description', d);
-  if (image) {
-    out = setMeta(out, 'property', 'og:image', escapeHtml(image));
-    out = setMeta(out, 'name', 'twitter:image', escapeHtml(image));
-  }
-  return out;
 }

@@ -4,6 +4,7 @@
 // (ported from the old Supabase mcp-key function, minus users, roles and comments) plus the
 // open tools that have no admin counterpart.
 import { POINT_ID } from './curriculum.mjs';
+import { editMarkdown } from './markdown.mjs';
 import { IMAGE_HINT } from './guide.mjs';
 import { validate, ValidationError } from './validate.mjs';
 import { APP_STATUSES, IDEA_STATUSES } from './store.mjs';
@@ -322,6 +323,49 @@ export function createTools({ store, images }) {
           return fail('title, slug, content och category krävs för en ny resurs.');
         }
         return store.createResource(patch);
+      },
+    },
+    {
+      name: 'get_resource',
+      title: 'Läs resurs',
+      description: 'En kunskapsartikel med hela innehållet (Markdown), även opublicerad. Ange id eller slug. Läs den innan du ändrar delar av den med edit_resource.',
+      inputSchema: obj({ id: uuid, slug: { type: 'string', pattern: '^[a-z0-9-]+$', maxLength: 160 } }),
+      annotations: RO,
+      handler: ({ id, slug }) => {
+        const r = id ? store.getResource(id) : slug ? store.listResources({ publishedOnly: false }).find((x) => x.slug === slug) : null;
+        return r ?? fail(id || slug ? 'Resursen hittades inte.' : 'Ange id eller slug.');
+      },
+    },
+    {
+      name: 'edit_resource',
+      title: 'Ändra delar av en resurs',
+      description:
+        'Ändra delar av en kunskapsartikels innehåll utan att skicka hela texten. Varje ändring är antingen ' +
+        '{old_str, new_str} (old_str måste finnas exakt en gång; tom new_str tar bort) eller ' +
+        '{section, content} (ersätter texten under rubriken section fram till nästa rubrik på samma eller högre nivå; ' +
+        'remove: true tar bort avsnittet med rubrik). Allt eller inget: misslyckas en ändring sparas ingen. ' +
+        'Titel, utdrag, kategori och publicering ändras med upsert_resource.',
+      inputSchema: obj({
+        id: uuid,
+        edits: {
+          type: 'array', minItems: 1, maxItems: 50,
+          items: obj({
+            old_str: { type: 'string', maxLength: 20000 },
+            new_str: { type: 'string', maxLength: 20000 },
+            section: { type: 'string', maxLength: 200 },
+            content: { type: 'string', maxLength: 50000 },
+            remove: { type: 'boolean' },
+          }),
+        },
+      }, ['id', 'edits']),
+      annotations: RW,
+      handler: ({ id, edits }) => {
+        const r = store.getResource(id);
+        if (!r) return fail('Resursen hittades inte.');
+        const out = editMarkdown(r.content, edits);
+        if (out.error) return fail(out.error);
+        if (out.content.length > 100000) return fail('Innehållet blir för långt (högst 100 000 tecken).');
+        return store.updateResource(id, { content: out.content });
       },
     },
     {

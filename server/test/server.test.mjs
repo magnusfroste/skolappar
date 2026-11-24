@@ -360,7 +360,7 @@ describe('with ADMIN_KEY', () => {
   test('app pages, llms.txt and sitemap.xml', async () => {
     const page = await pub('GET', `/app/${APP1}`);
     assert.equal(page.status, 200);
-    assert.match(page.text, /<title>Plusspelet – Skolappar<\/title>/);
+    assert.match(page.text, /<title>Plusspelet \| Skolappar<\/title>/);
     assert.match(page.text, /og:image" content="https:\/\/skolappar\.test\/images\//);
     const pendingPage = await pub('GET', `/app/${PENDING}`);
     assert.doesNotMatch(pendingPage.text, /Hemlig/);
@@ -376,12 +376,81 @@ describe('with ADMIN_KEY', () => {
     assert.doesNotMatch(sitemap.text, /utkast/);
   });
 
+  test('an agent edits parts of an article over MCP', async () => {
+    let n = 0;
+    const call = async (who, name, args = {}) => {
+      const r = await who('POST', '/mcp', { jsonrpc: '2.0', id: ++n, method: 'tools/call', params: { name, arguments: args } });
+      if (r.json.error) return { ok: false, text: r.json.error.message };
+      const res = r.json.result;
+      return { ok: !res.isError, text: res.content[0].text, data: res.structuredContent?.result ?? res.structuredContent };
+    };
+    const id = 'eeeeeeee-eeee-4eee-8eee-eeeeeeeeeeee';
+    const before = (await call(admin, 'get_resource', { slug: 'kom-igang' })).data;
+    assert.equal(before.id, id);
+    const r = await call(admin, 'edit_resource', { id, edits: [{ old_str: '# Hej', new_str: '# Hej\n\n## Steg\n\nGör så här.' }] });
+    assert.equal(r.ok, true, r.text);
+    assert.match((await call(admin, 'edit_resource', { id, edits: [{ section: 'Steg', content: 'Gör så här i stället.' }] })).data.content, /## Steg\n\nGör så här i stället\./);
+    const bad = await call(admin, 'edit_resource', { id, edits: [{ old_str: 'finns inte', new_str: 'x' }] });
+    assert.equal(bad.ok, false);
+    assert.match((await call(admin, 'get_resource', { id })).data.content, /i stället/, 'a failed edit changes nothing');
+    assert.equal((await call(pub, 'edit_resource', { id, edits: [{ old_str: 'Hej', new_str: 'x' }] })).ok, false, 'not without a key');
+  });
+
+  test('every page has its own title, description, canonical address and text in the HTML; no page is 404', async () => {
+    const meta = (html, re) => re.exec(html)?.[1];
+    const canonical = (html) => meta(html, /<link rel="canonical" href="([^"]+)"/);
+
+    const app = await pub('GET', `/app/${APP1}`);
+    assert.equal(canonical(app.text), `https://skolappar.test/app/${APP1}`, 'an app page is not a copy of the start page');
+    assert.match(app.text, /<main class="ssr"><h1>Plusspelet<\/h1>/);
+    assert.match(app.text, /"@type":"LearningResource"/);
+    assert.ok(app.text.indexOf('class="ssr"') > app.text.indexOf('app-loading'), 'the text comes after the loading screen');
+
+    const article = await pub('GET', '/resurser/tips/kom-igang');
+    assert.equal(article.status, 200);
+    assert.equal(canonical(article.text), 'https://skolappar.test/resurser/tips/kom-igang');
+    assert.match(article.text, /<title>Kom igång \| Skolappar<\/title>/);
+    assert.match(article.text, /name="description" content="Så börjar du"/);
+    assert.match(article.text, /"@type":"Article"/);
+    assert.equal((await pub('GET', '/resurser/tips/finns-inte')).status, 404);
+    assert.equal(canonical((await pub('GET', '/resurser/tips')).text), 'https://skolappar.test/resurser/tips');
+
+    const guide = await pub('GET', '/bygg');
+    assert.match(guide.text, /<h1>Så bygger du en skolapp<\/h1>/);
+    assert.match(guide.text, /<h2>/);
+
+    const home = await pub('GET', '/');
+    assert.equal(canonical(home.text), 'https://skolappar.test/');
+    assert.match(home.text, new RegExp(`href="/app/${APP1}"`));
+    assert.doesNotMatch(home.text, /Hemlig/, 'nothing unreviewed');
+
+    // subject pages: a subject with apps; a subject or grade without enough apps is no page
+    const subject = await pub('GET', '/appar/matte');
+    assert.equal(subject.status, 200);
+    assert.match(subject.text, /<h1>Matteappar för barn<\/h1>/);
+    assert.match(subject.text, /"@type":"CollectionPage"/);
+    assert.equal((await pub('GET', '/api/landing/matte')).json.apps.length, 2);
+    assert.equal((await pub('GET', '/appar/kreativt')).status, 404);
+    assert.equal((await pub('GET', '/appar/matte/7-9')).status, 404);
+    assert.equal((await pub('GET', '/api/landing/nope')).status, 404);
+    assert.match((await pub('GET', '/sitemap.xml')).text, /<loc>https:\/\/skolappar\.test\/appar\/matte<\/loc>/);
+
+    const none = await pub('GET', '/finns-inte');
+    assert.equal(none.status, 404);
+    assert.match(none.text, /name="robots" content="noindex, follow"/);
+    assert.doesNotMatch(none.text, /rel="canonical"/);
+    assert.match((await pub('GET', '/admin')).text, /noindex/);
+  });
+
   test('static files: hashed assets are immutable, unknown API paths are JSON 404', async () => {
     const asset = await pub('GET', '/assets/app-abc123.js');
     assert.equal(asset.status, 200);
     assert.match(asset.headers.get('cache-control'), /immutable/);
     assert.equal((await pub('GET', '/assets/missing.js')).status, 404);
-    assert.equal((await pub('GET', '/../../etc/passwd')).status, 200); // normalised to the SPA, never a file outside dist
+    const outside = await pub('GET', '/../../etc/passwd'); // normalised to the SPA (a page that does not exist), never a file outside dist
+    assert.equal(outside.status, 404);
+    assert.match(outside.headers.get('content-type'), /text\/html/);
+    assert.doesNotMatch(outside.text, /root:/);
     const nf = await pub('GET', '/api/nope');
     assert.equal(nf.status, 404);
     assert.equal(nf.json.error, 'Not found');
