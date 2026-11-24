@@ -348,3 +348,36 @@ export function useAppAnalytics(days: AnalyticsPeriod) {
     refetchInterval: 60_000,
   });
 }
+
+/** A change a maker proposed to a listed app, next to what is listed now (list_changes over MCP). */
+export interface AppChange {
+  id: string;
+  title: string;
+  url: string;
+  status: string;
+  page: string;
+  listed: Record<string, string | null>;
+  proposed: {
+    at?: string;
+    fields: Record<string, string | null>;
+    category_ids?: string[];
+    curriculum_ids?: string[];
+    note?: string;
+  };
+}
+
+export function useAdminChanges(enabled = true) {
+  return useQuery({ queryKey: ['admin-changes'], queryFn: () => adminApi.get<AppChange[]>('/api/admin/changes'), enabled });
+}
+
+export function useReviewChange() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({ appId, approve, reason }: { appId: string; approve: boolean; reason?: string }) =>
+      adminApi.post(`/api/admin/apps/${appId}/change`, { approve, ...(reason ? { reason } : {}) }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['admin-changes'] });
+      invalidateApps(queryClient);
+    },
+  });
+}
