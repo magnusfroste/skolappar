@@ -549,10 +549,45 @@ li{margin:12px 0}code{display:block;margin-top:4px;padding:8px 10px;background:#
     return simplePage('Nya nycklar', 'Ge id och nyckel till din agent. Nycklarna visas bara nu; de gamla gäller inte längre.', `<ul>${list}</ul><a class="btn" href="/">Till Skolappar</a>`);
   }
 
+  /** The page for an unused <name>.<domain>: Kotten, the closest app names, the catalogue. */
+  function noSuchAppPage(name, apps) {
+    const slug = (s) => String(s || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-z0-9]+/g, '');
+    const distance = (a, b) => {
+      const d = Array.from({ length: a.length + 1 }, (_, i) => [i, ...Array(b.length).fill(0)]);
+      for (let j = 1; j <= b.length; j++) d[0][j] = j;
+      for (let i = 1; i <= a.length; i++) for (let j = 1; j <= b.length; j++) {
+        d[i][j] = Math.min(d[i - 1][j] + 1, d[i][j - 1] + 1, d[i - 1][j - 1] + (a[i - 1] === b[j - 1] ? 0 : 1));
+      }
+      return d[a.length][b.length];
+    };
+    const wanted = slug(name);
+    const close = apps.map((a) => {
+      let host = '';
+      try { host = new URL(a.url).hostname.split('.')[0]; } catch { /* none */ }
+      const score = Math.min(distance(wanted, slug(host)), distance(wanted, slug(a.title)),
+        slug(a.title).includes(wanted) || wanted.includes(slug(host)) ? 1 : 99);
+      return { a, score };
+    }).filter((x) => wanted.length >= 3 && x.score <= Math.max(2, Math.floor(wanted.length / 3)))
+      .sort((x, y) => x.score - y.score).slice(0, 3).map((x) => x.a);
+    const site = config.siteUrl;
+    const list = close.length
+      ? `<p>Menade du</p><ul>${close.map((a) => `<li><a href="${escapeHtml(a.url)}">${escapeHtml(a.title)}</a></li>`).join('')}</ul>`
+      : '';
+    return `<!doctype html><html lang="sv"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex"><title>Den appen finns inte – Skolappar</title><link rel="icon" href="${site}/favicon.svg" type="image/svg+xml">
+<style>body{font-family:ui-rounded,system-ui,sans-serif;background:#fffcf5;color:#1f1f33;display:flex;min-height:100vh;align-items:center;justify-content:center;margin:0;padding:16px;text-align:center}
+main{max-width:520px}img{width:140px;height:140px}h1{margin:.5em 0 .2em}ul{list-style:none;padding:0}li{margin:8px 0}a{color:#c2410c;font-weight:600}
+a.btn{display:inline-block;margin-top:16px;padding:12px 22px;border-radius:999px;background:#f0613a;color:#fff;text-decoration:none}</style></head>
+<body><main><img src="${site}/icon-512.png" alt=""><h1>Den appen finns inte</h1>
+<p>Kotten har letat, men ingen app heter <strong>${escapeHtml(name)}.${escapeHtml(baseHost)}</strong>.</p>${list}
+<a class="btn" href="${site}/apps">Alla appar på Skolappar</a></main></body></html>`;
+  }
+
   // When the site lives on www.<domain>, the bare <domain> redirects there (one address for
   // visitors and search engines). Other hosts – <app>.shipholm.dev, previews – are served as is.
   const canonicalHost = new URL(config.siteUrl).host.toLowerCase();
   const apexHost = canonicalHost.startsWith('www.') ? canonicalHost.slice(4) : null;
+  const baseHost = apexHost || canonicalHost;
 
   async function handle(req, res) {
     const url = new URL(req.url || '/', 'http://localhost');
@@ -563,6 +598,14 @@ li{margin:12px 0}code{display:block;margin-top:4px;padding:8px 10px;background:#
       const status = req.method === 'GET' || req.method === 'HEAD' ? 301 : 308;
       res.writeHead(status, { Location: config.siteUrl + (req.url || '/'), 'Cache-Control': 'public, max-age=86400' });
       return res.end();
+    }
+
+    // <something>.skolappar.com that no app has: the platform sends it here (a wildcard route with the
+    // lowest priority) – a friendly page with Kotten and the apps whose names are closest, never the site itself
+    if (host.endsWith(`.${baseHost}`) && host !== canonicalHost && host !== `www.${baseHost}` && path !== '/healthz') {
+      const name = host.slice(0, -(baseHost.length + 1));
+      return sendText(res, 404, noSuchAppPage(name, store.listPublicApps({ sort: 'recommended' })), 'text/html; charset=utf-8',
+        { 'Cache-Control': 'no-cache', 'X-Robots-Tag': 'noindex' });
     }
 
     if (path === '/healthz') {
