@@ -10,6 +10,7 @@ export default defineConfig(() => ({
     // `npm run dev` serves the frontend; run the API with `PORT=8787 npm run dev:server`.
     proxy: {
       "/api": "http://localhost:8787",
+      "/kotten.js": "http://localhost:8787",
       "/images": "http://localhost:8787",
       "/mcp": "http://localhost:8787",
       "/llms.txt": "http://localhost:8787",

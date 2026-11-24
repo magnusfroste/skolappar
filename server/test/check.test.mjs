@@ -24,7 +24,8 @@ function fakeWeb(pages) {
 const GOOD = `<!doctype html><html lang="sv"><head><meta charset="utf-8"><title>Klockjakten</title>
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <link rel="icon" href="/icon.png"><link rel="manifest" href="/app.webmanifest">
-<link rel="stylesheet" href="/app.css"><script type="module" src="/app.js"></script></head><body><div id="root"></div></body></html>`;
+<link rel="stylesheet" href="/app.css"><script type="module" src="/app.js"></script>
+<script src="https://www.skolappar.com/kotten.js" defer></script></head><body><div id="root"></div></body></html>`;
 
 const status = (result, id) => result.checks.find((c) => c.id === id)?.status;
 
@@ -58,6 +59,7 @@ describe('check_app', () => {
     assert.equal(status(r, 'own_files'), 'warn');
     assert.equal(status(r, 'no_links_out'), 'warn');
     assert.equal(status(r, 'touch'), 'warn');
+    assert.equal(status(r, 'snippet'), 'warn');
   });
 
   test('not https, not there, not a page, behind a login', async () => {

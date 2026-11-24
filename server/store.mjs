@@ -217,6 +217,83 @@ export function createStore(db, { mailer, curriculum, shipholm, siteUrl = 'https
     });
   }
 
+  // ---------- what the snippet reports from inside an app ----------
+
+  const EVENT_NAMES = new Set(['start', 'round_start', 'round_done', 'level', 'stop', 'hint', 'sound_off']);
+  const MAX_LEVEL = 50;
+
+  /** The app served at this host (its address, or the address it came with), or null. Not a deleted one. */
+  function appAtHost(host) {
+    const h = String(host || '').toLowerCase();
+    if (!h) return null;
+    for (const r of db.prepare(`SELECT id, url, origin_url FROM apps WHERE status IN ('pending','approved','featured')`).all()) {
+      for (const u of [r.url, r.origin_url]) {
+        try { if (u && new URL(u).hostname.toLowerCase() === h) return r.id; } catch { /* skip */ }
+      }
+    }
+    return null;
+  }
+
+  /** Add one report: events [{e, v?}] and the seconds played. Unknown names are dropped. */
+  function recordEvents(appId, events = [], seconds = 0) {
+    const day = now().slice(0, 10);
+    const add = db.prepare(
+      `INSERT INTO app_events_daily (app_id, day, event, n, total) VALUES (?, ?, ?, ?, ?)
+       ON CONFLICT(app_id, day, event) DO UPDATE SET n = n + excluded.n, total = total + excluded.total`
+    );
+    let kept = 0;
+    transaction(db, () => {
+      for (const ev of events.slice(0, 50)) {
+        if (!ev || !EVENT_NAMES.has(ev.e)) continue;
+        const v = Number.isFinite(ev.v) ? Math.max(0, Math.min(100, Math.round(ev.v))) : 0;
+        add.run(appId, day, ev.e, 1, v);
+        // levels also per level, so the maker sees how far children get and where they stop
+        if ((ev.e === 'level' || ev.e === 'stop') && v >= 1 && v <= MAX_LEVEL) add.run(appId, day, `${ev.e}_${v}`, 1, 0);
+        kept++;
+      }
+      const s = Math.max(0, Math.min(7200, Math.round(Number(seconds) || 0)));
+      if (s) add.run(appId, day, 'play_seconds', 1, s);
+    });
+    return kept;
+  }
+
+  /** Per level: how many times it was reached, its share of starts, and how many visits ended there. */
+  function levelFunnel(by, starts) {
+    const out = [];
+    for (let l = 1; l <= MAX_LEVEL; l++) {
+      const reached = by[`level_${l}`]?.n || 0;
+      const stopped = by[`stop_${l}`]?.n || 0;
+      if (reached || stopped) out.push({ level: l, reached, share_of_starts: starts ? Math.round((reached / starts) * 100) / 100 : null, stopped_here: stopped });
+    }
+    return out.length ? out : null;
+  }
+
+  /** The snippet's numbers for the last 30 days, or null when the app has never reported. */
+  function inAppStats(appId) {
+    const since = new Date(Date.now() - 29 * 86400000).toISOString().slice(0, 10);
+    const rows = db.prepare('SELECT event, SUM(n) AS n, SUM(total) AS total FROM app_events_daily WHERE app_id = ? AND day >= ? GROUP BY event').all(appId, since);
+    if (!rows.length) return null;
+    const by = Object.fromEntries(rows.map((r) => [r.event, r]));
+    const n = (e) => by[e]?.n || 0;
+    const avg = (e) => (by[e]?.n ? Math.round((by[e].total / by[e].n) * 10) / 10 : null);
+    return {
+      period: 'last_30_days',
+      starts: n('start'),
+      sessions_with_time: n('play_seconds'),
+      average_minutes_played: by.play_seconds?.n ? Math.round((by.play_seconds.total / by.play_seconds.n / 60) * 10) / 10 : null,
+      rounds_started: n('round_start'),
+      rounds_done: n('round_done'),
+      share_of_rounds_finished: n('round_start') ? Math.round((n('round_done') / n('round_start')) * 100) / 100 : null,
+      average_result: avg('round_done'),
+      average_level_reached: avg('level'),
+      average_level_at_stop: avg('stop'),
+      levels: levelFunnel(by, n('start')),
+      hints: n('hint'),
+      sound_turned_off: n('sound_off'),
+      note: 'Från kodsnutten i appen (kotten.js). Antal per dag, inget om enskilda barn.',
+    };
+  }
+
   /** Keep the outcome of a check on the app. */
   function saveCheck(id, result) {
     db.prepare('UPDATE apps SET check_result = ?, check_passed = ?, checked_at = ? WHERE id = ?')
@@ -695,6 +772,7 @@ export function createStore(db, { mailer, curriculum, shipholm, siteUrl = 'https
       id: r.id, title: r.title, page: `${siteUrl}/app/${r.id}`,
       opens: { today: opensSince(dayStart(0)), last_7_days: opensSince(dayStart(6)), last_30_days: opensSince(dayStart(29)), total: r.clicks_count || 0 },
       likes: r.upvotes_count || 0,
+      in_app: inAppStats(r.id),
       rank_in_subject: rank,
       daily,
       timezone: 'UTC',
@@ -1021,7 +1099,7 @@ export function createStore(db, { mailer, curriculum, shipholm, siteUrl = 'https
     listPublicApps, listAdminApps, getApp, topApps, recentApps, relatedApps,
     createApp, updateApp, deleteApp, setAppCategories, trackClick,
     createSubmission, confirmEmail, sendConfirmation, resendMail,
-    appKeyMatches, saveCheck, proposeChange, listChanges, reviewChange, startKeyRecovery, keyRecoveryValid, finishKeyRecovery, setOwnImage, setCurriculum, curriculumUsed, syncAddress, releaseAddress, listedAt, appStatus, appStats,
+    appKeyMatches, saveCheck, appAtHost, recordEvents, inAppStats, proposeChange, listChanges, reviewChange, startKeyRecovery, keyRecoveryValid, finishKeyRecovery, setOwnImage, setCurriculum, curriculumUsed, syncAddress, releaseAddress, listedAt, appStatus, appStats,
     toggleUpvote, myUpvotes,
     listResources, getResource, getResourceBySlug, createResource, updateResource, deleteResource,
     allSettings, listSettings, getSetting, setSetting,

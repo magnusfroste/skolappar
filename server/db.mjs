@@ -186,6 +186,18 @@ const MIGRATIONS = [
   `
   ALTER TABLE apps ADD COLUMN source TEXT;
   `,
+  // 9: what the snippet (kotten.js) reports from inside an app, summed per app, day and event.
+  // Nothing about a visitor: no id, no IP address, no time of day – only how many and the sum of values.
+  `
+  CREATE TABLE app_events_daily (
+    app_id TEXT NOT NULL REFERENCES apps(id) ON DELETE CASCADE,
+    day TEXT NOT NULL,
+    event TEXT NOT NULL,
+    n INTEGER NOT NULL DEFAULT 0,
+    total INTEGER NOT NULL DEFAULT 0,
+    PRIMARY KEY (app_id, day, event)
+  );
+  `,
 ];
 
 export function openDatabase(dataDir) {

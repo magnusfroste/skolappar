@@ -22,11 +22,14 @@ innehåll ligger på `https://www.skolappar.com/guide.md` och `https://www.skola
 4. **Utgå från startmallen**: `get_starter` ger filerna. Byt `tasks.js` (innehållet) och låt
    `app.js` (motorn) vara: omgångar, återkoppling, svårighet, ljud, uppläsning och sparning finns redan.
    Bygger du med ett eget ramverk gäller samma krav – gå igenom guidens avsnitt `touch` och `barnet`.
-5. **Gör det till barnets app**: eget namn, egna färger, en figur eller ett tema barnet valt.
+5. **Lägg in kodsnutten** (startmallen har den): en rad `<script src="https://www.skolappar.com/kotten.js" defer>`
+   och `skolappar.event('level', n)` när barnet når en nivå, `skolappar.event('round_start')` och `skolappar.event('round_done', procent)` runt en omgång.
+   Då visar `app_stats` hur långt barnen kommer och var de slutar – anonymt. Guidens avsnitt `kodsnutten`.
+6. **Gör det till barnets app**: eget namn, egna färger, en figur eller ett tema barnet valt.
    Material som får användas fritt står i guidens avsnitt `resurser`.
-6. **Prova som ett barn**: i webbläsarens enhetsläge 1024 × 768 och 768 × 1024, med bara klick.
+7. **Prova som ett barn**: i webbläsarens enhetsläge 1024 × 768 och 768 × 1024, med bara klick.
    Svara fel med flit – får man en ledtråd och ett nytt försök? Tar en omgång slut?
-7. **Gå igenom checklistan** (`get_guide` med `section: "checklista"`).
+8. **Gå igenom checklistan** (`get_guide` med `section: "checklista"`).
 
 ## Det som oftast går fel
 
