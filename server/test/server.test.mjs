@@ -1,5 +1,6 @@
 import { test, describe, before, after } from 'node:test';
 import assert from 'node:assert/strict';
+import http from 'node:http';
 import { createHash } from 'node:crypto';
 import { mkdtempSync, rmSync } from 'node:fs';
 import { tmpdir } from 'node:os';
@@ -445,6 +446,24 @@ describe('with ADMIN_KEY', () => {
     const wrongCategory = await manual('/resurser/lara/kom-igang');
     assert.equal(wrongCategory.status, 301);
     assert.equal(wrongCategory.headers.get('location'), '/resurser/tips/kom-igang');
+
+    // an unused <name>.<domain>: Kotten's page with the closest app names, never the site
+    const byHost = (host) => new Promise((resolve, reject) => {
+      const u = new URL(s.base);
+      http.get({ hostname: u.hostname, port: u.port, path: '/', headers: { Host: host } }, (r) => {
+        let body = '';
+        r.on('data', (c) => { body += c; });
+        r.on('end', () => resolve({ status: r.statusCode, text: body }));
+      }).on('error', reject);
+    });
+    const sub = await byHost('plusspel.skolappar.test');
+    assert.equal(sub.status, 404);
+    const subText = sub.text;
+    assert.match(subText, /Den appen finns inte/);
+    assert.match(subText, /plusspel\.skolappar\.test/);
+    assert.match(subText, /Menade du.*Plusspelet/s);
+    assert.doesNotMatch(subText, /id="root"/);
+    assert.equal((await byHost('www.skolappar.test')).status, 200, 'the site itself is not touched');
 
     const none = await pub('GET', '/finns-inte');
     assert.equal(none.status, 404);
