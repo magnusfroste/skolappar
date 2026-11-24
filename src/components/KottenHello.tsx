@@ -4,7 +4,7 @@ import { Kotten, type KottenMood } from '@/components/Kotten';
 const reducedMotion = () => typeof window !== 'undefined' && window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
 
 /**
- * Kotten on the start page: asleep for a moment, then wakes up, grows, waves and says hello.
+ * Kotten on the start page: asleep for a moment, then wakes up, grows, waves and asks what you want to build.
  * A tap makes it cheer. With reduced motion it is simply there, awake, with its greeting.
  */
 export function KottenHello({ className }: { className?: string }) {
@@ -29,7 +29,7 @@ export function KottenHello({ className }: { className?: string }) {
   return (
     <div className={`kotten-hello ${awake ? 'is-awake' : ''} ${mood === 'jublar' ? 'is-cheering' : ''} ${className ?? ''}`}>
       <p className="kotten-bubble" aria-hidden={!awake}>
-        {mood === 'jublar' ? 'Hurra!' : <>Hej! Kom och lek!</>}
+        {mood === 'jublar' ? 'Hurra!' : <>Vad vill ni bygga?</>}
       </p>
       <button type="button" onClick={tap} className="kotten-figure" aria-label="Kotten säger hej – tryck för att heja">
         <Kotten mood={mood} attribute={mood === 'jublar'} title="" className="h-full w-full" />
