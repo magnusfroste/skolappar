@@ -618,7 +618,19 @@ describe('the open MCP: an agent submits an app and follows it', () => {
     assert.match((await pub('GET', '/starter/style.css')).text, /touch-action: manipulation/);
     assert.match((await pub('GET', '/starter/app.js')).headers.get('content-type'), /javascript/);
     assert.equal((await pub('GET', '/starter/../app.mjs')).status === 200 && /createApp/.test((await pub('GET', '/starter/../app.mjs')).text), false);
-    for (const f of starter.files) assert.doesNotMatch(f.content, /https?:\/\/(?!www\.skolappar\.com|www\.w3\.org)/, f.path);
+    for (const f of starter.files.filter((x) => x.content !== undefined)) assert.doesNotMatch(f.content, /https?:\/\/(?!www\.skolappar\.com|www\.w3\.org)/, f.path);
+    // the recorded lines: every line in ljud/lines.json has its file, served as audio and listed with a url
+    const lines = JSON.parse(starter.files.find((f) => f.path === 'ljud/lines.json').content);
+    assert.ok(lines.length >= 9);
+    for (const line of lines) {
+      const listed = starter.files.find((f) => f.path === `ljud/${line.id}.mp3`);
+      assert.equal(listed?.url, `https://skolappar.test/starter/ljud/${line.id}.mp3`, line.id);
+    }
+    const mp3 = await pub('GET', '/starter/ljud/fraga-3.mp3');
+    assert.equal(mp3.status, 200);
+    assert.equal(mp3.headers.get('content-type'), 'audio/mpeg');
+    const tasks = starter.files.find((f) => f.path === 'tasks.js').content;
+    for (const [, id] of tasks.matchAll(/'([a-z-]+)'/g)) if (/^(nastan|bra)-/.test(id)) assert.ok(lines.some((l) => l.id === id), id);
 
     const skills = (await call(pub, 'list_skills')).data;
     assert.deepEqual(skills.map((x) => x.name), ['skolappar-bygg', 'skolappar-kortbild', 'skolappar-publicera']);

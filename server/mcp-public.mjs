@@ -70,14 +70,15 @@ export function createPublicTools({ store, images, checkApp, content, curriculum
       title: 'Hämta startmallen',
       description:
         'Startmallen: en liten färdig skolapp i ren HTML, CSS och JavaScript (inget byggsteg) där touch för iPad, omgångar, återkoppling, ' +
-        'svårighet, ljud, uppläsning, belöning och sparning på enheten redan finns. Svarar med alla filer som text. ' +
-        'Skriv dem till en mapp, byt tasks.js (innehållet) och låt app.js (motorn) vara. README.md säger hur.',
+        'svårighet, ljud, uppläsning, belöning och sparning på enheten redan finns. Svarar med textfilerna; inspelade repliker (ljud/*.mp3) ' +
+        'kommer som url att ladda ner. Skriv dem till en mapp, byt tasks.js (innehållet) och låt app.js (motorn) vara. README.md säger hur.',
       inputSchema: obj({}),
       annotations: RO,
       handler: () => ({
         demo: `${siteUrl}/starter/`,
         license: 'Fri att använda och ändra.',
-        files: (content?.starter || []).map(({ path, content: text }) => ({ path, content: text })),
+        files: (content?.starter || []).map(({ path, content: text, binary }) =>
+          (binary ? { path, url: `${siteUrl}/starter/${path}` } : { path, content: text })),
       }),
     },
     {
