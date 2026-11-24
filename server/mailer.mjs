@@ -140,6 +140,7 @@ export function appPublishedMail({ siteUrl, appId, title }) {
     subject: `Nu finns "${title}" på Skolappar`,
     text:
       `Hej!\n\nAppen du tipsade om, "${title}", är nu publicerad på Skolappar:\n${link}\n\n` +
+      `Varje måndag får du ett kort veckobrev om hur appen används. Det går att stänga av med en länk i brevet.\n\n` +
       `Tack för att du delar med dig!\n\n– Skolappar`,
   };
 }
@@ -153,5 +154,48 @@ export function appKeysMail({ siteUrl, token }) {
       `Öppna länken och tryck på knappen, så får du en ny nyckel per app. Ge nyckeln till din agent; de gamla slutar gälla:\n` +
       `${link}\n\nLänken gäller i ett dygn och kan användas en gång.\n\n` +
       `Har du inte bett om det kan du bortse från det här mejlet. Ingenting ändras förrän någon öppnar länken.\n\n– Skolappar`,
+  };
+}
+
+const pct = (x) => `${Math.round(x * 100)} %`;
+
+/** The weekly letter to an app's maker: how each app did the last 7 days, and one idea for the next version. */
+export function weeklyDigestMail({ siteUrl, apps, stopToken }) {
+  const blocks = apps.map((a) => {
+    const lines = [`${a.title}`, `– öppnad ${a.opens} ${a.opens === 1 ? 'gång' : 'gånger'} (veckan innan: ${a.opens_before})`];
+    const s = a.in_app;
+    if (!s) {
+      lines.push(`– Lägg in kodsnutten, så ser ni hur långt barnen kommer: ${siteUrl}/bygg#kodsnutten`);
+    } else {
+      if (s.rounds_started) {
+        lines.push(`– ${s.rounds_started} omgångar påbörjade, ${pct(s.share_of_rounds_finished)} blev klara${s.average_result != null ? `, medelresultat ${Math.round(s.average_result)} %` : ''}`);
+      }
+      if (s.average_minutes_played != null) lines.push(`– i snitt ${String(s.average_minutes_played).replace('.', ',')} minuter per besök`);
+      const levels = s.levels || [];
+      const top = levels.reduce((m, l) => (l.reached > (m?.reached || 0) ? l : m), null);
+      const furthest = levels.filter((l) => l.reached).at(-1);
+      if (furthest) lines.push(`– längst kom någon till nivå ${furthest.level}`);
+      const stop = levels.reduce((m, l) => (l.stopped_here > (m?.stopped_here || 0) ? l : m), null);
+      if (stop) lines.push(`– flest slutade på nivå ${stop.level} (${stop.stopped_here} gånger)`);
+      if (s.hints) lines.push(`– ${s.hints} ${s.hints === 1 ? 'ledtråd' : 'ledtrådar'} eller nya försök`);
+      const idea = s.rounds_started >= 5 && s.share_of_rounds_finished < 0.5
+        ? 'Många avbryter omgången. Kanske är den för lång eller för svår i början?'
+        : stop && top && stop.stopped_here >= 3 && stop.level === furthest?.level && furthest.level > 1
+          ? `Ingen kommer förbi nivå ${stop.level}. Är steget dit för stort?`
+          : s.rounds_started >= 5 && s.share_of_rounds_finished >= 0.9 && (s.average_result ?? 0) >= 90
+            ? 'Nästan alla klarar allt. Dags för en svårare nivå?'
+            : null;
+      if (idea) lines.push(`Idé till nästa version: ${idea}`);
+    }
+    lines.push(`${siteUrl}/app/${a.id}`);
+    return lines.join('\n');
+  });
+  const subject = apps.length === 1 ? `Veckan för ${apps[0].title} – Skolappar` : 'Veckan för era appar – Skolappar';
+  return {
+    subject,
+    text:
+      `Hej!\n\nSå här gick det för ${apps.length === 1 ? 'er app' : 'era appar'} de senaste sju dagarna:\n\n${blocks.join('\n\n')}\n\n` +
+      `Siffrorna är antal och snitt, inget om enskilda barn. Er agent kan läsa samma sak med app_stats på ${siteUrl}/mcp.\n\n` +
+      `Vill ni inte ha veckobrevet? ${siteUrl}/brev/av/${stopToken}\n\n– Skolappar`,
   };
 }

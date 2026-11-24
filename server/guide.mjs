@@ -189,7 +189,7 @@ export const GUIDE_SECTIONS = [
 5. \`set_my_app_image\` – sätt kortbilden: som SVG, från en adress eller som uppladdad fil. Utan bild får kortet ämnets färg och symbol.
 6. Be föräldern klicka på länken i mejlet från Skolappar. Utan det publiceras appen inte.
 7. \`app_status\` – appar granskas en gång om dagen. Avslås appen står skälet där; rätta och uppdatera, så ställs den i kö igen.
-8. \`app_stats\` – berätta för barnet hur många gånger appen har öppnats, och med kodsnutten hur långt barnen kommer i den.`,
+8. \`app_stats\` – berätta för barnet hur många gånger appen har öppnats, och med kodsnutten hur långt barnen kommer i den. Samma siffror kommer som veckobrev till föräldern varje måndag.`,
   },
   {
     id: 'checklista',
