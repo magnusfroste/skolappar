@@ -117,10 +117,10 @@ export function createPublicTools({ store, images, checkApp, content, curriculum
         'Med subject, stage, area eller search: punkterna, var och en med ett id (t.ex. MA.1-3.1.2). Använd det för att välja vad appen ska träna innan du bygger, ' +
         'och ange sedan id:n som curriculum_ids i submit_app. Skolappars årskurser: FK–2 och delar av 3–6 hör till stadiet 1-3, 3–6 annars till 4-6.',
       inputSchema: obj({
-        subject: { type: 'string', maxLength: 40, description: 'Ämnets kod eller namn, t.ex. MA eller Matematik.' },
+        subject: { type: 'string', maxLength: 40, description: 'Ämnets kod eller namn, t.ex. MA, Matematik eller matte.' },
         stage: { type: 'string', enum: ['1-3', '4-6', '7-9', '1-6'], description: 'Stadium. Hem- och konsumentkunskap har 1-6.' },
         area: { type: 'string', pattern: AREA_ID, description: 'Ett områdes id, t.ex. MA.1-3.1.' },
-        search: { type: 'string', minLength: 2, maxLength: 80, description: 'Ord som ska finnas i punkten eller områdets namn, t.ex. bråk eller klockan.' },
+        search: { type: 'string', minLength: 2, maxLength: 80, description: 'Ett eller flera ord, t.ex. bråk, klockan eller gånger. Vardagsord leds till läroplanens ord (klockan → tid); flest träffar först. Hittas inget kommer områdena att välja bland.' },
         limit: { type: 'integer', minimum: 1, maximum: 200, default: 60 },
       }),
       annotations: RO,
@@ -128,7 +128,21 @@ export function createPublicTools({ store, images, checkApp, content, curriculum
         if (!curriculum) fail('Läroplanen är inte tillgänglig just nu.');
         const source = `Skolverket, ${curriculum.source.name} (hämtad ${curriculum.source.fetched})`;
         if (!subject && !stage && !area && !search) return { source, subjects: curriculum.overview() };
-        return { source, points: curriculum.search({ subject, stage, area, q: search, limit }) };
+        const points = curriculum.search({ subject, stage, area, q: search, limit });
+        if (points.unknownSubject) {
+          fail(`Okänt ämne "${subject}". Ange koden eller namnet: ${curriculum.overview().map((s) => `${s.subject} (${s.name})`).join(', ')}.`);
+        }
+        if (points.length || !search) return { source, points };
+        // nothing has the word: Lgr22 is general – give the areas to choose from instead of an empty list
+        const code = curriculum.subjectCode(subject);
+        const areas = curriculum.overview().filter((s) => !code || s.subject === code)
+          .flatMap((s) => s.stages.filter((st) => !stage || st.stage === stage).flatMap((st) => st.areas.map((a) => ({ id: a.id, name: `${s.name} ${st.stage}: ${a.name}` }))));
+        return {
+          source, points: [],
+          hint: `Ingen punkt innehåller "${search}" – läroplanen skriver allmänt (klockan är till exempel "tid" i MA.1-3.3.3). ` +
+            'Välj ett område nedan och hämta dess punkter med area, eller sök på ett bredare ord.',
+          areas: areas.slice(0, 40),
+        };
       },
     },
     {
