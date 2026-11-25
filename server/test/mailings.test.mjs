@@ -289,3 +289,42 @@ describe('submit_app offers Shipholm to an app hosted elsewhere', () => {
     assert.ok(!there.next.some((l) => /publish_on_shipholm/.test(l)));
   });
 });
+
+describe('one confirmation mail per address', () => {
+  let s; let mail; let pub; let n = 0;
+  const submit = async (url, email) => {
+    const r = await pub('POST', '/mcp', { jsonrpc: '2.0', id: ++n, method: 'tools/call', params: { name: 'submit_app', arguments: {
+      url, title: 'Klockjakten', description: 'Öva klockan med hela och halva timmar.', first_name: 'Enzo', email, accept_terms: true } } });
+    return r.json.result.structuredContent.result;
+  };
+  const wait = () => new Promise((r) => setTimeout(r, 150));
+  before(async () => {
+    mail = await fakeMail();
+    s = await startServer({ env: { MAIL_PROVIDER: 'resend', MAIL_API_URL: mail.url, MAIL_API_KEY: 'k', MAIL_FROM: 'Skolappar <hej@skolappar.test>' }, submitLimit: 20 });
+    pub = api(s.base);
+  });
+  after(async () => { await s.stop(); await mail.stop(); });
+
+  test('several apps in a row: one mail, and its link confirms them all; later apps need none', async () => {
+    const before = mail.sent.length;
+    const a = await submit('https://a.example', 'enzo@example.com');
+    await wait();
+    const b = await submit('https://b.example', 'Enzo@Example.com');
+    const c = await submit('https://c.example', 'enzo@example.com');
+    await wait();
+    assert.equal(mail.sent.length, before + 1, 'one confirmation mail, not three');
+    assert.deepEqual([a.email_confirmed, b.email_confirmed, c.email_confirmed], [false, false, false]);
+    const token = /\/bekrafta\/([A-Za-z0-9_-]+)/.exec(mail.sent.at(-1).text)[1];
+    await pub('GET', `/bekrafta/${token}`);
+    for (const x of [a, b, c]) assert.equal((await pub('POST', '/mcp', { jsonrpc: '2.0', id: ++n, method: 'tools/call', params: { name: 'app_status', arguments: { id: x.id } } })).json.result.structuredContent.result.email_confirmed, true);
+    const d = await submit('https://d.example', 'enzo@example.com');
+    await wait();
+    assert.equal(d.email_confirmed, true);
+    assert.match(d.next[0], /redan bekräftad/);
+    assert.equal(mail.sent.length, before + 1, 'no mail for an address already confirmed');
+    const other = await submit('https://e.example', 'ny@example.com');
+    await wait();
+    assert.equal(other.email_confirmed, false);
+    assert.equal(mail.sent.length, before + 2, 'a new address still gets its mail');
+  });
+});
