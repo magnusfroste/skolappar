@@ -39,3 +39,30 @@ describe('how agents use /mcp', () => {
     assert.equal((await pub('GET', '/api/admin/agents')).status, 401);
   });
 });
+
+describe('answers an agent can act on (ZeroClaw, 2026-11-25)', () => {
+  let s; let pub; let n = 0;
+  const call = async (name, args) => {
+    const r = await pub('POST', '/mcp', { jsonrpc: '2.0', id: ++n, method: 'tools/call', params: { name, arguments: args } });
+    const result = r.json.result;
+    return { ok: !result.isError, text: result.content[0].text, data: result.structuredContent?.result };
+  };
+  before(async () => { s = await startServer(); pub = api(s.base); });
+  after(() => s.stop());
+
+  test('get_starter says first what it holds, and that kotten.js is an address, not a file', async () => {
+    const d = (await call('get_starter', {})).data;
+    assert.equal(Object.keys(d)[0], 'summary');
+    assert.match(d.summary, /kotten\.js – den är en adress i en <script>-tagg/);
+    assert.ok(d.files_list.includes('index.html') && d.files_list.length === d.files.length);
+  });
+
+  test('check_app on a local file or localhost says why and what to do instead', async () => {
+    for (const url of ['file:///home/anna/app/index.html', 'http://localhost:5173/', '/home/anna/app']) {
+      const r = await call('check_app', { url });
+      assert.equal(r.ok, false, url);
+      assert.match(r.text, /når inte din dator.*checklista.*publish_on_shipholm/s, url);
+    }
+    assert.match((await call('check_app', {})).text, /publika https-adressen/);
+  });
+});
