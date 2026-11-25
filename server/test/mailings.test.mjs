@@ -176,3 +176,63 @@ describe('an admin vouches for an address', () => {
     assert.equal((await call(admin, 'send_mailing', { kind: 'nyheter', ref: 'x-1' })).data.would_send, 1);
   });
 });
+
+describe('reports: anyone flags a listed app, the owner is told, an admin handles it', () => {
+  let s; let mail; let pub; let admin; let n = 0; let appId;
+  const call = async (who, name, args) => {
+    const r = await who('POST', '/mcp', { jsonrpc: '2.0', id: ++n, method: 'tools/call', params: { name, arguments: args } });
+    const result = r.json.result;
+    return { ok: !result.isError, text: result.content[0].text, data: result.structuredContent?.result ?? result.structuredContent };
+  };
+  const wait = () => new Promise((r) => setTimeout(r, 150));
+  before(async () => {
+    mail = await fakeMail();
+    s = await startServer({ adminKey: 'k-rep', env: { MAIL_PROVIDER: 'resend', MAIL_API_URL: mail.url, MAIL_API_KEY: 'k', MAIL_FROM: 'Skolappar <hej@skolappar.test>' } });
+    pub = api(s.base); admin = api(s.base, { key: 'k-rep' });
+    appId = (await call(pub, 'submit_app', { url: 'https://rapport.example', title: 'Klockjakten', description: 'Öva klockan med hela och halva timmar.', first_name: 'Bo', email: 'bo@example.com', accept_terms: true })).data.id;
+    await call(admin, 'update_app', { id: appId, status: 'approved' });
+    await call(admin, 'set_setting', { key: 'report_email', value: 'owner@example.com' });
+  });
+  after(async () => { await s.stop(); await mail.stop(); });
+
+  test('validation: a listed app, a known reason, words for "other"; a pending app cannot be reported', async () => {
+    const ip = { 'X-Forwarded-For': '198.51.100.40' };
+    assert.equal((await pub('POST', '/api/reports', { app_id: appId, reason: 'boring' }, ip)).status, 400);
+    assert.equal((await pub('POST', '/api/reports', { app_id: appId, reason: 'other' }, ip)).status, 400);
+    assert.equal((await pub('POST', '/api/reports', { app_id: '99999999-9999-4999-8999-999999999999', reason: 'broken' }, ip)).status, 404);
+  });
+
+  test('a report mails the owner once; the same reporter again is not a second report', async () => {
+    const ip = { 'X-Forwarded-For': '198.51.100.41' };
+    const before = mail.sent.length;
+    assert.equal((await pub('POST', '/api/reports', { app_id: appId, reason: 'inappropriate', message: 'Fula ord på nivå 3', email: 'larare@example.com' }, ip)).status, 201);
+    assert.equal((await pub('POST', '/api/reports', { app_id: appId, reason: 'inappropriate' }, ip)).status, 201);
+    await wait();
+    assert.equal(mail.sent.length, before + 1);
+    const m = mail.sent.at(-1);
+    assert.deepEqual(m.to, ['owner@example.com']);
+    assert.equal(m.subject, 'Rapport: Klockjakten – Olämpligt innehåll');
+    assert.match(m.text, /Fula ord på nivå 3/);
+    assert.match(m.text, /larare@example\.com/);
+    await pub('POST', '/api/reports', { app_id: appId, reason: 'mistagged', message: 'Är för åk 7–9' }, { 'X-Forwarded-For': '198.51.100.42' });
+    const list = (await admin('GET', '/api/admin/reports')).json;
+    assert.equal(list.open, 2);
+    assert.equal(list.reports[0].open_reports_for_app, 2);
+    assert.equal((await pub('GET', '/api/admin/reports')).status, 401);
+  });
+
+  test('resolved closes one; delist takes the app out of the catalogue and closes the rest', async () => {
+    const [mistagged, inappropriate] = (await call(admin, 'list_reports', {})).data.reports;
+    assert.equal(mistagged.reason, 'mistagged');
+    const r1 = (await admin('POST', `/api/admin/reports/${mistagged.id}`, { action: 'resolved', note: 'Ändrade årskurs' })).json;
+    assert.equal(r1.report.status, 'resolved');
+    const r2 = (await call(admin, 'handle_report', { id: inappropriate.id, action: 'delist', note: 'Olämpligt språk' })).data;
+    assert.equal(r2.delisted_app_id, appId);
+    const app = (await admin('GET', `/api/admin/apps/${appId}`)).json;
+    assert.deepEqual([app.status, app.delist_reason], ['delisted', 'Olämpligt språk']);
+    assert.equal((await pub('GET', `/api/apps/${appId}`)).status, 404);
+    assert.equal((await admin('GET', '/api/admin/reports')).json.open, 0);
+    assert.equal((await admin('GET', '/api/admin/reports?status=handled')).json.reports.length, 2);
+    assert.equal((await pub('POST', '/api/reports', { app_id: appId, reason: 'broken' }, { 'X-Forwarded-For': '198.51.100.43' })).status, 404, 'a delisted app cannot be reported');
+  });
+});

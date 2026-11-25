@@ -434,6 +434,28 @@ export function createTools({ store, images }) {
       handler: ({ dry_run = true }) => store.sendWeeklyDigest({ dryRun: dry_run }),
     },
     {
+      name: 'list_reports',
+      title: 'Rapporterade appar',
+      description: 'Rapporter från besökare: olämpligt innehåll (inappropriate), fel ämne eller ålder (mistagged), fungerar inte (broken) eller annat (other), med meddelande. ' +
+        'status open (standard), handled eller all. open_reports_for_app säger hur många som rapporterat samma app. Titta här först varje gång.',
+      inputSchema: obj({ status: { type: 'string', enum: ['open', 'handled', 'all'], default: 'open' } }),
+      annotations: RO,
+      handler: ({ status = 'open' }) => ({ open: store.openReportCount(), reports: store.listReports({ status }) }),
+    },
+    {
+      name: 'handle_report',
+      title: 'Hantera en rapport',
+      description: 'delist: ta bort appen ur katalogen direkt (note blir skälet; alla öppna rapporter för appen stängs; en Shipholm-adress lämnas tillbaka). ' +
+        'resolved: rättat (t.ex. kategorier med update_app). dismissed: inget fel. Vid olämpligt innehåll som stämmer: delist först, fråga sen.',
+      inputSchema: obj({ id: uuid, action: { type: 'string', enum: ['delist', 'resolved', 'dismissed'] }, note: { type: 'string', maxLength: 500 } }, ['id', 'action']),
+      annotations: RW,
+      handler: async ({ id, action, note }) => {
+        const out = store.handleReport(id, { action, note }) ?? fail('Ingen rapport med det id:t.');
+        const address = out.delisted_app_id ? await store.syncAddress(out.delisted_app_id) : null;
+        return address ? { ...out, address } : out;
+      },
+    },
+    {
       name: 'confirm_email',
       title: 'Markera en e-postadress som bekräftad',
       description: 'Alla appar med den här skapar-adressen räknas som bekräftade, som om länken i bekräftelsemejlet hade öppnats. Skickar inget. ' +
@@ -570,6 +592,7 @@ export function createMcpHandler({ store, images, checkApp, content, curriculum,
                 'Artiklar (resurser, Markdown): läs med get_resource, ändra delar med edit_resource (exakt text eller ett helt avsnitt), skapa eller ändra titel och publicering med upsert_resource; ' +
                 'en dold eller flyttad artikel pekas vidare med set_setting resource_redirects ({slug: sökväg}). ' +
                 'Veckobrevet till skaparna går ut av sig självt på måndagar kl. 08; send_weekly_letter visar vad som skulle skickas. ' +
+                'Rapporter från besökare: list_reports först varje gång; olämpligt innehåll som stämmer avlistas direkt med handle_report (delist). ' +
                 'Mejlen till skaparna (godkänd, en vecka, en månad, villkor, nyheter): list_mailings; villkor och nyheter skickas med send_mailing, bara när Magnus säger till.'
               : PUBLIC_INSTRUCTIONS,
           },

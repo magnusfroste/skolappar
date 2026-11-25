@@ -457,3 +457,37 @@ export function useConfirmEmail() {
     onSuccess: () => { invalidateApps(queryClient); queryClient.invalidateQueries({ queryKey: ['admin-mailings'] }); },
   });
 }
+
+// ---------- reports from visitors ----------
+
+export interface AppReport {
+  id: string;
+  status: 'open' | 'resolved' | 'dismissed' | 'delisted';
+  reason: 'inappropriate' | 'mistagged' | 'broken' | 'other';
+  reason_name: string;
+  message: string | null;
+  email: string | null;
+  created_at: string;
+  handled_at: string | null;
+  handled_note: string | null;
+  app: { id: string; title: string; url: string; image_url: string | null; status: AppStatus };
+  open_reports_for_app: number;
+}
+
+export function useReports(status: 'open' | 'handled' = 'open', enabled = true) {
+  return useQuery({
+    queryKey: ['admin-reports', status],
+    queryFn: () => adminApi.get<{ open: number; reports: AppReport[] }>(`/api/admin/reports?status=${status}`),
+    enabled,
+    refetchInterval: 60_000,
+  });
+}
+
+export function useHandleReport() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({ id, action, note }: { id: string; action: 'delist' | 'resolved' | 'dismissed'; note?: string }) =>
+      adminApi.post(`/api/admin/reports/${id}`, { action, ...(note ? { note } : {}) }),
+    onSuccess: () => { queryClient.invalidateQueries({ queryKey: ['admin-reports'] }); invalidateApps(queryClient); },
+  });
+}

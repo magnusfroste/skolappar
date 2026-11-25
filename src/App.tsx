@@ -16,6 +16,7 @@ const IdeaDetail = lazy(() => import("./pages/IdeaDetail"));
 const Admin = lazy(() => import("./pages/Admin"));
 const AdminAppEdit = lazy(() => import("./pages/AdminAppEdit"));
 const SuggestApp = lazy(() => import("./pages/SuggestApp"));
+const ReportApp = lazy(() => import("./pages/ReportApp"));
 const NewIdea = lazy(() => import("./pages/NewIdea"));
 const AppDetail = lazy(() => import("./pages/AppDetail"));
 const Resources = lazy(() => import("./pages/Resources"));
@@ -49,6 +50,7 @@ const App = () => (
             <Route path="/" element={<Index />} />
             <Route path="/apps" element={<Apps />} />
             <Route path="/tipsa" element={<SuggestApp />} />
+            <Route path="/rapportera" element={<ReportApp />} />
             <Route path="/ideer" element={<Ideas />} />
             <Route path="/ideer/ny" element={<NewIdea />} />
             <Route path="/ideer/:id" element={<IdeaDetail />} />

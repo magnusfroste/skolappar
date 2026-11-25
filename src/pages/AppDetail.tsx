@@ -1,6 +1,6 @@
 import { AppThumbnail } from '@/components/AppThumbnail';
 import { useParams, Link, useNavigate } from 'react-router-dom';
-import { BadgeCheck, ArrowLeft, ExternalLink, ChevronUp, Eye, Monitor, Tablet, Smartphone, Layers, Play } from 'lucide-react';
+import { BadgeCheck, ArrowLeft, ExternalLink, ChevronUp, Eye, Monitor, Tablet, Smartphone, Layers, Play, Flag } from 'lucide-react';
 import { AppPlayer } from '@/components/AppPlayer';
 import { useState } from 'react';
 import { format } from 'date-fns';
@@ -258,6 +258,9 @@ export default function AppDetail() {
             <Eye className="w-4 h-4" />
             {app.clicks_count || 0}
           </span>
+          <Link to={`/rapportera?app=${app.id}`} className="ml-auto flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground">
+            <Flag className="w-3.5 h-3.5" /> Rapportera
+          </Link>
         </div>
 
         {/* Related Apps */}

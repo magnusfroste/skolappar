@@ -3,6 +3,7 @@ import { Link, useSearchParams } from 'react-router-dom';
 import { AppAnalyticsPanel } from '@/components/AppAnalyticsPanel';
 import { ADMIN_SECTIONS } from '@/lib/adminSections';
 import { MailingsPanel } from '@/components/admin/MailingsPanel';
+import { ReportsPanel } from '@/components/admin/ReportsPanel';
 import { ChangesReview } from '@/components/admin/ChangesReview';
 import { Check, X, Star, Clock, ExternalLink, Trash2, Plus, Edit2, Shield, Settings, FileText, Eye, EyeOff, Lightbulb, MessageSquare, ThumbsUp, TrendingUp, Search } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -199,10 +200,14 @@ function AdminContent() {
   const [appSort, setAppSort] = useState<AppSort>('newest');
   const [appQuery, setAppQuery] = useState('');
   const [appStatus, setAppStatus] = useState<AppStatus | 'all'>('all');
+  const [appEmail, setAppEmail] = useState<'all' | 'with' | 'without' | 'unconfirmed'>('all');
   const filteredApps = useMemo(() => {
     const q = appQuery.trim().toLowerCase();
     return (allApps ?? []).filter((app) => {
       if (appStatus !== 'all' && app.status !== appStatus) return false;
+      if (appEmail === 'with' && !app.submitter_email) return false;
+      if (appEmail === 'without' && app.submitter_email) return false;
+      if (appEmail === 'unconfirmed' && (!app.submitter_email || app.email_confirmed)) return false;
       if (!q) return true;
       return (
         app.title.toLowerCase().includes(q) ||
@@ -211,9 +216,9 @@ function AdminContent() {
         (app.categories ?? []).some((c) => (c?.name ?? '').toLowerCase().includes(q))
       );
     });
-  }, [allApps, appQuery, appStatus]);
+  }, [allApps, appQuery, appStatus, appEmail]);
   const sortedApps = useMemo(() => sortAdminApps(filteredApps, appSort), [filteredApps, appSort]);
-  const hasAppFilters = appQuery.trim() !== '' || appStatus !== 'all';
+  const hasAppFilters = appQuery.trim() !== '' || appStatus !== 'all' || appEmail !== 'all';
   const appMetricValue = (app: AdminApp) =>
     appSort === 'clicks' ? app.clicks_count ?? 0
     : appSort === 'upvotes' ? app.upvotes_count ?? 0
@@ -490,6 +495,10 @@ function AdminContent() {
             <ChangesReview categories={categories ?? []} />
           </TabsContent>
 
+          <TabsContent value="reports">
+            <ReportsPanel />
+          </TabsContent>
+
           <TabsContent value="mailings">
             <MailingsPanel />
           </TabsContent>
@@ -530,6 +539,17 @@ function AdminContent() {
                         <SelectItem value="delisted">Avlistad</SelectItem>
                       </SelectContent>
                     </Select>
+                    <Select value={appEmail} onValueChange={(v) => setAppEmail(v as typeof appEmail)}>
+                      <SelectTrigger className="w-[150px] h-9 text-sm" aria-label="Filtrera på e-post">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="all">All e-post</SelectItem>
+                        <SelectItem value="with">Med e-post</SelectItem>
+                        <SelectItem value="unconfirmed">Ej bekräftad</SelectItem>
+                        <SelectItem value="without">Utan e-post</SelectItem>
+                      </SelectContent>
+                    </Select>
                     <Select value={appSort} onValueChange={(v) => setAppSort(v as AppSort)}>
                       <SelectTrigger className="w-[190px] h-9 text-sm" aria-label="Sortera appar">
                         <SelectValue />
@@ -564,7 +584,7 @@ function AdminContent() {
                             variant="ghost"
                             size="sm"
                             className="mt-2"
-                            onClick={() => { setAppQuery(''); setAppStatus('all'); }}
+                            onClick={() => { setAppQuery(''); setAppStatus('all'); setAppEmail('all'); }}
                           >
                             Rensa filter
                           </Button>
@@ -587,13 +607,13 @@ function AdminContent() {
                           </div>
                           <p className="text-xs text-muted-foreground">
                             {app.profile?.display_name || 'Okänd'}
-                            {app.submitter_email && (
+                            {' · '}
+                            {app.submitter_email ? (
                               <>
-                                {' · '}
-                                <a href={`mailto:${app.submitter_email}`} className="underline-offset-2 hover:underline">{app.submitter_email}</a>
+                                <a href={`mailto:${app.submitter_email}`} className="text-foreground underline-offset-2 hover:underline">{app.submitter_email}</a>
                                 {!app.email_confirmed && ' (ej bekräftad)'}
                               </>
-                            )}
+                            ) : <span className="italic">ingen e-post</span>}
                             {app.source && ` · via ${app.source}`}
                           </p>
                           <AppCategoryChips app={app} />

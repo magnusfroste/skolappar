@@ -22,7 +22,7 @@ export function PublicFooter() {
           </div>
 
           {/* Links */}
-          <div className="flex items-center gap-4 sm:gap-6 text-sm">
+          <div className="flex flex-wrap items-center justify-center gap-x-4 gap-y-2 sm:gap-x-6 text-sm">
             <Link to="/apps" className="text-muted-foreground hover:text-foreground transition-colors">
               Appar
             </Link>
@@ -34,6 +34,9 @@ export function PublicFooter() {
             </Link>
             <Link to="/integritet" className="text-muted-foreground hover:text-foreground transition-colors">
               Integritet
+            </Link>
+            <Link to="/rapportera" className="text-muted-foreground hover:text-foreground transition-colors">
+              Rapportera
             </Link>
             <span className="text-muted-foreground"># Magnus Froste</span>
           </div>
