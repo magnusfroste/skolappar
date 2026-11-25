@@ -661,6 +661,18 @@ describe('the open MCP: an agent submits an app and follows it', () => {
     assert.ok(found.length >= 1 && found.every((p) => p.subject === 'MA' && p.stage === '1-3' && /bråk/i.test(p.text)));
     const point = found[0].id;
     assert.match(point, /^MA\.1-3\.\d+\.\d+$/);
+
+    // an agent's everyday words find the curriculum's (zeroclaw asked for "MATEMATIK" + "klockan" and got nothing)
+    const clock = (await call(pub, 'get_curriculum', { subject: 'MATEMATIK', stage: '1-3', search: 'klockan' })).data.points;
+    assert.equal(clock[0].id, 'MA.1-3.3.3', 'klockan is "tid" in Lgr22');
+    assert.equal((await call(pub, 'get_curriculum', { subject: 'matte', search: 'gånger' })).data.points[0].id, 'MA.1-3.1.6');
+    const none = (await call(pub, 'get_curriculum', { subject: 'MA', stage: '1-3', search: 'dinosaurier' })).data;
+    assert.deepEqual(none.points, []);
+    assert.match(none.hint, /Välj ett område/);
+    assert.ok(none.areas.some((a) => a.id === 'MA.1-3.3'));
+    const wrong = await call(pub, 'get_curriculum', { subject: 'Mattematik', search: 'tid' });
+    assert.equal(wrong.ok, false);
+    assert.match(wrong.text, /Okänt ämne "Mattematik"\. Ange koden eller namnet: .*MA \(Matematik\)/);
     assert.equal((await pub('GET', '/api/curriculum?area=MA.1-3.1')).json.points[0].area_id, 'MA.1-3.1');
     assert.ok((await pub('GET', '/api/curriculum')).json.subjects.length >= 15);
 
