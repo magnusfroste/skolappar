@@ -81,3 +81,34 @@ describe('submit_app without the parent\'s name or address says what to do', () 
     assert.match(text, /app_attestation/);
   });
 });
+
+describe('submit_app takes categories as words', () => {
+  let s; let pub; let n = 0;
+  before(async () => {
+    s = await startServer(); pub = api(s.base);
+    for (const [type, slug, name] of [['subject', 'matte', 'Matematik'], ['subject', 'sprak', 'Språk'], ['age', 'fk-2', 'F–2'],
+      ['app_type', 'spel', 'Spel'], ['device', 'tablet', 'Surfplatta']]) s.app.store.createCategory({ type, slug, name });
+  });
+  after(() => s.stop());
+  const submit = async (args) => {
+    const r = await pub('POST', '/mcp', { jsonrpc: '2.0', id: ++n, method: 'tools/call', params: { name: 'submit_app', arguments: {
+      url: `https://ord${n}.example`, title: 'Klockjakten', description: 'Öva klockan med hela och halva timmar.',
+      first_name: 'Anna', email: `anna${n}@example.com`, accept_terms: true, ...args } } });
+    return { isError: !!r.json.result.isError, text: r.json.result.content[0].text };
+  };
+  test('words and aliases resolve to the categories, no list_categories first', async () => {
+    const r = await submit({ subject: 'Matematik', age: 'fk-2', app_type: 'spel', device: 'iPad', curriculum_ids: ['ma.1–3.3.3', 'klockan'] });
+    assert.equal(r.isError, false, r.text);
+    const body = JSON.parse(r.text);
+    const cats = s.app.store.getApp(body.id, { admin: true }).categories.map((c) => c.slug).sort();
+    assert.deepEqual(cats, ['fk-2', 'matte', 'spel', 'tablet']);
+    assert.deepEqual(body.unknown_curriculum_ids, ['klockan']); // the other one was tidied to MA.1-3.3.3
+    assert.ok(body.curriculum_suggestions.some((p) => p.id.startsWith('MA.')), JSON.stringify(body.curriculum_suggestions));
+    assert.match(body.curriculum_hint, /MA\.1-3\.3\.3.*get_curriculum.*update_my_app/s);
+  });
+  test('an unknown word lists the valid ones', async () => {
+    const r = await submit({ subject: 'gympa' });
+    assert.equal(r.isError, true);
+    assert.match(r.text, /Okänd ämne "gympa".*matte/);
+  });
+});
