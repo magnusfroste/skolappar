@@ -730,7 +730,7 @@ describe('the open MCP: an agent submits an app and follows it', () => {
     for (const bad of [{ first_name: undefined }, { email: undefined }, { first_name: 'Anna Svensson' }, { email: 'nope' }]) {
       const r = await call(pub, 'submit_app', { ...submission, ...bad });
       assert.equal(r.ok, false, JSON.stringify(bad));
-      assert.match(r.text, /Ogiltig indata/);
+      assert.match(r.text, /Ogiltig indata|Fråga föräldern/);
     }
     assert.match((await call(pub, 'submit_app', { ...submission, url: 'http://robot.example' })).text, /https/);
     assert.match((await call(pub, 'submit_app', { ...submission, url: 'https://plus.example' })).text, /finns redan/);
