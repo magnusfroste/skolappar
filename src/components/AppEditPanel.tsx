@@ -32,7 +32,7 @@ import { Switch } from '@/components/ui/switch';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { ImageUploader } from '@/components/ImageUploader';
 import { SubmissionMailStatus } from '@/components/SubmissionMailStatus';
-import { useAdminApp, useUpdateAppAdmin, useDeleteAppAdmin, useSetAppImageFromUrl, type AppStatus } from '@/hooks/useAdmin';
+import { useAdminApp, useUpdateAppAdmin, useDeleteAppAdmin, useSetAppImageFromUrl, useConfirmEmail, type AppStatus } from '@/hooks/useAdmin';
 import { useCategories } from '@/hooks/useApps';
 import { toast } from 'sonner';
 
@@ -69,6 +69,7 @@ export function AppEditPanel({ appId }: AppEditPanelProps) {
   const updateApp = useUpdateAppAdmin();
   const deleteApp = useDeleteAppAdmin();
   const imageFromUrl = useSetAppImageFromUrl();
+  const confirmEmail = useConfirmEmail();
   const [remoteImage, setRemoteImage] = useState('');
   const back = () => navigate('/admin?tab=all');
 
@@ -360,6 +361,20 @@ export function AppEditPanel({ appId }: AppEditPanelProps) {
                 <span className="font-medium">Tips från:</span>{' '}
                 <a href={`mailto:${app.submitter_email}`} className="underline-offset-2 hover:underline">{app.submitter_email}</a>{' '}
                 <span className="text-muted-foreground">{app.email_confirmed ? '(bekräftad)' : '(ej bekräftad)'}</span>
+                {!app.email_confirmed && (
+                  <Button
+                    type="button" variant="outline" size="sm" className="ml-2 h-7" disabled={confirmEmail.isPending}
+                    onClick={async () => {
+                      if (!window.confirm(`Räkna ${app.submitter_email} som bekräftad för alla dess appar? Inget mejl skickas.`)) return;
+                      try {
+                        const r = await confirmEmail.mutateAsync(app.submitter_email!);
+                        toast.success(`${r.confirmed_apps} appar räknas nu som bekräftade`);
+                      } catch { toast.error('Kunde inte markera adressen'); }
+                    }}
+                  >
+                    Markera bekräftad
+                  </Button>
+                )}
               </p>
               <p className="text-muted-foreground">
                 {app.terms_version

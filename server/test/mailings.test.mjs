@@ -152,3 +152,27 @@ describe('mails to makers', () => {
     assert.ok(open.json.error || open.json.result?.isError, 'admin only');
   });
 });
+
+describe('an admin vouches for an address', () => {
+  let s; let pub; let admin; let n = 0;
+  const call = async (who, name, args) => {
+    const r = await who('POST', '/mcp', { jsonrpc: '2.0', id: ++n, method: 'tools/call', params: { name, arguments: args } });
+    const result = r.json.result;
+    return { ok: !result.isError, text: result.content[0].text, data: result.structuredContent?.result ?? result.structuredContent };
+  };
+  before(async () => { s = await startServer({ adminKey: 'k-vouch' }); pub = api(s.base); admin = api(s.base, { key: 'k-vouch' }); });
+  after(() => s.stop());
+
+  test('every app of the address counts as confirmed; nothing is sent; only for admins', async () => {
+    const one = { title: 'Klockjakten', description: 'Öva klockan med hela och halva timmar.', first_name: 'Enzo', email: 'Enzo@Example.com', accept_terms: true };
+    const a = (await call(pub, 'submit_app', { ...one, url: 'https://a.example' })).data.id;
+    const b = (await call(pub, 'submit_app', { ...one, url: 'https://b.example' })).data.id;
+    for (const id of [a, b]) await call(admin, 'update_app', { id, status: 'approved' });
+    assert.equal((await pub('POST', '/api/admin/confirm-email', { email: 'enzo@example.com' })).status, 401);
+    const r = (await admin('POST', '/api/admin/confirm-email', { email: 'enzo@example.com' })).json;
+    assert.equal(r.confirmed_apps, 2);
+    for (const id of [a, b]) assert.equal((await admin('GET', `/api/admin/apps/${id}`)).json.email_confirmed, true);
+    assert.equal((await call(admin, 'confirm_email', { email: 'enzo@example.com' })).data.confirmed_apps, 0, 'already done');
+    assert.equal((await call(admin, 'send_mailing', { kind: 'nyheter', ref: 'x-1' })).data.would_send, 1);
+  });
+});

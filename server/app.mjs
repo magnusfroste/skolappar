@@ -444,6 +444,10 @@ export function createApp(config, { fetchImpl = globalThis.fetch, fetchOutside, 
   admin('GET', '/api/admin/changes', () => store.listChanges());
 
   // mails to makers: the five templates, what has gone out, previews and the admin's broadcasts
+  admin('POST', '/api/admin/confirm-email', async ({ req }) => {
+    const b = check({ type: 'object', properties: { email: { type: 'string', format: 'email', maxLength: 254 } }, required: ['email'], additionalProperties: false }, await readJson(req));
+    return { email: b.email, confirmed_apps: store.confirmAddress(b.email) };
+  });
   admin('GET', '/api/admin/mailings', () => ({ ...store.mailingsOverview(), placeholders: PLACEHOLDERS }));
   const MAILING = {
     type: 'object',

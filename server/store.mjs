@@ -1075,6 +1075,14 @@ export function createStore(db, { mailer, curriculum, shipholm, siteUrl = 'https
     };
   }
 
+  /**
+   * Admin: vouch for an address – every app submitted with it counts as confirmed, as if the link
+   * in the confirmation mail had been opened. Sends nothing. The number of apps changed.
+   */
+  function confirmAddress(email) {
+    return db.prepare('UPDATE apps SET email_confirmed = 1 WHERE lower(submitter_email) = lower(?) AND email_confirmed = 0').run(String(email || '').trim()).changes;
+  }
+
   function confirmEmail(token) {
     if (typeof token !== 'string' || !/^[A-Za-z0-9_-]{16,64}$/.test(token)) return false;
     const r = db.prepare('SELECT id FROM apps WHERE confirm_token = ?').get(token);
@@ -1394,7 +1402,7 @@ export function createStore(db, { mailer, curriculum, shipholm, siteUrl = 'https
     listPublicApps, listAdminApps, getApp, topApps, recentApps, relatedApps,
     createApp, updateApp, deleteApp, setAppCategories, trackClick,
     createSubmission, confirmEmail, sendConfirmation, resendMail,
-    appKeyMatches, saveCheck, appAtHost, recordEvents, inAppStats, stopDigest, digestApp, weeklyDigests, sendWeeklyDigest, maybeSendWeeklyDigest, sendBroadcast, dueFollowUps, maybeSendFollowUps, previewMailing, mailingsOverview, proposeChange, listChanges, reviewChange, startKeyRecovery, keyRecoveryValid, finishKeyRecovery, setOwnImage, setCurriculum, curriculumUsed, syncAddress, releaseAddress, listedAt, appStatus, appStats,
+    appKeyMatches, saveCheck, appAtHost, recordEvents, inAppStats, stopDigest, digestApp, weeklyDigests, sendWeeklyDigest, maybeSendWeeklyDigest, sendBroadcast, confirmAddress, dueFollowUps, maybeSendFollowUps, previewMailing, mailingsOverview, proposeChange, listChanges, reviewChange, startKeyRecovery, keyRecoveryValid, finishKeyRecovery, setOwnImage, setCurriculum, curriculumUsed, syncAddress, releaseAddress, listedAt, appStatus, appStats,
     toggleUpvote, myUpvotes,
     listResources, getResource, getResourceBySlug, createResource, updateResource, deleteResource,
     allSettings, listSettings, getSetting, setSetting,
