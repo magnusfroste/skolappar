@@ -6,6 +6,7 @@ import { escapeHtml } from './http.mjs';
 import { markdownToHtml, markdownText } from './markdown.mjs';
 import { guideMarkdown, GUIDE_TITLE } from './guide.mjs';
 import { landing } from './landing.mjs';
+import { TERMS } from './mailings.mjs';
 
 const CATEGORY_SLUGS = { platforms: 'plattformar', tips: 'tips', learn: 'lara', inspiration: 'inspiration' };
 const CATEGORY_TITLES = {
@@ -32,7 +33,7 @@ const STATIC = {
   '/resurser': { title: 'Resurser', description: 'Guider för att bygga pedagogiska appar med AI: kom igång, tips, verktyg och inspiration.' },
   '/startmall': { title: 'Startmallen', description: 'En färdig liten skolapp där det svåra redan är löst: touch, återkoppling, ljud, uppläsning och belöning. Fri att använda.' },
   '/testa-din-app': { title: 'Testa din app', description: 'Kontrollera din app mot Skolappars byggguide innan du skickar in den.' },
-  '/villkor': { title: 'Villkor', description: 'Villkor för Skolappar.' },
+  '/villkor': { title: 'Villkor', description: 'Villkoren för dig som skickar in en app till Skolappar: vad du lovar om appen, granskningen, mejlen vi skickar och dina uppgifter.' },
   '/integritet': { title: 'Integritet', description: 'Hur Skolappar hanterar uppgifter: inga konton, inga cookies för spårning, ingen reklam.' },
 };
 const NOINDEX = /^\/(admin|min-sida|auth|reset-password|profil|ideer\/ny)(\/|$)/;
@@ -158,6 +159,11 @@ export function pageFor(path, { store, siteUrl }) {
     const apps = store.listPublicApps({ sort: 'recommended' });
     return { status: 200, canonical: canonical('/apps'), title: fullTitle(STATIC['/apps'].title), description: STATIC['/apps'].description,
       body: `<h1>Alla appar</h1>${appList(apps, siteUrl, 200)}` };
+  }
+
+  if (p === '/villkor') {
+    return { status: 200, canonical: canonical(p), title: fullTitle(STATIC[p].title), description: STATIC[p].description,
+      body: `<article><p>Senast uppdaterade ${esc(TERMS.version)}</p>${markdownToHtml(TERMS.markdown)}</article>` };
   }
 
   if (STATIC[p]) {

@@ -33,7 +33,7 @@ describe('a lost app key: new keys through a link mailed to the parent', () => {
   after(async () => { await s.stop(); await mail.stop(); });
 
   test('the link gives a new key per app, once; the old keys stop working', async () => {
-    const sub = (url) => call('submit_app', { url, title: 'Klockjakten', description: 'Öva klockan med hela och halva timmar.', first_name: 'Anna', email: 'Anna@Example.com' });
+    const sub = (url) => call('submit_app', { url, title: 'Klockjakten', description: 'Öva klockan med hela och halva timmar.', first_name: 'Anna', email: 'Anna@Example.com', accept_terms: true });
     const a = (await sub('https://a.example')).data;
     const b = (await sub('https://b.example')).data;
     await new Promise((r) => setTimeout(r, 150)); // the confirmation mails go out in the background
@@ -73,7 +73,7 @@ describe('a lost app key: new keys through a link mailed to the parent', () => {
   test('a bad or unknown link does nothing, and asking is limited per address', async () => {
     assert.equal((await pub('GET', '/nyckel/not-a-real-token-at-all-xxxxxx')).status, 410);
     assert.equal((await form('/nyckel/not-a-real-token-at-all-xxxxxx')).status, 410);
-    await call('submit_app', { url: 'https://c.example', title: 'Tredje', description: 'En tredje app för att prova gränsen.', first_name: 'Bo', email: 'bo@example.com' });
+    await call('submit_app', { url: 'https://c.example', title: 'Tredje', description: 'En tredje app för att prova gränsen.', first_name: 'Bo', email: 'bo@example.com', accept_terms: true });
     const before = mail.sent.filter((m) => m.to[0] === 'bo@example.com' && /nyckel/.test(m.text)).length;
     for (let i = 0; i < 4; i++) await call('recover_app_keys', { email: 'bo@example.com' });
     const after = mail.sent.filter((m) => m.to[0] === 'bo@example.com' && /nyckel/.test(m.text)).length;

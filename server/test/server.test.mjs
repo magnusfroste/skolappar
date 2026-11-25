@@ -261,13 +261,13 @@ describe('with ADMIN_KEY', () => {
     for (const body of bad) assert.equal((await pub('POST', '/api/submissions', body, ip)).status, 400, JSON.stringify(body).slice(0, 80));
     assert.equal((await pub('POST', '/api/submissions', 'url=x', { ...ip, 'Content-Type': 'application/x-www-form-urlencoded' })).status, 415);
 
-    const ok = await pub('POST', '/api/submissions', { url: 'https://nytt.example/spel', email: 'Tipsare@Example.se', title: 'Nytt spel', note: 'Min dotter älskar det' }, ip);
+    const ok = await pub('POST', '/api/submissions', { url: 'https://nytt.example/spel', email: 'Tipsare@Example.se', accept_terms: true, title: 'Nytt spel', note: 'Min dotter älskar det' }, ip);
     assert.equal(ok.status, 201, ok.text);
     assert.ok(s.log.lines.some((l) => l.startsWith('mail not configured – would send')));
     assert.ok(!s.log.lines.some((l) => /tipsare@example\.se/i.test(l)), 'email addresses are never logged');
 
     // Already listed apps are refused.
-    const dup = await pub('POST', '/api/submissions', { url: 'https://plus.example', email: 'a@b.se' }, { 'X-Forwarded-For': '198.51.100.1' });
+    const dup = await pub('POST', '/api/submissions', { url: 'https://plus.example', email: 'a@b.se', accept_terms: true }, { 'X-Forwarded-For': '198.51.100.1' });
     assert.equal(dup.status, 409);
 
     const pending = (await admin('GET', '/api/admin/apps?status=pending')).json.find((a) => a.url === 'https://nytt.example/spel');
@@ -307,12 +307,12 @@ describe('with ADMIN_KEY', () => {
 
     // Rate limit: 5 per hour per IP (this IP has used 1).
     for (let i = 0; i < 4; i++) {
-      assert.equal((await pub('POST', '/api/submissions', { url: `https://flood${i}.example`, email: 'a@b.se' }, ip)).status, 201);
+      assert.equal((await pub('POST', '/api/submissions', { url: `https://flood${i}.example`, email: 'a@b.se', accept_terms: true }, ip)).status, 201);
     }
-    const limited = await pub('POST', '/api/submissions', { url: 'https://flood9.example', email: 'a@b.se' }, ip);
+    const limited = await pub('POST', '/api/submissions', { url: 'https://flood9.example', email: 'a@b.se', accept_terms: true }, ip);
     assert.equal(limited.status, 429);
     assert.ok(limited.json.retry_after > 0);
-    assert.equal((await pub('POST', '/api/submissions', { url: 'https://other.example', email: 'a@b.se' }, { 'X-Forwarded-For': '198.51.100.2' })).status, 201);
+    assert.equal((await pub('POST', '/api/submissions', { url: 'https://other.example', email: 'a@b.se', accept_terms: true }, { 'X-Forwarded-For': '198.51.100.2' })).status, 201);
   });
 
   test('request bodies are limited', async () => {
@@ -500,7 +500,7 @@ describe('mail failures are recorded', () => {
   test('a failed confirmation shows in the admin view and can be sent again', async () => {
     const pub = api(s.base);
     const admin = api(s.base, { key: KEY });
-    assert.equal((await pub('POST', '/api/submissions', { url: 'https://fail.example', email: 'x@example.se' })).status, 201);
+    assert.equal((await pub('POST', '/api/submissions', { url: 'https://fail.example', email: 'x@example.se', accept_terms: true })).status, 201);
     let app;
     for (let i = 0; i < 50 && !app?.mail?.confirm; i++) {
       app = (await admin('GET', '/api/admin/apps?status=pending')).json.find((a) => a.url === 'https://fail.example');
@@ -562,7 +562,7 @@ describe('the open MCP: an agent submits an app and follows it', () => {
     return { ok: !result.isError, text: result.content[0].text, data: result.structuredContent?.result };
   };
   let pub;
-  const submission = { url: 'https://robot.example', title: 'Roboträknaren', description: 'Räkna äpplen med roboten, för de yngsta.', first_name: 'Anna-Karin', email: 'parent@example.com' };
+  const submission = { url: 'https://robot.example', title: 'Roboträknaren', description: 'Räkna äpplen med roboten, för de yngsta.', first_name: 'Anna-Karin', email: 'parent@example.com', accept_terms: true };
 
   before(async () => {
     images = await startImageServer();
@@ -697,7 +697,7 @@ describe('the open MCP: an agent submits an app and follows it', () => {
     const init = await rpc(pub, 'initialize', { protocolVersion: '2025-06-18', capabilities: {}, clientInfo: { name: 't', version: '1' } });
     assert.match(init.json.result.instructions, /submit_app/);
     const open = (await rpc(pub, 'tools/list')).json.result.tools.map((t) => t.name).sort();
-    assert.deepEqual(open, ['app_stats', 'app_status', 'check_app', 'get_app', 'get_curriculum', 'get_guide', 'get_skill', 'get_starter', 'list_apps', 'list_categories', 'list_ideas', 'list_resources', 'list_skills', 'publish_on_shipholm', 'recover_app_keys', 'set_my_app_image', 'submit_app', 'update_my_app', 'withdraw_my_app']);
+    assert.deepEqual(open, ['app_stats', 'app_status', 'check_app', 'get_app', 'get_curriculum', 'get_guide', 'get_skill', 'get_starter', 'get_terms', 'list_apps', 'list_categories', 'list_ideas', 'list_resources', 'list_skills', 'publish_on_shipholm', 'recover_app_keys', 'set_my_app_image', 'submit_app', 'update_my_app', 'withdraw_my_app']);
     const keyed = (await rpc(admin, 'tools/list')).json.result.tools.map((t) => t.name);
     for (const name of ['update_app', 'list_submissions', 'submit_app', 'app_stats']) assert.ok(keyed.includes(name), name);
     assert.equal(keyed.length, new Set(keyed).size, 'no tool twice');

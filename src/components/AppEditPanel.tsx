@@ -357,8 +357,15 @@ export function AppEditPanel({ appId }: AppEditPanelProps) {
           {app.submitter_email && (
             <div className="rounded-lg border p-3 text-sm space-y-1">
               <p>
-                <span className="font-medium">Tips från:</span> {app.submitter_email}{' '}
+                <span className="font-medium">Tips från:</span>{' '}
+                <a href={`mailto:${app.submitter_email}`} className="underline-offset-2 hover:underline">{app.submitter_email}</a>{' '}
                 <span className="text-muted-foreground">{app.email_confirmed ? '(bekräftad)' : '(ej bekräftad)'}</span>
+              </p>
+              <p className="text-muted-foreground">
+                {app.terms_version
+                  ? `Godkände villkoren (version ${app.terms_version}) ${app.terms_accepted_at ? new Date(app.terms_accepted_at).toLocaleDateString('sv-SE') : ''}`
+                  : 'Skickades in innan villkoren behövde godkännas'}
+                {app.source ? ` · via ${app.source}` : ''}
               </p>
               {app.submitter_note && <p className="whitespace-pre-wrap text-muted-foreground">{app.submitter_note}</p>}
               <SubmissionMailStatus app={app} />

@@ -36,7 +36,7 @@ describe('an app on Shipholm gets <name>.skolappar.com while it is listed', () =
   };
   const submit = async (url) => {
     s.app.limiters.submitLimiter.reset();
-    const sent = (await call(pub, 'submit_app', { url, title: 'Klockjakten', description: 'Öva klockan med hela och halva timmar.', first_name: 'Anna', email: 'p@example.com' })).data;
+    const sent = (await call(pub, 'submit_app', { url, title: 'Klockjakten', description: 'Öva klockan med hela och halva timmar.', first_name: 'Anna', email: 'p@example.com', accept_terms: true })).data;
     return sent;
   };
 
@@ -60,7 +60,7 @@ describe('an app on Shipholm gets <name>.skolappar.com while it is listed', () =
     assert.equal((await call(pub, 'get_app', { id })).data.url, 'https://klockjakten.skolappar.com/');
     assert.equal((await call(pub, 'app_status', { id })).data.url, 'https://klockjakten.skolappar.com/');
     // the address it came with is still "this app": it cannot be submitted a second time
-    assert.match((await call(pub, 'submit_app', { url: 'https://klockjakten.shipholm.dev/', title: 'Igen', description: 'Samma app en gång till.', first_name: 'Anna', email: 'p@example.com' })).text, /finns redan/);
+    assert.match((await call(pub, 'submit_app', { url: 'https://klockjakten.shipholm.dev/', title: 'Igen', description: 'Samma app en gång till.', first_name: 'Anna', email: 'p@example.com', accept_terms: true })).text, /finns redan/);
     // featured is still listed: nothing more is asked of Shipholm
     await call(admin, 'update_app', { id, status: 'featured' });
     assert.equal(shipholm.calls.length, 1);
@@ -111,7 +111,7 @@ describe('an app on Shipholm gets <name>.skolappar.com while it is listed', () =
     try {
       const a = api(plain.base, { key: KEY });
       const p = api(plain.base);
-      const sent = (await call(p, 'submit_app', { url: 'https://klockjakten.shipholm.dev/', title: 'Klockjakten', description: 'Öva klockan med hela och halva timmar.', first_name: 'Anna', email: 'p@example.com' })).data;
+      const sent = (await call(p, 'submit_app', { url: 'https://klockjakten.shipholm.dev/', title: 'Klockjakten', description: 'Öva klockan med hela och halva timmar.', first_name: 'Anna', email: 'p@example.com', accept_terms: true })).data;
       const out = (await call(a, 'update_app', { id: sent.id, status: 'approved' })).data;
       assert.match(out.address.note, /SHIPHOLM_API_KEY/);
       assert.equal(out.app.url, 'https://klockjakten.shipholm.dev/');

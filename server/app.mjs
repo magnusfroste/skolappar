@@ -22,6 +22,8 @@ import { createRateLimiter } from './ratelimit.mjs';
 import { createStatic } from './static.mjs';
 import { buildLlmsTxt, buildSitemap } from './seo.mjs';
 import { pageFor, applyPage } from './prerender.mjs';
+import { TERMS, MAILINGS, PLACEHOLDERS } from './mailings.mjs';
+import { markdownToHtml } from './markdown.mjs';
 import { landing } from './landing.mjs';
 import { validate, ValidationError, isUuid } from './validate.mjs';
 import { HttpError, MB, readBody, readJson, sendJson, sendText, sendError, clientIp, escapeHtml } from './http.mjs';
@@ -201,6 +203,7 @@ export function createApp(config, { fetchImpl = globalThis.fetch, fetchOutside, 
       title: { type: 'string', maxLength: 120 },
       description: { type: 'string', maxLength: 500 },
       note: { type: 'string', maxLength: 2000 },
+      accept_terms: { type: 'boolean' },   // the box "I have read and accept the terms" (/villkor)
       website: { type: 'string', maxLength: 500 }, // honeypot: humans leave it empty
     },
     required: ['url', 'email'],
@@ -317,6 +320,7 @@ export function createApp(config, { fetchImpl = globalThis.fetch, fetchOutside, 
   route('GET', '/api/resources', ({ query }) => store.listResources({ category: query.get('category') || undefined }));
   route('GET', '/api/resources/:slug', ({ params }) => found(store.getResourceBySlug(params.slug), 'Resource not found'));
   route('GET', '/api/settings', () => store.allSettings());
+  route('GET', '/api/terms', () => ({ version: TERMS.version, markdown: TERMS.markdown, html: markdownToHtml(TERMS.markdown, { headingOffset: 0 }) }));
   route('GET', '/api/ideas', ({ query }) => store.listIdeas({
     status: query.get('status') || undefined,
     target_age: query.get('target_age') || undefined,
@@ -356,9 +360,10 @@ export function createApp(config, { fetchImpl = globalThis.fetch, fetchOutside, 
     const body = check(SUBMISSION, await readJson(req));
     limit(submitLimiter, req);
     if (body.website) return { status: 201, body: { ok: true } };
+    if (body.accept_terms !== true) throw new HttpError(400, 'The terms must be accepted', { terms: '/villkor', terms_version: TERMS.version });
     const listed = store.listedAt(body.url);
     if (listed) throw new HttpError(409, 'This app is already listed', { app_id: listed });
-    const { id } = store.createSubmission(body);
+    const { id } = store.createSubmission({ ...body, termsVersion: TERMS.version });
     log.info?.(`submission created ${id}`);
     store.sendConfirmation(id).catch(() => {});
     return { status: 201, body: { ok: true } };
@@ -437,6 +442,35 @@ export function createApp(config, { fetchImpl = globalThis.fetch, fetchOutside, 
   });
   // changes the makers proposed to listed apps: the same review as list_changes / review_change over MCP
   admin('GET', '/api/admin/changes', () => store.listChanges());
+
+  // mails to makers: the five templates, what has gone out, previews and the admin's broadcasts
+  admin('GET', '/api/admin/mailings', () => ({ ...store.mailingsOverview(), placeholders: PLACEHOLDERS }));
+  const MAILING = {
+    type: 'object',
+    properties: {
+      kind: { type: 'string', enum: MAILINGS.map((m) => m.id) },
+      ref: { type: 'string', maxLength: 60 },
+      app_id: { type: 'string', format: 'uuid' },
+      subject: { type: 'string', maxLength: 200 },
+      body: { type: 'string', maxLength: 20000 },
+      andringar: { type: 'string', maxLength: 5000 },
+      galler_fran: { type: 'string', maxLength: 40 },
+      dry_run: { type: 'boolean' },
+    },
+    required: ['kind'],
+    additionalProperties: false,
+  };
+  const mailingVars = (b) => ({ ...(b.andringar ? { andringar: b.andringar } : {}), ...(b.galler_fran ? { galler_fran: b.galler_fran } : {}) });
+  admin('POST', '/api/admin/mailings/preview', async ({ req }) => {
+    const b = check(MAILING, await readJson(req));
+    return found(store.previewMailing({ kind: b.kind, appId: b.app_id, subject: b.subject, body: b.body, vars: mailingVars(b) }), 'No such mail');
+  });
+  admin('POST', '/api/admin/mailings/send', async ({ req }) => {
+    const b = check(MAILING, await readJson(req));
+    const out = await store.sendBroadcast({ kind: b.kind, ref: b.ref, subject: b.subject, body: b.body, vars: mailingVars(b), dryRun: b.dry_run !== false });
+    if (out.error) throw new HttpError(400, out.error);
+    return out;
+  });
   admin('POST', '/api/admin/apps/:id/change', async ({ req, params }) => {
     const body = check({ type: 'object', properties: { approve: { type: 'boolean' }, reason: { type: 'string', maxLength: 500 } }, required: ['approve'] }, await readJson(req));
     return found(store.reviewChange(needId(params.id), body.approve, body.reason || null), 'No change waits for this app');
@@ -707,13 +741,13 @@ a.btn{display:inline-block;margin-top:16px;padding:12px 22px;border-radius:999px
     const stop = /^\/brev\/av\/([^/]+)\/?$/.exec(path);
     if (stop) {
       const page = (status, html) => sendText(res, status, html, 'text/html; charset=utf-8', { 'Cache-Control': 'no-store', 'X-Robots-Tag': 'noindex' });
-      const gone = () => page(404, simplePage('Länken fungerar inte', 'Länken är inte giltig. Svara på veckobrevet om du vill sluta få det.'));
+      const gone = () => page(404, simplePage('Länken fungerar inte', 'Länken är inte giltig. Svara på mejlet om du vill sluta få fler.'));
       if (req.method === 'POST') {
-        return store.stopDigest(stop[1]) ? page(200, simplePage('Klart', 'Du får inga fler veckobrev från Skolappar. Apparna ligger kvar i katalogen som vanligt.', '<a class="btn" href="/">Till Skolappar</a>')) : gone();
+        return store.stopDigest(stop[1]) ? page(200, simplePage('Klart', 'Du får inga fler veckobrev, uppföljningar eller nyheter från Skolappar. Apparna ligger kvar i katalogen som vanligt, och besked om granskning och ändrade villkor kommer fortfarande.', '<a class="btn" href="/">Till Skolappar</a>')) : gone();
       }
       return store.digestApp(stop[1])
-        ? page(200, simplePage('Sluta få veckobrevet?', 'Veckobrevet berättar hur era appar används. Tryck på knappen så slutar det komma, för alla era appar.',
-          '<form method="post"><button type="submit">Sluta skicka veckobrevet</button></form>'))
+        ? page(200, simplePage('Sluta få mejl från Skolappar?', 'Tryck på knappen så slutar veckobrevet, uppföljningarna och nyheterna att komma, för alla era appar. Besked om granskning och ändrade villkor kommer ändå.',
+          '<form method="post"><button type="submit">Sluta skicka</button></form>'))
         : gone();
     }
 
@@ -749,9 +783,11 @@ a.btn{display:inline-block;margin-top:16px;padding:12px 22px;border-radius:999px
     });
     handle(req, res).catch((err) => sendError(res, err));
   });
-  // the weekly letter: looked at every hour, sent on Monday morning once per week (DIGEST=off stops it)
+  // the weekly letter (Monday morning, once per week) and the follow-ups a week and a month after
+  // publishing: looked at every hour (DIGEST=off stops both)
   const digestTimer = config.env?.DIGEST === 'off' ? null : setInterval(() => {
     store.maybeSendWeeklyDigest().catch((err) => log.warn?.(`weekly letter failed: ${err?.message || err}`));
+    store.maybeSendFollowUps().catch((err) => log.warn?.(`follow-ups failed: ${err?.message || err}`));
   }, HOUR);
   digestTimer?.unref?.();
 

@@ -9,6 +9,8 @@ export interface AppSuggestion {
   note?: string;
   /** Honeypot – stays empty for people. */
   website?: string;
+  /** The box "I have read and accept the terms" – the server refuses a submission without it. */
+  accept_terms: boolean;
 }
 
 /** "Tipsa om en app": anyone can suggest an app; it waits for review. */

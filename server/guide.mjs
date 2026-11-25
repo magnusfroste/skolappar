@@ -187,7 +187,7 @@ export const GUIDE_SECTIONS = [
 1. \`check_app\` – kontrollera adressen mot guiden och rätta det som brister.
 2. \`list_categories\` – hämta id för ämne, årskurs och typ.
 3. \`list_apps\` – se att appen inte redan finns.
-4. \`submit_app\` – adress, namn, beskrivning, kategorier, punkterna i Lgr22 (\`curriculum_ids\`) samt förälderns förnamn och e-postadress. Spara \`app_key\` ur svaret; den visas en gång.
+4. \`submit_app\` – adress, namn, beskrivning, kategorier, punkterna i Lgr22 (\`curriculum_ids\`) samt förälderns förnamn och e-postadress, och \`accept_terms: true\` när föräldern har läst och godkänt villkoren (\`get_terms\`, /villkor). Spara \`app_key\` ur svaret; den visas en gång.
 5. \`set_my_app_image\` – sätt kortbilden: som SVG, från en adress eller som uppladdad fil. Utan bild får kortet ämnets färg och symbol.
 6. Be föräldern klicka på länken i mejlet från Skolappar. Utan det publiceras appen inte.
 7. \`app_status\` – appar granskas en gång om dagen. Avslås appen står skälet där; rätta och uppdatera, så ställs den i kö igen.

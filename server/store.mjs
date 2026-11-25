@@ -2,7 +2,8 @@
 // public API, the admin API and the MCP tools share one set of rules.
 import { randomUUID, randomBytes, createHash, timingSafeEqual } from 'node:crypto';
 import { transaction, serverSecret } from './db.mjs';
-import { appKeysMail, appPublishedMail, confirmSubmissionMail, weeklyDigestMail } from './mailer.mjs';
+import { appKeysMail, confirmSubmissionMail, weeklyDigestMail } from './mailer.mjs';
+import { MAILINGS, mailing, render, appsPhrase, TERMS } from './mailings.mjs';
 
 export const APP_STATUSES = ['pending', 'approved', 'rejected', 'featured', 'delisted'];
 export const PUBLIC_STATUSES = ['approved', 'featured'];
@@ -389,6 +390,160 @@ export function createStore(db, { mailer, curriculum, shipholm, siteUrl = 'https
     return sendWeeklyDigest();
   }
 
+
+  // ---------- mails to makers: the five templates (server/content/mail/) ----------
+  // godkand goes with the review, en-vecka and en-manad by the hourly tick, villkor and nyheter when
+  // an admin sends them. Each mail is a row in mail_sends (kind, ref, address) – that is what makes
+  // every one go out once. The stop link (the weekly letter's) turns off what is `stoppable`.
+
+  const addressKey = (a) => String(a || '').trim().toLowerCase();
+
+  function logSend(kind, ref, address, appId, subject, result, { replace = false } = {}) {
+    db.prepare(`INSERT ${replace ? 'OR REPLACE' : 'OR IGNORE'} INTO mail_sends (kind, ref, address, app_id, subject, result, sent_at) VALUES (?, ?, ?, ?, ?, ?, ?)`)
+      .run(kind, String(ref), addressKey(address), appId || null, subject || null, result, now());
+  }
+  const wasSent = (kind, ref, address) =>
+    Boolean(db.prepare(`SELECT 1 FROM mail_sends WHERE kind = ? AND ref = ? AND address = ? AND result = 'sent'`).get(kind, String(ref), addressKey(address)));
+
+  /** What the templates can say about one app. */
+  function appVars(row) {
+    return {
+      namn: row.creator_name || '', app: row.title, appar: appsPhrase([row.title]),
+      lank: `${siteUrl}/app/${row.id}`, webbplats: siteUrl, av: `${siteUrl}/brev/av/${digestToken(row.id)}`,
+    };
+  }
+
+  /** One sentence on how an app was used since it was published (for en-vecka and en-manad). */
+  function usageSentence(row, days) {
+    const from = new Date(Date.now() - days * 86400000).toISOString();
+    const opens = opensBetween(row.id, from, new Date(Date.now() + 1000).toISOString());
+    const s = inAppStats(row.id, days);
+    const parts = [`Den har öppnats ${opens} ${opens === 1 ? 'gång' : 'gånger'}`];
+    if (s?.rounds_started) parts.push(`${s.rounds_started} omgångar har påbörjats och ${Math.round(s.share_of_rounds_finished * 100)} % blev klara`);
+    let text = `${parts.join(', ')}.`;
+    if (!s) text += ` Med kodsnutten ser du också hur långt barnen kommer: ${siteUrl}/bygg#kodsnutten`;
+    else if (!opens) text = 'Den har inte öppnats än – dela gärna länken med någon som har barn i rätt ålder.';
+    return text;
+  }
+
+  /** Listed apps whose maker has confirmed the address, grouped by address. */
+  function makers({ stoppable }) {
+    const rows = db.prepare(
+      `SELECT * FROM apps WHERE status IN ('approved','featured') AND email_confirmed = 1 AND submitter_email IS NOT NULL ORDER BY created_at`
+    ).all();
+    const by = new Map();
+    for (const r of rows) {
+      const key = addressKey(r.submitter_email);
+      if (!by.has(key)) by.set(key, { to: r.submitter_email, apps: [], off: false });
+      const m = by.get(key);
+      m.apps.push(r);
+      if (r.digest_off) m.off = true;   // the stop link turns off every app of the address
+    }
+    return [...by.values()].filter((m) => !(stoppable && m.off));
+  }
+
+  function makerVars(m, extra = {}) {
+    const first = m.apps[0];
+    return { ...appVars(first), namn: m.apps.find((a) => a.creator_name)?.creator_name || '', appar: appsPhrase(m.apps.map((a) => a.title)), ...extra };
+  }
+
+  /**
+   * An admin's mail to every maker: villkor (ref = the terms version) or nyheter (ref = a short id
+   * of the news). subject/body replace the template's for this send; vars fill andringar, galler_fran.
+   * dryRun says how many would get it and shows one, without addresses.
+   */
+  async function sendBroadcast({ kind, ref, subject, body, vars = {}, dryRun = true }) {
+    const tpl = mailing(kind);
+    if (!tpl || tpl.auto) return { error: `"${kind}" skickas inte för hand – välj villkor eller nyheter` };
+    ref = String(ref || (kind === 'villkor' ? TERMS.version : '')).trim();
+    if (!/^[\w.-]{2,60}$/.test(ref)) return { error: 'ref behövs: ett kort id för utskicket, t.ex. 2026-12-ljud-ai (bokstäver, siffror, - . _)' };
+    if (kind === 'villkor' && (!String(vars.andringar || '').trim() || !String(vars.galler_fran || '').trim())) {
+      return { error: 'Ett villkorsmejl behöver andringar (vad som ändras) och galler_fran (från vilket datum).' };
+    }
+    const template = { subject: subject || tpl.subject, body: body || tpl.body };
+    const all = makers({ stoppable: tpl.stoppable });
+    const due = all.filter((m) => !wasSent(kind, ref, m.to));
+    const letters = due.map((m) => ({ m, ...render(template, makerVars(m, vars)) }));
+    const summary = { kind, ref, recipients: all.length, already_sent: all.length - due.length };
+    if (dryRun) return { ...summary, would_send: letters.length, example: letters[0] ? { subject: letters[0].subject, text: letters[0].text } : null };
+    let sent = 0;
+    for (const l of letters) {
+      let r = { sent: false, reason: 'not_configured' };
+      try { if (mailer) r = await mailer.send({ to: l.m.to, subject: l.subject, text: l.text }); } catch { r = { sent: false, reason: 'error' }; }
+      logSend(kind, ref, l.m.to, l.m.apps[0].id, l.subject, r.sent ? 'sent' : `failed:${r.reason || 'error'}`, { replace: true });
+      if (r.sent) sent++;
+    }
+    log.info?.(`mail ${kind}/${ref}: ${sent} of ${letters.length} sent`);
+    return { ...summary, sent, of: letters.length };
+  }
+
+  /** The follow-ups that are due now: [{row, kind, subject, text}], at most one per address. */
+  function dueFollowUps(date = new Date()) {
+    const since = getSetting('followups_since');
+    if (!since) return [];   // set on the first tick: apps published before the follow-ups existed get none
+    const out = [];
+    const busy = new Set();
+    for (const m of makers({ stoppable: true })) {
+      for (const row of m.apps) {
+        if (!row.published_notified_at || row.published_notified_at < since) continue;
+        const age = (date.getTime() - Date.parse(row.published_notified_at)) / 86400000;
+        // the later one first: an app that is already a month old gets en-manad, not a late en-vecka
+        for (const tpl of [mailing('en-manad'), mailing('en-vecka')]) {
+          if (age < tpl.days || busy.has(addressKey(m.to))) continue;
+          if (wasSent(tpl.id, row.id, m.to)) break;
+          if (tpl.id === 'en-vecka' && wasSent('en-manad', row.id, m.to)) break;
+          busy.add(addressKey(m.to));
+          out.push({ row, to: m.to, kind: tpl.id, ...render(tpl, { ...appVars(row), statistik: usageSentence(row, tpl.days) }) });
+          break;
+        }
+      }
+    }
+    return out;
+  }
+
+  /** Called every hour: sends the follow-ups that are due, 09–19 Swedish time. */
+  async function maybeSendFollowUps(date = new Date()) {
+    if (!getSetting('followups_since')) { setSetting('followups_since', date.toISOString()); return null; }
+    const hour = Number(new Intl.DateTimeFormat('en-GB', { timeZone: 'Europe/Stockholm', hour: '2-digit', hourCycle: 'h23' }).format(date));
+    if (hour < 9 || hour >= 19) return null;
+    let sent = 0;
+    const due = dueFollowUps(date);
+    for (const f of due) {
+      let r = { sent: false, reason: 'not_configured' };
+      try { if (mailer) r = await mailer.send({ to: f.to, subject: f.subject, text: f.text }); } catch { r = { sent: false, reason: 'error' }; }
+      logSend(f.kind, f.row.id, f.to, f.row.id, f.subject, r.sent ? 'sent' : `failed:${r.reason || 'error'}`, { replace: true });
+      if (r.sent) sent++;
+    }
+    if (due.length) log.info?.(`follow-ups: ${sent} of ${due.length} sent`);
+    return { sent, of: due.length };
+  }
+
+  /** A template filled in for one app (or the first listed one), for the admin's preview. */
+  function previewMailing({ kind, appId, subject, body, vars = {} }) {
+    const tpl = mailing(kind);
+    if (!tpl) return null;
+    const row = appId ? db.prepare('SELECT * FROM apps WHERE id = ?').get(appId)
+      : db.prepare(`SELECT * FROM apps WHERE status IN ('approved','featured') ORDER BY created_at LIMIT 1`).get();
+    const base = row ? { ...appVars(row), statistik: row ? usageSentence(row, tpl.days || 7) : '' } : { webbplats: siteUrl };
+    return render({ subject: subject || tpl.subject, body: body || tpl.body }, { ...base, galler_fran: vars.galler_fran || '{{galler_fran}}', andringar: vars.andringar || '{{andringar}}', ...vars });
+  }
+
+  /** Everything the admin's Utskick page shows. Addresses only for the admin. */
+  function mailingsOverview({ limit = 50 } = {}) {
+    const stats = (kind) => db.prepare(`SELECT COUNT(*) AS n, MAX(sent_at) AS last FROM mail_sends WHERE kind = ? AND result = 'sent'`).get(kind);
+    return {
+      terms_version: TERMS.version,
+      followups_since: getSetting('followups_since'),
+      makers: makers({ stoppable: false }).length,
+      makers_reachable: makers({ stoppable: true }).length,
+      templates: MAILINGS.map((m) => ({ ...m, sent: stats(m.id).n, last_sent_at: stats(m.id).last })),
+      log: db.prepare(
+        `SELECT s.kind, s.ref, s.address, s.subject, s.result, s.sent_at, a.title AS app_title
+         FROM mail_sends s LEFT JOIN apps a ON a.id = s.app_id ORDER BY s.sent_at DESC, s.id DESC LIMIT ?`
+      ).all(Math.min(Math.max(limit, 1), 500)),
+    };
+  }
+
   /** Keep the outcome of a check on the app. */
   function saveCheck(id, result) {
     db.prepare('UPDATE apps SET check_result = ?, check_passed = ?, checked_at = ? WHERE id = ?')
@@ -427,6 +582,8 @@ export function createStore(db, { mailer, curriculum, shipholm, siteUrl = 'https
       app.submitter_note = r.submitter_note;
       app.email_confirmed = Boolean(r.email_confirmed);
       app.published_notified_at = r.published_notified_at;
+      app.terms_version = r.terms_version;
+      app.terms_accepted_at = r.terms_accepted_at;
       app.mail = {
         confirm: mailState(r.confirm_mail, r.confirm_mail_at),
         published: mailState(r.published_mail, r.published_mail_at),
@@ -754,7 +911,7 @@ export function createStore(db, { mailer, curriculum, shipholm, siteUrl = 'https
 
   const MAIL_KINDS = {
     confirm: (row) => confirmSubmissionMail({ siteUrl, token: row.confirm_token, appUrl: row.url }),
-    published: (row) => appPublishedMail({ siteUrl, appId: row.id, title: row.title }),
+    published: (row) => render(mailing('godkand'), appVars(row)),
   };
 
   /** Send one of the submission mails and remember the outcome on the app. */
@@ -768,6 +925,7 @@ export function createStore(db, { mailer, curriculum, shipholm, siteUrl = 'https
     }
     const value = result.sent ? 'sent' : result.reason === 'not_configured' ? 'not_configured' : `failed:${result.reason || 'error'}`;
     db.prepare(`UPDATE apps SET ${kind}_mail = ?, ${kind}_mail_at = ? WHERE id = ?`).run(value, now(), row.id);
+    if (kind === 'published') logSend('godkand', row.id, row.submitter_email, row.id, MAIL_KINDS.published(row).subject, value, { replace: true });
     return result;
   }
 
@@ -826,7 +984,7 @@ export function createStore(db, { mailer, curriculum, shipholm, siteUrl = 'https
    * A new suggestion, waiting for review. From the form: url and email. From an agent (MCP
    * submit_app): also the creator's first name, categories and the hash of the app's own key.
    */
-  function createSubmission({ url, email, title, description, long_description, note, creator_name, categoryIds, keyHash, source = null, emailVerified = false }) {
+  function createSubmission({ url, email, title, description, long_description, note, creator_name, categoryIds, keyHash, source = null, emailVerified = false, termsVersion = null }) {
     const id = randomUUID();
     const token = randomBytes(24).toString('base64url');
     const t = now();
@@ -837,10 +995,10 @@ export function createStore(db, { mailer, curriculum, shipholm, siteUrl = 'https
     return transaction(db, () => {
       db.prepare(
         `INSERT INTO apps (id, title, description, long_description, url, status, creator_name, submitter_email, submitter_note,
-           email_confirmed, confirm_token, app_key_hash, source, created_at, updated_at)
-         VALUES (?, ?, ?, ?, ?, 'pending', ?, ?, ?, ?, ?, ?, ?, ?, ?)`
+           email_confirmed, confirm_token, app_key_hash, source, terms_version, terms_accepted_at, created_at, updated_at)
+         VALUES (?, ?, ?, ?, ?, 'pending', ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
       ).run(id, title || fallbackTitle, description || '', nul(long_description), url, nul(creator_name), email, nul(note),
-        emailVerified ? 1 : 0, token, nul(keyHash), nul(source), t, t);
+        emailVerified ? 1 : 0, token, nul(keyHash), nul(source), nul(termsVersion), termsVersion ? t : null, t, t);
       const unknown = categoryIds?.length ? setAppCategories(id, categoryIds) : [];
       return { id, token, unknown_category_ids: unknown };
     });
@@ -1236,7 +1394,7 @@ export function createStore(db, { mailer, curriculum, shipholm, siteUrl = 'https
     listPublicApps, listAdminApps, getApp, topApps, recentApps, relatedApps,
     createApp, updateApp, deleteApp, setAppCategories, trackClick,
     createSubmission, confirmEmail, sendConfirmation, resendMail,
-    appKeyMatches, saveCheck, appAtHost, recordEvents, inAppStats, stopDigest, digestApp, weeklyDigests, sendWeeklyDigest, maybeSendWeeklyDigest, proposeChange, listChanges, reviewChange, startKeyRecovery, keyRecoveryValid, finishKeyRecovery, setOwnImage, setCurriculum, curriculumUsed, syncAddress, releaseAddress, listedAt, appStatus, appStats,
+    appKeyMatches, saveCheck, appAtHost, recordEvents, inAppStats, stopDigest, digestApp, weeklyDigests, sendWeeklyDigest, maybeSendWeeklyDigest, sendBroadcast, dueFollowUps, maybeSendFollowUps, previewMailing, mailingsOverview, proposeChange, listChanges, reviewChange, startKeyRecovery, keyRecoveryValid, finishKeyRecovery, setOwnImage, setCurriculum, curriculumUsed, syncAddress, releaseAddress, listedAt, appStatus, appStats,
     toggleUpvote, myUpvotes,
     listResources, getResource, getResourceBySlug, createResource, updateResource, deleteResource,
     allSettings, listSettings, getSetting, setSetting,

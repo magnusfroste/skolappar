@@ -15,7 +15,7 @@ describe('a partner key (Shipholm Studio): its own limits, a label, a vouched ad
     return { status: r.status, ok: !result.isError, text: result.content[0].text, data: result.structuredContent?.result ?? result.structuredContent };
   };
   const withPartner = (key) => async (method, path, body, headers = {}) => pub(method, path, body, { 'X-Partner-Key': key, ...headers });
-  const app = (url, extra = {}) => ({ url, title: 'Klockjakten', description: 'Öva klockan med hela och halva timmar.', first_name: 'Anna', email: 'anna@example.com', ...extra });
+  const app = (url, extra = {}) => ({ url, title: 'Klockjakten', description: 'Öva klockan med hela och halva timmar.', first_name: 'Anna', email: 'anna@example.com', accept_terms: true, ...extra });
 
   before(async () => {
     s = await startServer({ adminKey: 'k-admin', submitLimit: 2, env: { PARTNER_KEYS: `shipholm-studio:${HASH}` } });

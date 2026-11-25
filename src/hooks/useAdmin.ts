@@ -23,6 +23,10 @@ export interface AdminApp extends App {
   submitter_note: string | null;
   email_confirmed: boolean;
   published_notified_at: string | null;
+  /** The terms version the submitter accepted (null: submitted before acceptance was asked for). */
+  terms_version?: string | null;
+  terms_accepted_at?: string | null;
+  source?: string | null;
   mail?: { confirm: MailState | null; published: MailState | null };
 }
 
@@ -379,5 +383,69 @@ export function useReviewChange() {
       queryClient.invalidateQueries({ queryKey: ['admin-changes'] });
       invalidateApps(queryClient);
     },
+  });
+}
+
+// ---------- mails to makers (Utskick) ----------
+
+export type MailingKind = 'godkand' | 'en-vecka' | 'en-manad' | 'villkor' | 'nyheter';
+
+export interface MailingTemplate {
+  id: MailingKind;
+  auto: boolean;
+  stoppable: boolean;
+  schedule: string;
+  subject: string;
+  when: string;
+  body: string;
+  sent: number;
+  last_sent_at: string | null;
+}
+
+export interface MailingsOverview {
+  terms_version: string;
+  followups_since: string | null;
+  makers: number;
+  makers_reachable: number;
+  templates: MailingTemplate[];
+  placeholders: Record<string, string>;
+  log: { kind: MailingKind; ref: string; address: string; subject: string | null; result: string; sent_at: string; app_title: string | null }[];
+}
+
+export interface MailingInput {
+  kind: MailingKind;
+  ref?: string;
+  app_id?: string;
+  subject?: string;
+  body?: string;
+  andringar?: string;
+  galler_fran?: string;
+  dry_run?: boolean;
+}
+
+export interface MailingResult {
+  kind: MailingKind;
+  ref: string;
+  recipients: number;
+  already_sent: number;
+  would_send?: number;
+  sent?: number;
+  of?: number;
+  example?: { subject: string; text: string } | null;
+}
+
+export function useMailings(enabled = true) {
+  return useQuery({ queryKey: ['admin-mailings'], queryFn: () => adminApi.get<MailingsOverview>('/api/admin/mailings'), enabled });
+}
+
+export function usePreviewMailing() {
+  return useMutation({ mutationFn: (input: MailingInput) => adminApi.post<{ subject: string; text: string }>('/api/admin/mailings/preview', { ...input }) });
+}
+
+export function useSendMailing() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (input: MailingInput) => adminApi.post<MailingResult>('/api/admin/mailings/send', { ...input }),
+    onSuccess: (_r, input) => { if (input.dry_run === false) queryClient.invalidateQueries({ queryKey: ['admin-mailings'] }); },
   });
 }

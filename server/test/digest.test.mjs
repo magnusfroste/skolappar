@@ -31,7 +31,7 @@ describe('the weekly letter to makers', () => {
     s = await startServer({ adminKey: 'k-digest', env: { MAIL_PROVIDER: 'resend', MAIL_API_URL: mail.url, MAIL_API_KEY: 'k', MAIL_FROM: 'Skolappar <hej@skolappar.test>' } });
     pub = api(s.base);
     admin = api(s.base, { key: 'k-digest' });
-    id = (await call(pub, 'submit_app', { url: 'https://klocka.example', title: 'Klockjakten', description: 'Öva klockan med hela och halva timmar.', first_name: 'Anna', email: 'anna@example.com' })).data.id;
+    id = (await call(pub, 'submit_app', { url: 'https://klocka.example', title: 'Klockjakten', description: 'Öva klockan med hela och halva timmar.', first_name: 'Anna', email: 'anna@example.com', accept_terms: true })).data.id;
     await wait();
     const token = /\/bekrafta\/([A-Za-z0-9_-]+)/.exec(mail.sent.at(-1).text)[1];
     await pub('GET', `/bekrafta/${token}`);
