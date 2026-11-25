@@ -13,6 +13,8 @@ Tre saker som gör en app bättre, om du vill ta nästa steg:
 
 Din agent hittar hela guiden och verktygen på {{webbplats}}/mcp.
 
+{{shipholm}}
+
 – Skolappar
 
 Vill du inte ha fler sådana här mejl? {{av}}

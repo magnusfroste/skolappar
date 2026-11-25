@@ -4,7 +4,7 @@
 import { createHash, randomBytes } from 'node:crypto';
 import { POINT_ID, AREA_ID } from './curriculum.mjs';
 import { GUIDE_SECTIONS, guideMarkdown, guideSectionIds } from './guide.mjs';
-import { TERMS } from './mailings.mjs';
+import { TERMS, onShipholm } from './mailings.mjs';
 
 const uuid = { type: 'string', format: 'uuid' };
 const obj = (properties, required = []) => ({ type: 'object', properties, required, additionalProperties: false });
@@ -287,6 +287,11 @@ export function createPublicTools({ store, images, checkApp, content, curriculum
               : `Be ${input.first_name} öppna mejlet från Skolappar och klicka på länken. Utan det publiceras appen inte.`,
             'Appar granskas en gång om dagen. Läs läget med app_status.',
             'Spara app_key: den visas inte igen.',
+            // an offer for apps hosted elsewhere – the parent decides, and creates the account themselves
+            ...(onShipholm(input.url) ? [] : [
+              `Erbjud ${input.first_name} (fråga, kräv inget): med ett gratis Shipholm-konto får appen adressen <namn>.skolappar.com när den godkänns, ` +
+              'och kan läsa upp med en inspelad svensk röst (guidens avsnitt resurser). Vill föräldern det: publish_on_shipholm – föräldern godkänner kontot själv i webbläsaren. Annars ligger appen kvar där den är.',
+            ]),
           ],
           ...(unknown_category_ids.length ? { unknown_category_ids } : {}),
           ...(unknownPoints.length ? { unknown_curriculum_ids: unknownPoints } : {}),

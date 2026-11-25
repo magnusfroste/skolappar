@@ -45,6 +45,7 @@ export const PLACEHOLDERS = {
   statistik: 'en mening om hur appen har använts (en vecka, en månad)',
   webbplats: 'https://www.skolappar.com',
   av: 'länken som stänger av veckobrev, uppföljningar och nyheter',
+  shipholm: 'ett stycke om Shipholm för appar som ligger någon annanstans (tomt för appar på Shipholm)',
   andringar: 'vad som ändras i villkoren (skrivs vid utskicket)',
   galler_fran: 'datumet de nya villkoren gäller från (skrivs vid utskicket)',
 };
@@ -59,11 +60,34 @@ export function render({ subject, body }, vars) {
     const v = vars[key] == null ? '' : String(vars[key]);
     return v ? space + v : '';
   });
-  return { subject: fill(subject).trim(), text: fill(body) };
+  return { subject: fill(subject).trim(), text: fill(body).replace(/\n{3,}/g, '\n\n') };
 }
 
 /** "appen X" / "apparna X och Y" / "apparna X, Y och Z". */
 export function appsPhrase(titles) {
   if (titles.length <= 1) return `appen ${titles[0] || ''}`.trim();
   return `apparna ${titles.slice(0, -1).join(', ')} och ${titles.at(-1)}`;
+}
+
+/**
+ * Does the app already run on Shipholm? Its address is <name>.shipholm.dev, or <name>.skolappar.com,
+ * which only an app on Shipholm gets (origin_url keeps where it came from).
+ */
+export function onShipholm(...urls) {
+  return urls.some((u) => {
+    try {
+      const h = new URL(u).hostname.toLowerCase();
+      return h.endsWith('.shipholm.dev') || (h.endsWith('.skolappar.com') && h !== 'www.skolappar.com');
+    } catch { return false; }
+  });
+}
+
+/**
+ * What a maker whose app runs elsewhere gets by moving it to Shipholm – one paragraph for the mails
+ * (the {{shipholm}} placeholder), empty for an app that is already there. An offer, never a demand.
+ */
+export function shipholmOffer({ app }) {
+  return 'Ligger appen någon annanstans? Med ett gratis Shipholm-konto (europeisk drift) får den adressen ' +
+    `namn.skolappar.com och kan läsa upp med en riktig svensk röst. Säg till din AI-agent: "Lägg ut ${app} på Shipholm ` +
+    'med Skolappars publish_on_shipholm." Du godkänner kontot själv i webbläsaren. Appen får lika gärna ligga kvar där den är.';
 }
