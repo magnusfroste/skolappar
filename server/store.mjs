@@ -926,6 +926,11 @@ export function createStore(db, { mailer, curriculum, shipholm, siteUrl = 'https
     const sets = APP_FIELDS.filter((f) => fields[f] !== undefined);
     let unknown = [];
     transaction(db, () => {
+      // an address set by an admin counts as confirmed (the admin vouches for it); null removes it
+      if (fields.submitter_email !== undefined) {
+        const email = fields.submitter_email ? String(fields.submitter_email).trim() : null;
+        db.prepare('UPDATE apps SET submitter_email = ?, email_confirmed = ?, updated_at = ? WHERE id = ?').run(email, email ? 1 : 0, now(), id);
+      }
       if (sets.length) {
         db.prepare(`UPDATE apps SET ${sets.map((f) => `${f} = ?`).join(', ')}, updated_at = ? WHERE id = ?`)
           .run(...sets.map((f) => nul(fields[f])), now(), id);

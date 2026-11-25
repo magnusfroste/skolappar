@@ -236,3 +236,26 @@ describe('reports: anyone flags a listed app, the owner is told, an admin handle
     assert.equal((await pub('POST', '/api/reports', { app_id: appId, reason: 'broken' }, { 'X-Forwarded-For': '198.51.100.43' })).status, 404, 'a delisted app cannot be reported');
   });
 });
+
+describe('an admin sets the address on an app', () => {
+  let s; let admin; let n = 0;
+  const call = async (name, args) => {
+    const r = await admin('POST', '/mcp', { jsonrpc: '2.0', id: ++n, method: 'tools/call', params: { name, arguments: args } });
+    const result = r.json.result;
+    return { ok: !result.isError, text: result.content[0].text, data: result.structuredContent?.result ?? result.structuredContent };
+  };
+  before(async () => { s = await startServer({ adminKey: 'k-set' }); admin = api(s.base, { key: 'k-set' }); });
+  after(() => s.stop());
+
+  test('set (counts as confirmed, nothing sent), changed by PATCH, removed with null; a bad address is refused', async () => {
+    const id = (await admin('POST', '/api/admin/apps', { title: 'Kotten snickrar', url: 'https://snickrar.example', description: 'Bygg med Kotten och räkna.', status: 'approved' })).json.app.id;
+    assert.equal((await call('update_app', { id, submitter_email: 'magnus@example.com' })).ok, true);
+    let app = (await admin('GET', `/api/admin/apps/${id}`)).json;
+    assert.deepEqual([app.submitter_email, app.email_confirmed, app.status], ['magnus@example.com', true, 'approved']);
+    assert.equal(app.published_notified_at, null, 'no approval mail for an app that was already listed');
+    assert.equal((await admin('PATCH', `/api/admin/apps/${id}`, { submitter_email: 'inte-en-adress' })).status, 400);
+    assert.equal((await admin('PATCH', `/api/admin/apps/${id}`, { submitter_email: null })).status, 200);
+    app = (await admin('GET', `/api/admin/apps/${id}`)).json;
+    assert.deepEqual([app.submitter_email, app.email_confirmed], [null, false]);
+  });
+});
