@@ -232,7 +232,7 @@ export function createStore(db, { mailer, curriculum, shipholm, siteUrl = 'https
 
   // ---------- what the snippet reports from inside an app ----------
 
-  const EVENT_NAMES = new Set(['start', 'round_start', 'round_done', 'level', 'stop', 'hint', 'sound_off']);
+  const EVENT_NAMES = new Set(['start', 'round_start', 'round_done', 'level', 'stop', 'hint', 'sound_off', 'voice_file', 'voice_browser']);
   const MAX_LEVEL = 50;
 
   /** The app served at this host (its address, or the address it came with), or null. Not a deleted one. */
@@ -303,6 +303,11 @@ export function createStore(db, { mailer, curriculum, shipholm, siteUrl = 'https
       levels: levelFunnel(by, n('start')),
       hints: n('hint'),
       sound_turned_off: n('sound_off'),
+      // read aloud: recorded lines (audio files) against the browser's own voice; share only from 5 lines
+      voice: (() => {
+        const recorded = n('voice_file'); const browser = n('voice_browser');
+        return recorded + browser ? { recorded, browser, share_recorded: recorded + browser >= 5 ? Math.round((recorded / (recorded + browser)) * 100) / 100 : null } : null;
+      })(),
       note: 'Från kodsnutten i appen (kotten.js). Antal per dag, inget om enskilda barn.',
     };
   }

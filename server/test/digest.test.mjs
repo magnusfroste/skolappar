@@ -87,3 +87,24 @@ describe('the weekly letter to makers', () => {
     assert.equal((await call(admin, 'send_weekly_letter', {})).data.would_send, 0);
   });
 });
+
+describe('read aloud is counted: recorded lines against the browser voice', () => {
+  let s; let pub; let admin; let n = 0; let id;
+  const call = async (who, name, args) => {
+    const r = await who('POST', '/mcp', { jsonrpc: '2.0', id: ++n, method: 'tools/call', params: { name, arguments: args } });
+    return r.json.result.structuredContent?.result;
+  };
+  before(async () => {
+    s = await startServer({ adminKey: 'k-voice' });
+    pub = api(s.base); admin = api(s.base, { key: 'k-voice' });
+    id = (await admin('POST', '/api/admin/apps', { title: 'Ordklassjakten', url: 'https://ord.example', description: 'Hitta ordklassen.', status: 'approved' })).json.app.id;
+  });
+  after(() => s.stop());
+
+  test('voice_file and voice_browser become in_app.voice with the recorded share', async () => {
+    const events = [{ e: 'start' }, ...Array(3).fill({ e: 'voice_file' }), ...Array(7).fill({ e: 'voice_browser' })];
+    await pub('POST', '/api/events', JSON.stringify({ events, seconds: 60 }), { 'Content-Type': 'text/plain', Origin: 'https://ord.example' });
+    const stats = await call(pub, 'app_stats', { id });
+    assert.deepEqual(stats.in_app.voice, { recorded: 3, browser: 7, share_recorded: 0.3 });
+  });
+});

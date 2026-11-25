@@ -167,7 +167,10 @@ export function weeklyDigestMail({ siteUrl, apps, stopToken }) {
       const stop = levels.reduce((m, l) => (l.stopped_here > (m?.stopped_here || 0) ? l : m), null);
       if (stop) lines.push(`– flest slutade på nivå ${stop.level} (${stop.stopped_here} gånger)`);
       if (s.hints) lines.push(`– ${s.hints} ${s.hints === 1 ? 'ledtråd' : 'ledtrådar'} eller nya försök`);
-      const idea = s.rounds_started >= 5 && s.share_of_rounds_finished < 0.5
+      if (s.voice?.share_recorded != null) lines.push(`– uppläsning: ${pct(s.voice.share_recorded)} inspelad (${s.voice.recorded + s.voice.browser} repliker)`);
+      const idea = s.voice?.share_recorded != null && s.voice.share_recorded < 0.5
+        ? 'Det mesta appen säger läses av webbläsarens röst. Spela in hela meningarna, också de som byggs av appens data (guidens avsnitt resurser).'
+        : s.rounds_started >= 5 && s.share_of_rounds_finished < 0.5
         ? 'Många avbryter omgången. Kanske är den för lång eller för svår i början?'
         : stop && top && stop.stopped_here >= 3 && stop.level === furthest?.level && furthest.level > 1
           ? `Ingen kommer förbi nivå ${stop.level}. Är steget dit för stort?`

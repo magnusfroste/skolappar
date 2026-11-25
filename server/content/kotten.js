@@ -13,6 +13,10 @@
  *
  * From the levels skolappar shows the game's maker how far children get and where they stop
  * (the last level of a visit is sent when the child leaves).
+ *
+ * Reading aloud is counted by itself: a recorded line (an audio file the app plays) or the
+ * browser's own voice (speechSynthesis) – so the maker sees how much of what the app says is
+ * really recorded. Only the two counts; never what was said.
  */
 (function () {
   var ENDPOINT = 'https://www.skolappar.com/api/events';
@@ -34,6 +38,26 @@
       fetch(ENDPOINT, { method: 'POST', body: body, keepalive: true, mode: 'no-cors' });
     } catch (e) { /* nothing is lost for the child: the app works without it */ }
   }
+
+  function count(name) {
+    queue.push({ e: name });
+    if (queue.length >= 20) send(false);
+  }
+  try {
+    var play = HTMLMediaElement.prototype.play;
+    HTMLMediaElement.prototype.play = function () {
+      try {
+        if (this instanceof HTMLAudioElement && /\.(mp3|m4a|ogg|opus|wav)([?#]|$)/i.test(this.currentSrc || this.src || '')) count('voice_file');
+      } catch (e) { /* counting never stops the sound */ }
+      return play.apply(this, arguments);
+    };
+  } catch (e) { /* an old browser: no count */ }
+  try {
+    if (window.speechSynthesis && speechSynthesis.speak) {
+      var speak = speechSynthesis.speak.bind(speechSynthesis);
+      speechSynthesis.speak = function (u) { count('voice_browser'); return speak(u); };
+    }
+  } catch (e) { /* no count */ }
 
   window.skolappar = {
     event: function (name, value) {
