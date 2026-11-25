@@ -31,6 +31,9 @@ innehåll ligger på `https://www.skolappar.com/guide.md` och `https://www.skola
    **Bilder**: Shipholms verktyg draw ritar illustrationer som SVG i en och samma bilderboksstil
    (skill shipholm-draw) – figurer, djur, saker att räkna. En läsapp kan låta barnet läsa högt och
    kontrollera orden med Shipholms taligenkänning (skill shipholm-listen); inget sparas, och appen säger det.
+   **AI**: en app med egen server på Shipholm får AI utan egen nyckel med verktyget enable_ai (skill
+   shipholm-ai). Skriv i appen att barnet pratar med en AI, fråga aldrig efter namn, och visa ett vänligt
+   besked när dagens AI är slut (402). Guidens avsnitt `barnet`.
 7. **Gör det till barnets app**: eget namn, egna färger, en figur eller ett tema barnet valt.
    Material som får användas fritt står i guidens avsnitt `resurser`.
 8. **Prova som ett barn**: i webbläsarens enhetsläge 1024 × 768 och 768 × 1024, med bara klick.

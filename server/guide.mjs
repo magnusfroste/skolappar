@@ -51,7 +51,7 @@ export const GUIDE_SECTIONS = [
 - **Samla inte in något** om barnet: inget namn som skickas iväg, ingen spårning, inga analysskript från tredje part.
 - Spara framsteg **bara på den egna enheten** (\`localStorage\`). Ett smeknamn som stannar på enheten går bra.
 - Ingen chatt och inget innehåll från andra användare.
-- Använder appen AI ska nyckeln ligga på en server, aldrig i koden som skickas till webbläsaren, och barnets svar ska inte sparas.
+- Använder appen AI ska nyckeln ligga på en server, aldrig i koden som skickas till webbläsaren, och barnets svar ska inte sparas. En app med egen server på Shipholm får AI utan egen nyckel: verktyget \`enable_ai\` (skill shipholm-ai) ger appen \`OPENAI_API_KEY\`, \`OPENAI_BASE_URL\` och \`OPENAI_MODEL\`, och det räknas av förälderns dagliga Ship credits. Skriv i appen att barnet pratar med en AI, låt AI:n aldrig fråga efter namn eller annat om barnet, och visa ett vänligt besked när dagens AI är slut (svaret 402).
 - **Ett undantag: läsappar** får låta barnet läsa högt och kontrollera läsningen med Shipholms taligenkänning (se avsnittet om fria bilder, ljud och typsnitt). Den körs i Sverige, sparar varken ljud eller text och svarar bara vilka ord som hördes. Appen ska säga det där barnet spelar in, och gå att använda utan att spela in.`,
   },
   {
@@ -197,7 +197,7 @@ export const GUIDE_SECTIONS = [
 1. \`check_app\` – kontrollera adressen mot guiden och rätta det som brister.
 2. \`list_categories\` – hämta id för ämne, årskurs och typ.
 3. \`list_apps\` – se att appen inte redan finns.
-4. \`submit_app\` – adress, namn, beskrivning, kategorier, punkterna i Lgr22 (\`curriculum_ids\`) samt förälderns förnamn och e-postadress, och \`accept_terms: true\` när föräldern har läst och godkänt villkoren (\`get_terms\`, /villkor). Spara \`app_key\` ur svaret; den visas en gång.
+4. \`submit_app\` – adress, namn, beskrivning, kategorier, punkterna i Lgr22 (\`curriculum_ids\`) samt förälderns förnamn och e-postadress, och \`accept_terms: true\` när föräldern har läst och godkänt villkoren (\`get_terms\`, /villkor). Ligger appen på Shipholm: hämta först ett intyg med Shipholms \`app_attestation\` och skicka med det som \`shipholm_attestation\` – då behövs inget bekräftelsemejl. Spara \`app_key\` ur svaret; den visas en gång.
 5. \`set_my_app_image\` – sätt kortbilden: som SVG, från en adress eller som uppladdad fil. Utan bild får kortet ämnets färg och symbol.
 6. Be föräldern klicka på länken i mejlet från Skolappar. Utan det publiceras appen inte.
 7. \`app_status\` – appar granskas en gång om dagen. Avslås appen står skälet där; rätta och uppdatera, så ställs den i kö igen.
