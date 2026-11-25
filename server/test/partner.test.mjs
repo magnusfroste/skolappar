@@ -37,12 +37,12 @@ describe('a partner key (Shipholm Studio): its own limits, a label, a vouched ad
     assert.equal(vouched.ok, true, vouched.text);
     assert.equal(vouched.data.email_confirmed, true);
     assert.equal((await callAs(pub, 'app_status', { id: vouched.data.id })).data.email_confirmed, true);
-    const plain = await callAs(partner, 'submit_app', app('https://b.example'));
+    const plain = await callAs(partner, 'submit_app', app('https://b.example', { email: 'bo@example.com' }));
     assert.equal(plain.data.email_confirmed, false, 'without email_verified the address is confirmed by mail as before');
     const queue = (await callAs(admin, 'list_submissions', {})).data;
     assert.equal(queue.find((a) => a.id === vouched.data.id).source, 'shipholm-studio');
     // without the partner key email_verified counts for nothing
-    const anon = await callAs(pub, 'submit_app', app('https://c.example', { email_verified: true }));
+    const anon = await callAs(pub, 'submit_app', app('https://c.example', { email_verified: true, email: 'cecilia@example.com' }));
     assert.equal(anon.data.email_confirmed, false);
     assert.equal(queue.find((a) => a.id === anon.data.id), undefined);
     assert.equal((await callAs(admin, 'list_submissions', {})).data.find((a) => a.id === anon.data.id).source, null);

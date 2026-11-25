@@ -1102,6 +1102,13 @@ export function createStore(db, { mailer, curriculum, shipholm, siteUrl = 'https
   function sendConfirmation(id) {
     const row = db.prepare('SELECT * FROM apps WHERE id = ?').get(id);
     if (!row || mailBlocker(row, 'confirm')) return Promise.resolve({ sent: false, reason: 'not_applicable' });
+    // one confirmation mail per address and day: an agent that submits several apps in a row sends
+    // one mail, and its link confirms them all (confirmEmail)
+    const recent = db.prepare(
+      `SELECT 1 FROM apps WHERE lower(submitter_email) = lower(?) AND id <> ? AND email_confirmed = 0
+         AND confirm_mail = 'sent' AND confirm_mail_at >= ? LIMIT 1`
+    ).get(row.submitter_email, row.id, new Date(Date.now() - 86400000).toISOString());
+    if (recent) return Promise.resolve({ sent: false, reason: 'recent_confirmation' });
     return sendMail(row, 'confirm');
   }
 
@@ -1148,6 +1155,10 @@ export function createStore(db, { mailer, curriculum, shipholm, siteUrl = 'https
     try {
       fallbackTitle = new URL(url).hostname.replace(/^www\./, '');
     } catch { /* keep url */ }
+    // an address already confirmed on another app (or vouched for by an admin) needs no new confirmation
+    const known = !emailVerified && email
+      && Boolean(db.prepare('SELECT 1 FROM apps WHERE lower(submitter_email) = lower(?) AND email_confirmed = 1 LIMIT 1').get(String(email).trim()));
+    emailVerified = emailVerified || known;
     return transaction(db, () => {
       db.prepare(
         `INSERT INTO apps (id, title, description, long_description, url, status, creator_name, submitter_email, submitter_note,
@@ -1156,7 +1167,7 @@ export function createStore(db, { mailer, curriculum, shipholm, siteUrl = 'https
       ).run(id, title || fallbackTitle, description || '', nul(long_description), url, nul(creator_name), email, nul(note),
         emailVerified ? 1 : 0, token, nul(keyHash), nul(source), nul(termsVersion), termsVersion ? t : null, t, t);
       const unknown = categoryIds?.length ? setAppCategories(id, categoryIds) : [];
-      return { id, token, unknown_category_ids: unknown };
+      return { id, token, unknown_category_ids: unknown, already_confirmed: Boolean(known) };
     });
   }
 
@@ -1241,9 +1252,11 @@ export function createStore(db, { mailer, curriculum, shipholm, siteUrl = 'https
 
   function confirmEmail(token) {
     if (typeof token !== 'string' || !/^[A-Za-z0-9_-]{16,64}$/.test(token)) return false;
-    const r = db.prepare('SELECT id FROM apps WHERE confirm_token = ?').get(token);
+    const r = db.prepare('SELECT id, submitter_email FROM apps WHERE confirm_token = ?').get(token);
     if (!r) return false;
-    db.prepare('UPDATE apps SET email_confirmed = 1 WHERE id = ?').run(r.id);
+    // the address is now proven: every app submitted with it counts as confirmed
+    if (r.submitter_email) db.prepare('UPDATE apps SET email_confirmed = 1 WHERE lower(submitter_email) = lower(?)').run(r.submitter_email);
+    else db.prepare('UPDATE apps SET email_confirmed = 1 WHERE id = ?').run(r.id);
     return true;
   }
 

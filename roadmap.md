@@ -18,7 +18,7 @@
 
 ## Backlogg (2026-11-25)
 
-- [ ] En bekräftelse per adress: en adress som redan är bekräftad (eller satt av admin) ska inte få ett nytt bekräftelsemejl för varje app den skickar in – inskicket räknas som bekräftat direkt. Skickar en agent in flera appar i rad, ett mejl som listar alla. (Enzo fick ett mejl per app för 14 appar.)
+- [x] En bekräftelse per adress: en adress som redan är bekräftad (eller satt av admin) ska inte få ett nytt bekräftelsemejl för varje app den skickar in – inskicket räknas som bekräftat direkt. Skickar en agent in flera appar i rad, ett mejl som listar alla. (Enzo fick ett mejl per app för 14 appar.)
 - [ ] Hämta skaparens adress från Shipholm-kontot när en app publiceras via Shipholm, i stället för att fråga.
 - [ ] AI i quizla och penpal: svenskt garage, text i integritetspolicyn och avtal (DPA) med GarageAI, en nyckel per app (påminnelsen 1/12).
 - [ ] Högskoleprovet för högstadiet: uppdrag till Hermes (påminnelsen 1/12).
