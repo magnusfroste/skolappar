@@ -634,6 +634,67 @@ export function createStore(db, { mailer, curriculum, shipholm, siteUrl = 'https
     try { return await mailer.send({ to, subject: `Rapport: ${r.app.title} – ${r.reason_name}`, text }); } catch { return { sent: false, reason: 'error' }; }
   }
 
+
+  // ---------- how agents use /mcp (counts per day, nothing about a person) ----------
+
+  /** A short, person-free key for a message: ids, addresses, links and numbers taken out. */
+  function plainDetail(text) {
+    return String(text || '').split(/(?<=[.!?])\s/)[0]
+      .replace(/[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}/gi, '<id>')
+      .replace(/\S+@\S+/g, '<e-post>').replace(/https?:\/\/\S+/g, '<url>').replace(/\d+/g, 'N')
+      .slice(0, 100);
+  }
+  const plainName = (v) => String(v || '').toLowerCase().replace(/[^a-z0-9._ -]/g, '').trim().slice(0, 40) || 'okänd';
+
+  /** Count one thing an agent did: kind 'connect' (name = the client) or 'call' (name = the tool). */
+  function recordMcp({ role = 'public', client, kind, name = '', outcome = 'ok', detail = '' }) {
+    try {
+      db.prepare(
+        `INSERT INTO mcp_usage_daily (day, role, client, kind, name, outcome, detail, n) VALUES (?, ?, ?, ?, ?, ?, ?, 1)
+         ON CONFLICT(day, role, client, kind, name, outcome, detail) DO UPDATE SET n = n + 1`
+      ).run(now().slice(0, 10), role, plainName(client), kind, String(name).slice(0, 60), outcome, plainDetail(detail));
+    } catch { /* counting never stops an agent */ }
+  }
+
+  /** The last `days` days of /mcp: clients, tools with errors, tools that do not exist, the path to a submission. */
+  function mcpUsage({ days = 30, role } = {}) {
+    const from = new Date(Date.now() - (days - 1) * 86400000).toISOString().slice(0, 10);
+    const where = `day >= ? ${role ? 'AND role = ?' : ''}`;
+    const args = role ? [from, role] : [from];
+    const rows = db.prepare(`SELECT * FROM mcp_usage_daily WHERE ${where}`).all(...args);
+    const sum = (f) => rows.filter(f).reduce((n, r) => n + r.n, 0);
+    const clients = new Map();
+    for (const r of rows.filter((r) => r.kind === 'connect')) clients.set(r.client, (clients.get(r.client) || 0) + r.n);
+    const tools = new Map();
+    for (const r of rows.filter((r) => r.kind === 'call' && r.outcome !== 'unknown_tool')) {
+      const t = tools.get(r.name) || { tool: r.name, calls: 0, errors: 0, invalid: 0, messages: new Map() };
+      t.calls += r.n;
+      if (r.outcome !== 'ok') {
+        if (r.outcome === 'invalid') t.invalid += r.n; else t.errors += r.n;
+        t.messages.set(r.detail, (t.messages.get(r.detail) || 0) + r.n);
+      }
+      tools.set(r.name, t);
+    }
+    const unknown = new Map();
+    for (const r of rows.filter((r) => r.outcome === 'unknown_tool')) unknown.set(r.name, (unknown.get(r.name) || 0) + r.n);
+    const top = (m, k = 5) => [...m].sort((a, b) => b[1] - a[1]).slice(0, k);
+    const okCalls = (tool) => sum((r) => r.kind === 'call' && r.name === tool && r.outcome === 'ok');
+    return {
+      days, from,
+      connections: sum((r) => r.kind === 'connect'),
+      clients: top(clients, 20).map(([client, n]) => ({ client, connections: n })),
+      calls: sum((r) => r.kind === 'call'),
+      tools: [...tools.values()].sort((a, b) => b.calls - a.calls).map((t) => ({
+        tool: t.tool, calls: t.calls, errors: t.errors, invalid: t.invalid,
+        error_share: t.calls ? Math.round(((t.errors + t.invalid) / t.calls) * 100) / 100 : 0,
+        top_messages: top(t.messages, 3).map(([message, n]) => ({ message, n })),
+      })),
+      unknown_tools: top(unknown, 20).map(([tool, n]) => ({ tool, n })),
+      path: ['get_guide', 'check_app', 'submit_app', 'set_my_app_image', 'app_status'].map((tool) => ({ tool, ok: okCalls(tool) })),
+      note: 'Antal per dag. Inga argument, adresser eller uppgifter om personer sparas.',
+    };
+  }
+
   /** Keep the outcome of a check on the app. */
   function saveCheck(id, result) {
     db.prepare('UPDATE apps SET check_result = ?, check_passed = ?, checked_at = ? WHERE id = ?')
@@ -1497,7 +1558,7 @@ export function createStore(db, { mailer, curriculum, shipholm, siteUrl = 'https
     listPublicApps, listAdminApps, getApp, topApps, recentApps, relatedApps,
     createApp, updateApp, deleteApp, setAppCategories, trackClick,
     createSubmission, confirmEmail, sendConfirmation, resendMail,
-    appKeyMatches, saveCheck, appAtHost, recordEvents, inAppStats, stopDigest, digestApp, weeklyDigests, sendWeeklyDigest, maybeSendWeeklyDigest, sendBroadcast, confirmAddress, createReport, listReports, openReportCount, handleReport, notifyReport, dueFollowUps, maybeSendFollowUps, previewMailing, mailingsOverview, proposeChange, listChanges, reviewChange, startKeyRecovery, keyRecoveryValid, finishKeyRecovery, setOwnImage, setCurriculum, curriculumUsed, syncAddress, releaseAddress, listedAt, appStatus, appStats,
+    appKeyMatches, saveCheck, appAtHost, recordEvents, inAppStats, stopDigest, digestApp, weeklyDigests, sendWeeklyDigest, maybeSendWeeklyDigest, sendBroadcast, confirmAddress, recordMcp, mcpUsage, createReport, listReports, openReportCount, handleReport, notifyReport, dueFollowUps, maybeSendFollowUps, previewMailing, mailingsOverview, proposeChange, listChanges, reviewChange, startKeyRecovery, keyRecoveryValid, finishKeyRecovery, setOwnImage, setCurriculum, curriculumUsed, syncAddress, releaseAddress, listedAt, appStatus, appStats,
     toggleUpvote, myUpvotes,
     listResources, getResource, getResourceBySlug, createResource, updateResource, deleteResource,
     allSettings, listSettings, getSetting, setSetting,

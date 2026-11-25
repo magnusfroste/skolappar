@@ -493,3 +493,21 @@ export function useHandleReport() {
     onSuccess: () => { queryClient.invalidateQueries({ queryKey: ['admin-reports'] }); invalidateApps(queryClient); },
   });
 }
+
+// ---------- how agents use /mcp ----------
+
+export interface AgentUsage {
+  days: number;
+  from: string;
+  connections: number;
+  clients: { client: string; connections: number }[];
+  calls: number;
+  tools: { tool: string; calls: number; errors: number; invalid: number; error_share: number; top_messages: { message: string; n: number }[] }[];
+  unknown_tools: { tool: string; n: number }[];
+  path: { tool: string; ok: number }[];
+  note: string;
+}
+
+export function useAgentUsage(days: 7 | 30 | 90) {
+  return useQuery({ queryKey: ['admin-agents', days], queryFn: () => adminApi.get<AgentUsage>(`/api/admin/agents?days=${days}`) });
+}

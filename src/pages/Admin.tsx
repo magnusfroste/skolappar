@@ -4,6 +4,7 @@ import { AppAnalyticsPanel } from '@/components/AppAnalyticsPanel';
 import { ADMIN_SECTIONS } from '@/lib/adminSections';
 import { MailingsPanel } from '@/components/admin/MailingsPanel';
 import { ReportsPanel } from '@/components/admin/ReportsPanel';
+import { AgentsPanel } from '@/components/admin/AgentsPanel';
 import { ChangesReview } from '@/components/admin/ChangesReview';
 import { Check, X, Star, Clock, ExternalLink, Trash2, Plus, Edit2, Shield, Settings, FileText, Eye, EyeOff, Lightbulb, MessageSquare, ThumbsUp, TrendingUp, Search } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -493,6 +494,10 @@ function AdminContent() {
           {/* All Apps Tab */}
           <TabsContent value="changes">
             <ChangesReview categories={categories ?? []} />
+          </TabsContent>
+
+          <TabsContent value="agent-usage">
+            <AgentsPanel />
           </TabsContent>
 
           <TabsContent value="reports">
