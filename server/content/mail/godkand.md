@@ -15,6 +15,8 @@ Det här händer nu:
 Lägg gärna in kodsnutten om du inte har gjort det, så ser du hur långt barnen kommer i appen:
 {{webbplats}}/bygg#kodsnutten
 
+{{shipholm}}
+
 Tack för att du delar med dig!
 
 – Skolappar

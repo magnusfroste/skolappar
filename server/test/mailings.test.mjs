@@ -259,3 +259,33 @@ describe('an admin sets the address on an app', () => {
     assert.deepEqual([app.submitter_email, app.email_confirmed], [null, false]);
   });
 });
+
+test('the Shipholm offer: only for apps hosted elsewhere, as an offer', async () => {
+  const { onShipholm, shipholmOffer, mailing: m, render: r } = await import('../mailings.mjs');
+  assert.equal(onShipholm('https://klocka.shipholm.dev/'), true);
+  assert.equal(onShipholm('https://klocka.skolappar.com/'), true);
+  assert.equal(onShipholm('https://www.skolappar.com/app/x'), false);
+  assert.equal(onShipholm('https://klocka.vercel.app/', 'https://klocka.shipholm.dev/'), true, 'origin_url counts');
+  assert.equal(onShipholm('https://klocka.vercel.app/'), false);
+  const elsewhere = r(m('godkand'), { namn: 'Anna', app: 'Klockjakten', lank: 'L', webbplats: 'W', shipholm: shipholmOffer({ app: 'Klockjakten' }) });
+  assert.match(elsewhere.text, /gratis Shipholm-konto[\s\S]*Lägg ut Klockjakten på Shipholm[\s\S]*ligga kvar där den är/);
+  const there = r(m('godkand'), { namn: 'Anna', app: 'Klockjakten', lank: 'L', webbplats: 'W', shipholm: '' });
+  assert.doesNotMatch(there.text, /Shipholm-konto|\n\n\n/);
+});
+
+describe('submit_app offers Shipholm to an app hosted elsewhere', () => {
+  let s; let pub; let n = 0;
+  const call = async (args) => {
+    const r = await pub('POST', '/mcp', { jsonrpc: '2.0', id: ++n, method: 'tools/call', params: { name: 'submit_app', arguments: args } });
+    return r.json.result.structuredContent?.result ?? r.json.result.structuredContent;
+  };
+  before(async () => { s = await startServer(); pub = api(s.base); });
+  after(() => s.stop());
+  test('elsewhere: one line to ask the parent; on Shipholm: none', async () => {
+    const base = { title: 'Klockjakten', description: 'Öva klockan med hela och halva timmar.', first_name: 'Anna', email: 'a@example.com', accept_terms: true };
+    const elsewhere = await call({ ...base, url: 'https://klocka.vercel.app/' });
+    assert.ok(elsewhere.next.some((l) => /Erbjud Anna \(fråga, kräv inget\)[\s\S]*publish_on_shipholm/.test(l)));
+    const there = await call({ ...base, url: 'https://klocka.shipholm.dev/' });
+    assert.ok(!there.next.some((l) => /publish_on_shipholm/.test(l)));
+  });
+});

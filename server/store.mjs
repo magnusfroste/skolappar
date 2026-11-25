@@ -3,7 +3,7 @@
 import { randomUUID, randomBytes, createHash, timingSafeEqual } from 'node:crypto';
 import { transaction, serverSecret } from './db.mjs';
 import { appKeysMail, confirmSubmissionMail, weeklyDigestMail } from './mailer.mjs';
-import { MAILINGS, mailing, render, appsPhrase, TERMS } from './mailings.mjs';
+import { MAILINGS, mailing, render, appsPhrase, TERMS, onShipholm, shipholmOffer } from './mailings.mjs';
 
 export const APP_STATUSES = ['pending', 'approved', 'rejected', 'featured', 'delisted'];
 export const PUBLIC_STATUSES = ['approved', 'featured'];
@@ -412,6 +412,7 @@ export function createStore(db, { mailer, curriculum, shipholm, siteUrl = 'https
     return {
       namn: row.creator_name || '', app: row.title, appar: appsPhrase([row.title]),
       lank: `${siteUrl}/app/${row.id}`, webbplats: siteUrl, av: `${siteUrl}/brev/av/${digestToken(row.id)}`,
+      shipholm: onShipholm(row.url, row.origin_url) ? '' : shipholmOffer({ app: row.title }),
     };
   }
 
