@@ -84,6 +84,10 @@ export function createPublicTools({ store, images, checkApp, content, curriculum
       inputSchema: obj({}),
       annotations: RO,
       handler: () => ({
+        // first, so an agent that only reads the beginning of a long answer still knows what it got
+        summary: `${(content?.starter || []).length} filer. index.html laddar redan kodsnutten från ${siteUrl}/kotten.js – ` +
+          'den är en adress i en <script>-tagg, ingen fil att ladda ner. Textfilerna har content; ljud/*.mp3 har url att ladda ner.',
+        files_list: (content?.starter || []).map((f) => f.path),
         demo: `${siteUrl}/starter/`,
         license: 'Fri att använda och ändra.',
         files: (content?.starter || []).map(({ path, content: text, binary }) =>
@@ -231,7 +235,7 @@ export function createPublicTools({ store, images, checkApp, content, curriculum
         'skript från andra webbplatser, länkar ut, touch-action och vikt. Varje punkt är ok, warn eller fail och pekar på ett avsnitt i get_guide. ' +
         'Kör den före submit_app, rätta det som är fail och kör igen. Kontrollen spelar inte appen: not_checked säger vad den inte ser.',
       inputSchema: obj({
-        url: { type: 'string', format: 'uri', maxLength: 2048, description: 'Appens adress (https).' },
+        url: { type: 'string', maxLength: 2048, description: 'Appens publika adress (https://…). Inte en lokal fil eller localhost – kontrollen öppnar appen som en besökare.' },
         id: { ...uuid, description: 'I stället för url: en app i katalogen eller kön. Resultatet sparas på appen (kräver administrationsnyckel).' },
       }),
       annotations: { readOnlyHint: true, openWorldHint: true },
@@ -244,7 +248,11 @@ export function createPublicTools({ store, images, checkApp, content, curriculum
           store.saveCheck(id, result);
           return result;
         }
-        if (!url) fail('Ange appens url.');
+        if (!url) fail('Ange appens url: den publika https-adressen. Kontrollen öppnar appen som en besökare.');
+        if (!/^https?:\/\//i.test(url) || /^https?:\/\/(localhost|127\.|0\.0\.0\.0|\[::1\]|10\.|192\.168\.)/i.test(url)) {
+          fail('check_app öppnar appen som en besökare och når inte din dator. Gå igenom guidens checklista (get_guide, section checklista) medan du bygger lokalt, ' +
+            'lägg ut appen (publish_on_shipholm, eller där den ska ligga) och kör check_app på den publika https-adressen.');
+        }
         const limit = ctx.checkAllowed?.();
         if (limit && !limit.ok) fail(`För många kontroller härifrån just nu. Försök igen om ${Math.ceil((limit.retryAfter || 3600) / 60)} minuter.`);
         return checkApp(url);
