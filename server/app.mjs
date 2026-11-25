@@ -470,6 +470,11 @@ export function createApp(config, { fetchImpl = globalThis.fetch, fetchOutside, 
   admin('GET', '/api/admin/changes', () => store.listChanges());
 
   // mails to makers: the five templates, what has gone out, previews and the admin's broadcasts
+  admin('GET', '/api/admin/agents', ({ query }) => {
+    const days = Number(query.get('days') || 30);
+    if (![7, 30, 90].includes(days)) throw new HttpError(400, 'days must be 7, 30 or 90');
+    return store.mcpUsage({ days });
+  });
   admin('GET', '/api/admin/reports', ({ query }) => ({
     open: store.openReportCount(),
     reports: store.listReports({ status: ['open', 'handled', 'all'].includes(query.get('status')) ? query.get('status') : 'open' }),
@@ -583,6 +588,8 @@ export function createApp(config, { fetchImpl = globalThis.fetch, fetchOutside, 
     const out = await mcp.handle(body, {
       role,
       partner,
+      // the client's own name from its User-Agent (e.g. claude-code/1.2 -> claude-code); initialize also gives clientInfo
+      client: String(req.headers['user-agent'] || '').split(/[\s/]/)[0],
       submitAllowed: () => (partner ? partnerSubmitLimiter.hit(partner) : submitLimiter.hit(clientIp(req))),
       checkAllowed: () => (role === 'admin' ? { ok: true } : partner ? partnerCheckLimiter.hit(partner) : checkLimiter.hit(clientIp(req))),
       recoverAllowed: () => recoverLimiter.hit(clientIp(req)),

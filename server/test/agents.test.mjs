@@ -1,0 +1,41 @@
+import { test, describe, before, after } from 'node:test';
+import assert from 'node:assert/strict';
+import { startServer, api } from './helpers.mjs';
+
+describe('how agents use /mcp', () => {
+  let s; let pub; let admin; let n = 0;
+  const rpc = (who, method, params, headers) => who('POST', '/mcp', { jsonrpc: '2.0', id: ++n, method, params }, headers);
+  const call = async (who, name, args, headers) => {
+    const r = await rpc(who, 'tools/call', { name, arguments: args }, headers);
+    const result = r.json.result;
+    return result ? { ok: !result.isError, text: result.content[0].text, data: result.structuredContent?.result ?? result.structuredContent } : { ok: false, error: r.json.error };
+  };
+  before(async () => { s = await startServer({ adminKey: 'k-agents' }); pub = api(s.base); admin = api(s.base, { key: 'k-agents' }); });
+  after(() => s.stop());
+
+  test('an unknown field is refused with the fields the tool takes, not silently dropped', async () => {
+    const r = await call(pub, 'get_guide', { section: 'kodsnutten', sektion: 'x' });
+    assert.equal(r.ok, false);
+    assert.match(r.text, /okänt fält sektion\. get_guide tar: section\./);
+    assert.equal((await call(pub, 'get_guide', { section: 'kodsnutten' })).ok, true);
+  });
+
+  test('connections, calls, errors and missing tools are counted – without arguments or addresses', async () => {
+    const ua = { 'User-Agent': 'claude-code/2.1.0 (darwin)' };
+    await rpc(pub, 'initialize', { protocolVersion: '2025-06-18', clientInfo: { name: 'Cursor', version: '1' } });
+    await rpc(pub, 'initialize', { protocolVersion: '2025-06-18', clientInfo: { name: 'claude-code', version: '2' } }, ua);
+    await call(pub, 'list_apps', {}, ua);
+    await call(pub, 'submit_app', { url: 'https://x.example', title: 'Klockjakten', description: 'Öva klockan med hela och halva timmar.', first_name: 'Anna', email: 'anna@example.com' }, ua);
+    await call(pub, 'publish_app', { url: 'https://x.example' }, ua);
+    const u = (await call(admin, 'agent_usage', { days: 7 })).data;
+    assert.deepEqual(u.clients.map((c) => c.client).sort(), ['claude-code', 'cursor']);
+    const submit = u.tools.find((t) => t.tool === 'submit_app');
+    assert.equal(submit.errors, 1);
+    assert.match(submit.top_messages[0].message, /Villkoren måste godkännas/);
+    assert.equal(u.tools.find((t) => t.tool === 'get_guide').invalid, 1, 'the unknown field from the test before');
+    assert.deepEqual(u.unknown_tools, [{ tool: 'publish_app', n: 1 }]);
+    assert.doesNotMatch(JSON.stringify(u), /anna@example\.com|x\.example|Klockjakten/, 'no arguments are kept');
+    assert.equal((await admin('GET', '/api/admin/agents?days=7')).json.calls, u.calls + 1, 'the agent_usage call itself counts too');
+    assert.equal((await pub('GET', '/api/admin/agents')).status, 401);
+  });
+});

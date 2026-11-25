@@ -435,6 +435,16 @@ export function createTools({ store, images }) {
       handler: ({ dry_run = true }) => store.sendWeeklyDigest({ dryRun: dry_run }),
     },
     {
+      name: 'agent_usage',
+      title: 'Hur agenter använder /mcp',
+      description: 'Per dag de senaste `days` dagarna: vilka klienter som ansluter (Claude Code, Cursor, Hermes …), anrop per verktyg med fel och de vanligaste felmeddelandena, ' +
+        'verktyg agenter letar efter som inte finns, och vägen guide → kontroll → inskick → kortbild. Inga argument eller personuppgifter. ' +
+        'Använd det för att förbättra verktygens namn, beskrivningar och felmeddelanden. role: public, partner eller admin (standard: alla).',
+      inputSchema: obj({ days: { type: 'integer', minimum: 1, maximum: 90, default: 30 }, role: { type: 'string', enum: ['public', 'partner', 'admin'] } }),
+      annotations: RO,
+      handler: ({ days = 30, role }) => store.mcpUsage({ days, role }),
+    },
+    {
       name: 'list_reports',
       title: 'Rapporterade appar',
       description: 'Rapporter från besökare: olämpligt innehåll (inappropriate), fel ämne eller ålder (mistagged), fungerar inte (broken) eller annat (other), med meddelande. ' +
@@ -548,9 +558,18 @@ export function createMcpHandler({ store, images, checkApp, content, curriculum,
   async function callTool(params, ctx) {
     const tool = byName[ctx.role].get(params?.name);
     if (!tool) return { error: { code: -32602, message: `Unknown tool: ${params?.name}` } };
+    const args = params.arguments ?? {};
+    // an unknown field is an error, not silently dropped: an agent that misspells one, or uses a field
+    // from an older guide, must not be told "ok" when nothing it meant was done
+    const known = tool.inputSchema?.properties || {};
+    const extra = tool.inputSchema?.additionalProperties === false && args && typeof args === 'object' && !Array.isArray(args)
+      ? Object.keys(args).filter((k) => !(k in known)) : [];
+    if (extra.length) {
+      return { result: { content: [{ type: 'text', text: `Ogiltig indata: okänt fält ${extra.join(', ')}. ${tool.name} tar: ${Object.keys(known).join(', ') || 'inga fält'}.` }], isError: true } };
+    }
     let input;
     try {
-      input = validate(tool.inputSchema, params.arguments ?? {});
+      input = validate(tool.inputSchema, args);
     } catch (err) {
       if (err instanceof ValidationError) {
         return { result: { content: [{ type: 'text', text: `Ogiltig indata: ${err.message}` }], isError: true } };
@@ -580,6 +599,7 @@ export function createMcpHandler({ store, images, checkApp, content, curriculum,
     switch (msg.method) {
       case 'initialize': {
         const requested = msg.params?.protocolVersion;
+        store.recordMcp?.({ role: ctx.partner ? 'partner' : ctx.role, client: msg.params?.clientInfo?.name || ctx.client, kind: 'connect' });
         outcome = {
           result: {
             protocolVersion: PROTOCOL_VERSIONS.includes(requested) ? requested : PROTOCOL_VERSIONS[0],
@@ -594,6 +614,7 @@ export function createMcpHandler({ store, images, checkApp, content, curriculum,
                 'en dold eller flyttad artikel pekas vidare med set_setting resource_redirects ({slug: sökväg}). ' +
                 'Veckobrevet till skaparna går ut av sig självt på måndagar kl. 08; send_weekly_letter visar vad som skulle skickas. ' +
                 'Rapporter från besökare: list_reports först varje gång; olämpligt innehåll som stämmer avlistas direkt med handle_report (delist). ' +
+                'Hur agenter använder /mcp (klienter, fel, verktyg som saknas): agent_usage – föreslå bättre namn, beskrivningar och felmeddelanden, ändra inte själv. ' +
                 'Mejlen till skaparna (godkänd, en vecka, en månad, villkor, nyheter): list_mailings; villkor och nyheter skickas med send_mailing, bara när Magnus säger till.'
               : PUBLIC_INSTRUCTIONS,
           },
@@ -610,9 +631,15 @@ export function createMcpHandler({ store, images, checkApp, content, curriculum,
           },
         };
         break;
-      case 'tools/call':
+      case 'tools/call': {
         outcome = await callTool(msg.params, ctx);
+        // count it: the tool, and whether it worked, was refused for its input, or failed (with why)
+        const text = outcome.result?.content?.[0]?.text || outcome.error?.message || '';
+        const result = outcome.error ? 'unknown_tool' : !outcome.result?.isError ? 'ok' : text.startsWith('Ogiltig indata') ? 'invalid' : 'error';
+        store.recordMcp?.({ role: ctx.partner ? 'partner' : ctx.role, client: ctx.client, kind: 'call',
+          name: String(msg.params?.name || ''), outcome: result, detail: result === 'ok' || result === 'unknown_tool' ? '' : text });
         break;
+      }
       default:
         if (msg.method.startsWith('notifications/')) outcome = { result: null };
         else outcome = { error: { code: -32601, message: `Method not found: ${msg.method}` } };

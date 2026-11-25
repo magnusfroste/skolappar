@@ -238,6 +238,22 @@ const MIGRATIONS = [
   );
   CREATE INDEX app_reports_status_idx ON app_reports(status, created_at);
   `,
+  // 13: how agents use /mcp, counted per day – who connects (the client's own name), which tools
+  // they call, what goes wrong and which tools they look for that do not exist. Never arguments,
+  // addresses or anything about a person: only names, outcomes and counts.
+  `
+  CREATE TABLE mcp_usage_daily (
+    day TEXT NOT NULL,
+    role TEXT NOT NULL,
+    client TEXT NOT NULL,
+    kind TEXT NOT NULL,
+    name TEXT NOT NULL,
+    outcome TEXT NOT NULL,
+    detail TEXT NOT NULL,
+    n INTEGER NOT NULL DEFAULT 0,
+    PRIMARY KEY (day, role, client, kind, name, outcome, detail)
+  );
+  `,
 ];
 
 export function openDatabase(dataDir) {

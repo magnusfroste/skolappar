@@ -13,5 +13,6 @@ export const ADMIN_SECTIONS = [
   { tab: 'resources', title: 'Resurser', icon: FileText },
   { tab: 'seo', title: 'Utseende & SEO', icon: Palette },
   { tab: 'agents', title: 'AI-agent (MCP)', icon: Bot },
+  { tab: 'agent-usage', title: 'Agenter på /mcp', icon: Bot },
   { tab: 'settings', title: 'Inställningar', icon: Settings },
 ] as const;

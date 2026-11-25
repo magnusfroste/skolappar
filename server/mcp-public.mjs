@@ -257,7 +257,7 @@ export function createPublicTools({ store, images, checkApp, content, curriculum
         note: { type: 'string', maxLength: 2000, description: 'Valfritt meddelande till den som granskar.' },
         email_verified: { type: 'boolean', description: 'Bara för partner med X-Partner-Key: e-postadressen är redan verifierad hos partnern, så bekräftelsemejlet hoppas över. Utan partnernyckel ignoreras fältet.' },
         accept_terms: { type: 'boolean', description: 'true när föräldern har läst villkoren (https://www.skolappar.com/villkor) och godkänt dem. Aldrig utan att fråga.' },
-      }, ['url', 'title', 'description', 'first_name', 'email', 'accept_terms']),
+      }, ['url', 'title', 'description', 'first_name', 'email']),   // accept_terms is checked in the handler, whose message tells the agent what to do
       annotations: RW,
       handler: (input, ctx) => {
         if (input.accept_terms !== true) fail('Villkoren måste godkännas. Visa föräldern https://www.skolappar.com/villkor (eller läs dem med get_terms), fråga om det är okej, och skicka igen med accept_terms: true.');
