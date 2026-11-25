@@ -155,6 +155,7 @@ export function createTools({ store, images }) {
         url: { type: 'string', format: 'uri', maxLength: 2048 },
         image_url: { type: 'string', maxLength: 2048, description: 'Lokal bild (/images/…) eller extern URL. Använd set_app_image för att ladda ner en bild.' },
         creator_name: { type: 'string', maxLength: 120 },
+        submitter_email: { type: 'string', format: 'email', maxLength: 254, description: 'Skaparens e-postadress (för veckobrev, uppföljningar, rapporter). Satt av admin räknas den som bekräftad. Inget mejl skickas.' },
         status: { type: 'string', enum: APP_STATUSES },
         is_featured: { type: 'boolean' },
         delist_reason: { type: 'string', maxLength: 500 },

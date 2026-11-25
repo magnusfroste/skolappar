@@ -43,6 +43,7 @@ const formSchema = z.object({
   long_description: z.string().optional(),
   image_url: z.string().optional(),
   creator_name: z.string().max(120).optional(),
+  submitter_email: z.union([z.literal(''), z.string().email('Ange en giltig e-postadress')]).optional(),
   status: z.enum(['pending', 'approved', 'rejected', 'featured', 'delisted']),
   is_featured: z.boolean(),
   categories: z.array(z.string()),
@@ -82,6 +83,7 @@ export function AppEditPanel({ appId }: AppEditPanelProps) {
       long_description: '',
       image_url: '',
       creator_name: '',
+      submitter_email: '',
       status: 'pending',
       is_featured: false,
       categories: [],
@@ -97,6 +99,7 @@ export function AppEditPanel({ appId }: AppEditPanelProps) {
         long_description: app.long_description || '',
         image_url: app.image_url || '',
         creator_name: app.creator_name || '',
+        submitter_email: app.submitter_email || '',
         status: app.status,
         is_featured: !!app.is_featured,
         categories: (app.categories || []).map((c) => c.id),
@@ -115,6 +118,8 @@ export function AppEditPanel({ appId }: AppEditPanelProps) {
           long_description: values.long_description || null,
           image_url: values.image_url || null,
           creator_name: values.creator_name || null,
+          // only when changed: saving the form must not reset a confirmed address
+          ...((values.submitter_email || '') !== (app?.submitter_email || '') ? { submitter_email: values.submitter_email?.trim() || null } : {}),
           status: values.status,
           is_featured: values.is_featured,
           category_ids: values.categories,
@@ -315,6 +320,21 @@ export function AppEditPanel({ appId }: AppEditPanelProps) {
                 <FormControl>
                   <Input placeholder="T.ex. Magnus" {...field} />
                 </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
+          <FormField
+            control={form.control}
+            name="submitter_email"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Skaparens e-post (visas aldrig)</FormLabel>
+                <FormControl>
+                  <Input type="email" placeholder="namn@exempel.se" {...field} />
+                </FormControl>
+                <p className="text-xs text-muted-foreground">Veckobrev, uppföljningar och nyheter går hit. En adress du sätter här räknas som bekräftad; inget mejl skickas.</p>
                 <FormMessage />
               </FormItem>
             )}

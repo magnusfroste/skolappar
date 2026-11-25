@@ -98,6 +98,8 @@ export interface AppPatch {
   url?: string;
   image_url?: string | null;
   creator_name?: string | null;
+  /** Set by an admin it counts as confirmed; null removes the address. */
+  submitter_email?: string | null;
   status?: AppStatus;
   is_featured?: boolean;
   delist_reason?: string | null;
