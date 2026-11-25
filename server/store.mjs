@@ -695,6 +695,25 @@ export function createStore(db, { mailer, curriculum, shipholm, siteUrl = 'https
     };
   }
 
+  /**
+   * Does Shipholm attest that this e-mail address is verified for the app at this url? (The agent got
+   * the attestation from Shipholm's app_attestation.) {ok} or {ok: false, reason}; never throws.
+   */
+  async function attestedEmail(attestation, { email, url }) {
+    if (!attestation) return { ok: false, reason: 'none' };
+    if (!shipholm?.configured || !shipholm.verifyAttestation) return { ok: false, reason: 'not_configured' };
+    const host = (u) => { try { return new URL(u).hostname.toLowerCase(); } catch { return ''; } };
+    try {
+      const v = await shipholm.verifyAttestation(String(attestation));
+      if (!v?.valid) return { ok: false, reason: 'invalid' };
+      if (String(v.email || '').toLowerCase() !== String(email || '').trim().toLowerCase()) return { ok: false, reason: 'other_email' };
+      if (!(v.urls || []).some((u) => host(u) && host(u) === host(url))) return { ok: false, reason: 'other_app' };
+      return { ok: true };
+    } catch {
+      return { ok: false, reason: 'unreachable' };
+    }
+  }
+
   /** Keep the outcome of a check on the app. */
   function saveCheck(id, result) {
     db.prepare('UPDATE apps SET check_result = ?, check_passed = ?, checked_at = ? WHERE id = ?')
@@ -1571,7 +1590,7 @@ export function createStore(db, { mailer, curriculum, shipholm, siteUrl = 'https
     listPublicApps, listAdminApps, getApp, topApps, recentApps, relatedApps,
     createApp, updateApp, deleteApp, setAppCategories, trackClick,
     createSubmission, confirmEmail, sendConfirmation, resendMail,
-    appKeyMatches, saveCheck, appAtHost, recordEvents, inAppStats, stopDigest, digestApp, weeklyDigests, sendWeeklyDigest, maybeSendWeeklyDigest, sendBroadcast, confirmAddress, recordMcp, mcpUsage, createReport, listReports, openReportCount, handleReport, notifyReport, dueFollowUps, maybeSendFollowUps, previewMailing, mailingsOverview, proposeChange, listChanges, reviewChange, startKeyRecovery, keyRecoveryValid, finishKeyRecovery, setOwnImage, setCurriculum, curriculumUsed, syncAddress, releaseAddress, listedAt, appStatus, appStats,
+    appKeyMatches, saveCheck, appAtHost, recordEvents, inAppStats, stopDigest, digestApp, weeklyDigests, sendWeeklyDigest, maybeSendWeeklyDigest, sendBroadcast, confirmAddress, recordMcp, mcpUsage, attestedEmail, createReport, listReports, openReportCount, handleReport, notifyReport, dueFollowUps, maybeSendFollowUps, previewMailing, mailingsOverview, proposeChange, listChanges, reviewChange, startKeyRecovery, keyRecoveryValid, finishKeyRecovery, setOwnImage, setCurriculum, curriculumUsed, syncAddress, releaseAddress, listedAt, appStatus, appStats,
     toggleUpvote, myUpvotes,
     listResources, getResource, getResourceBySlug, createResource, updateResource, deleteResource,
     allSettings, listSettings, getSetting, setSetting,

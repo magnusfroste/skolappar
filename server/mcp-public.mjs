@@ -167,6 +167,7 @@ export function createPublicTools({ store, images, checkApp, content, curriculum
           'Fråga efter nyckeln var femte sekund tills status är approved: curl -s -X POST https://api.shipholm.com/agent/token -H "Content-Type: application/json" -d \'{"device_code": "…"}\'. Spara token; den visas en gång.',
           'Anslut till https://api.shipholm.com/mcp med Authorization: Bearer <token>. Hämta skillen shipholm-static-site (get_skill) och följ den: upload_site och sedan publish_site med appens namn.',
           `Kontrollera adressen med check_app här, och skicka in med submit_app och url https://${name}.shipholm.dev. När appen godkänns byts adressen i katalogen till https://${name}.skolappar.com.`,
+          `Har kontot en verifierad e-postadress (inloggning med e-post eller Google): hämta app_attestation(app: "${name}") hos Shipholm och skicka det som shipholm_attestation i submit_app, så behövs inget bekräftelsemejl.`,
         ],
         note: 'Nyckeln gäller förälderns Shipholm-konto och kan dras tillbaka där under API keys. Lägg den aldrig i appens kod.',
       }),
@@ -279,25 +280,27 @@ export function createPublicTools({ store, images, checkApp, content, curriculum
         note: { type: 'string', maxLength: 2000, description: 'Valfritt meddelande till den som granskar.' },
         email_verified: { type: 'boolean', description: 'Bara för partner med X-Partner-Key: e-postadressen är redan verifierad hos partnern, så bekräftelsemejlet hoppas över. Utan partnernyckel ignoreras fältet.' },
         accept_terms: { type: 'boolean', description: 'true när föräldern har läst villkoren (https://www.skolappar.com/villkor) och godkänt dem. Aldrig utan att fråga.' },
+        shipholm_attestation: { type: 'string', maxLength: 4000, description: 'Ligger appen på Shipholm och har kontot en verifierad e-postadress: intyget från Shipholms app_attestation(app). Stämmer adressen och appens url behövs inget bekräftelsemejl.' },
       }, ['url', 'title', 'description', 'first_name', 'email']),   // accept_terms is checked in the handler, whose message tells the agent what to do
       annotations: RW,
-      handler: (input, ctx) => {
+      handler: async (input, ctx) => {
         if (input.accept_terms !== true) fail('Villkoren måste godkännas. Visa föräldern https://www.skolappar.com/villkor (eller läs dem med get_terms), fråga om det är okej, och skicka igen med accept_terms: true.');
         if (!/^https:\/\//i.test(input.url)) fail('Appens adress måste börja med https://.');
         const listed = store.listedAt(input.url);
         if (listed) fail(`Appen finns redan i katalogen (id ${listed}).`);
         const limit = ctx.submitAllowed?.();
         if (limit && !limit.ok) fail(`För många inskick härifrån just nu. Försök igen om ${Math.ceil((limit.retryAfter || 3600) / 60)} minuter.`);
+        const attested = input.shipholm_attestation ? await store.attestedEmail(input.shipholm_attestation, { email: input.email, url: input.url }) : null;
         const appKey = `sapp_${randomBytes(24).toString('base64url')}`;
         const { id, unknown_category_ids, already_confirmed } = store.createSubmission({
           url: input.url, email: input.email, title: input.title, description: input.description,
           long_description: input.long_description, note: input.note, creator_name: input.first_name,
           categoryIds: input.category_ids, keyHash: createHash('sha256').update(appKey).digest('hex'),
           // a partner (e.g. Shipholm Studio) labels the submission and may vouch for the address
-          source: ctx.partner || null, emailVerified: Boolean(ctx.partner && input.email_verified), termsVersion: TERMS.version,
+          source: ctx.partner || null, emailVerified: Boolean(ctx.partner && input.email_verified) || Boolean(attested?.ok), termsVersion: TERMS.version,
         });
         const unknownPoints = input.curriculum_ids ? store.setCurriculum(id, input.curriculum_ids) : [];
-        const vouched = Boolean(ctx.partner && input.email_verified) || already_confirmed;
+        const vouched = Boolean(ctx.partner && input.email_verified) || already_confirmed || Boolean(attested?.ok);
         if (!vouched) store.sendConfirmation(id).catch(() => {});
         // the reviewer sees the outcome next to the submission; app_status shows it to the agent
         checkApp?.(input.url).then((result) => store.saveCheck(id, result)).catch(() => {});
@@ -305,9 +308,11 @@ export function createPublicTools({ store, images, checkApp, content, curriculum
           id, app_key: appKey, status: 'pending',
           email_confirmed: vouched,
           next: [
-            already_confirmed ? 'E-postadressen är redan bekräftad från en tidigare app; inget nytt bekräftelsemejl skickas.'
+            attested?.ok ? 'Shipholm intygar e-postadressen; inget bekräftelsemejl skickas.'
+              : already_confirmed ? 'E-postadressen är redan bekräftad från en tidigare app; inget nytt bekräftelsemejl skickas.'
               : vouched ? 'E-postadressen är verifierad av partnern; inget bekräftelsemejl skickas.'
               : `Be ${input.first_name} öppna mejlet från Skolappar och klicka på länken. Utan det publiceras appen inte.`,
+            ...(attested && !attested.ok ? [`Shipholms intyg godtogs inte (${{ invalid: 'ogiltigt eller för gammalt – hämta ett nytt med app_attestation', other_email: 'det gäller en annan e-postadress', other_app: 'det gäller en annan app', not_configured: 'kan inte kontrolleras just nu', unreachable: 'Shipholm svarade inte' }[attested.reason] || attested.reason}); bekräftelsemejlet skickas som vanligt.`] : []),
             'Appar granskas en gång om dagen. Läs läget med app_status.',
             'Spara app_key: den visas inte igen.',
             // an offer for apps hosted elsewhere – the parent decides, and creates the account themselves

@@ -33,6 +33,9 @@ Kontrollen spelar inte appen – prova själv på iPad-storlek också.
 4. `submit_app` med adress, namn (två till fyra ord), kort beskrivning, kategorier, förnamn och
    e-post. Ange i `curriculum_ids` de punkter i Lgr22 som appen tränar (id från `get_curriculum`),
    och skriv i `long_description` hur appen fungerar.
+   Ligger appen på Shipholm och har kontot en verifierad e-postadress (inloggning med e-post eller
+   Google): hämta ett intyg med Shipholms `app_attestation(app)` och skicka det som
+   `shipholm_attestation` – samma e-postadress och appens adress – så behövs inget bekräftelsemejl.
 5. **Spara `app_key`** ur svaret där du kan hitta den igen (till exempel i projektets anteckningar,
    inte i appens kod). Den visas en gång och är det enda som låter dig ändra eller dra tillbaka appen.
 6. Sätt kortbilden – se skillen `skolappar-kortbild`.

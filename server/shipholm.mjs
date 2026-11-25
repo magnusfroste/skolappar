@@ -66,6 +66,10 @@ export function createShipholm(env = process.env, { fetchImpl = globalThis.fetch
       log.info?.(`shipholm: ${label}.${ownDomain} given`);
       return out;
     },
+    /** Shipholm's word on an attestation from app_attestation: {valid, app, email, urls}. */
+    async verifyAttestation(attestation) {
+      return call('verify_attestation', { attestation });
+    },
     async revoke(label) {
       const out = await call('revoke_subdomain', { domain: `${label}.${ownDomain}` });
       log.info?.(`shipholm: ${label}.${ownDomain} taken back`);
