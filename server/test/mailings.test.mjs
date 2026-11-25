@@ -1,0 +1,154 @@
+import { test, describe, before, after } from 'node:test';
+import assert from 'node:assert/strict';
+import http from 'node:http';
+import { startServer, api } from './helpers.mjs';
+import { MAILINGS, render, appsPhrase, TERMS } from '../mailings.mjs';
+
+/** A stand-in for the mail provider that keeps every message. */
+function fakeMail() {
+  const sent = [];
+  const server = http.createServer(async (req, res) => {
+    let raw = '';
+    for await (const c of req) raw += c;
+    sent.push(JSON.parse(raw));
+    res.writeHead(200, { 'Content-Type': 'application/json' });
+    res.end('{"id":"m1"}');
+  });
+  return new Promise((r) => server.listen(0, '127.0.0.1', () => r({ url: `http://127.0.0.1:${server.address().port}/emails`, sent, stop: () => new Promise((d) => server.close(d)) })));
+}
+
+/** Days from now at 10:00 UTC (11:00 or 12:00 in Stockholm, inside the sending hours). */
+const daysOn = (d) => { const t = new Date(Date.now() + d * 86400000); t.setUTCHours(10, 0, 0, 0); return t; };
+
+test('the templates: five, in order, each with a subject; placeholders filled, empty ones take their space along', () => {
+  assert.deepEqual(MAILINGS.map((m) => m.id), ['godkand', 'en-vecka', 'en-manad', 'villkor', 'nyheter']);
+  for (const m of MAILINGS) assert.ok(m.subject && m.body && m.schedule, m.id);
+  assert.deepEqual(render({ subject: 'Om {{app}}', body: 'Hej {{namn}}! {{okand}}' }, { app: 'Klockjakten', namn: '' }), { subject: 'Om Klockjakten', text: 'Hej! {{okand}}' });
+  assert.equal(appsPhrase(['A']), 'appen A');
+  assert.equal(appsPhrase(['A', 'B', 'C']), 'apparna A, B och C');
+  assert.match(TERMS.version, /^\d{4}-\d{2}-\d{2}$/);
+  for (const m of MAILINGS.filter((x) => x.stoppable)) assert.match(m.body, /\{\{av\}\}/, `${m.id} has the stop link`);
+});
+
+describe('mails to makers', () => {
+  let s; let mail; let pub; let admin; let n = 0; let id; let other;
+  const call = async (who, name, args) => {
+    const r = await who('POST', '/mcp', { jsonrpc: '2.0', id: ++n, method: 'tools/call', params: { name, arguments: args } });
+    const result = r.json.result;
+    return { ok: !result.isError, text: result.content[0].text, data: result.structuredContent?.result ?? result.structuredContent };
+  };
+  const wait = () => new Promise((r) => setTimeout(r, 150));
+  const app = (url, email, first_name) => ({ url, title: url.includes('klocka') ? 'Klockjakten' : 'Ordjakten', description: 'Öva klockan med hela och halva timmar.', first_name, email });
+  async function publish(url, email, name) {
+    const sent = await call(pub, 'submit_app', { ...app(url, email, name), accept_terms: true });
+    assert.equal(sent.ok, true, sent.text);
+    await wait();
+    const token = /\/bekrafta\/([A-Za-z0-9_-]+)/.exec(mail.sent.filter((m) => m.to[0] === email).at(-1).text)[1];
+    await pub('GET', `/bekrafta/${token}`);
+    assert.equal((await call(admin, 'update_app', { id: sent.data.id, status: 'approved' })).ok, true);
+    await wait();
+    return sent.data.id;
+  }
+
+  before(async () => {
+    mail = await fakeMail();
+    s = await startServer({ adminKey: 'k-mail', env: { MAIL_PROVIDER: 'resend', MAIL_API_URL: mail.url, MAIL_API_KEY: 'k', MAIL_FROM: 'Skolappar <hej@skolappar.test>' } });
+    pub = api(s.base);
+    admin = api(s.base, { key: 'k-mail' });
+    assert.equal(await s.app.store.maybeSendFollowUps(), null, 'the first tick only marks when the follow-ups began');
+  });
+  after(async () => { await s.stop(); await mail.stop(); });
+
+  test('the terms: a page, an API and a tool; a submission without them is refused, with them the version is kept', async () => {
+    const terms = (await pub('GET', '/api/terms')).json;
+    assert.equal(terms.version, TERMS.version);
+    assert.match(terms.html, /<h2>6\. Mejl vi skickar<\/h2>/);
+    assert.equal((await call(pub, 'get_terms', {})).data.version, TERMS.version);
+    const page = await pub('GET', '/villkor');
+    assert.match(page.text, /Senast uppdaterade/);
+
+    const refused = await call(pub, 'submit_app', app('https://utan.example', 'x@example.com', 'Bo'));
+    assert.equal(refused.ok, false);
+    const refusedFalse = await call(pub, 'submit_app', { ...app('https://utan.example', 'x@example.com', 'Bo'), accept_terms: false });
+    assert.match(refusedFalse.text, /Villkoren måste godkännas/);
+    const form = await pub('POST', '/api/submissions', { url: 'https://utan.example', email: 'x@example.com' }, { 'X-Forwarded-For': '203.0.113.9' });
+    assert.equal(form.status, 400);
+    assert.equal(form.json.terms_version, TERMS.version);
+    const ok = await pub('POST', '/api/submissions', { url: 'https://med.example', email: 'x@example.com', accept_terms: true }, { 'X-Forwarded-For': '203.0.113.9' });
+    assert.equal(ok.status, 201);
+    const listed = (await admin('GET', '/api/admin/apps?search=med.example')).json;
+    const row = (listed.apps || listed).find((a) => a.url === 'https://med.example');
+    assert.equal(row.terms_version, TERMS.version);
+    assert.ok(row.terms_accepted_at);
+  });
+
+  test('approval: the godkand template with the first name, logged once', async () => {
+    id = await publish('https://klocka.example', 'anna@example.com', 'Anna');
+    const m = mail.sent.at(-1);
+    assert.equal(m.subject, 'Nu finns Klockjakten på Skolappar');
+    assert.match(m.text, /^Hej Anna!/);
+    assert.match(m.text, new RegExp(`/app/${id}`));
+    const overview = (await admin('GET', '/api/admin/mailings')).json;
+    assert.deepEqual(overview.log.filter((l) => l.kind === 'godkand').map((l) => [l.address, l.result, l.app_title]), [['anna@example.com', 'sent', 'Klockjakten']]);
+    assert.equal(overview.templates.find((t) => t.id === 'godkand').sent, 1);
+    assert.ok(overview.placeholders.namn);
+  });
+
+  test('follow-ups: a week, then a month, each once, only in the daytime; the stop link ends them', async () => {
+    assert.deepEqual(s.app.store.dueFollowUps(daysOn(3)), [], 'nothing after three days');
+    const week = s.app.store.dueFollowUps(daysOn(8));
+    assert.deepEqual(week.map((f) => f.kind), ['en-vecka']);
+    assert.match(week[0].text, /Den har öppnats 0 gånger|Den har inte öppnats än/);
+    const night = daysOn(8); night.setUTCHours(1);
+    assert.equal(await s.app.store.maybeSendFollowUps(night), null, 'not at night');
+    const before = mail.sent.length;
+    assert.deepEqual(await s.app.store.maybeSendFollowUps(daysOn(8)), { sent: 1, of: 1 });
+    assert.equal(mail.sent.at(-1).subject, 'En vecka med Klockjakten');
+    assert.deepEqual(await s.app.store.maybeSendFollowUps(daysOn(9)), { sent: 0, of: 0 }, 'once');
+    assert.deepEqual(s.app.store.dueFollowUps(daysOn(31)).map((f) => f.kind), ['en-manad']);
+    assert.deepEqual(await s.app.store.maybeSendFollowUps(daysOn(31)), { sent: 1, of: 1 });
+    assert.equal(mail.sent.at(-1).subject, 'En månad med Klockjakten');
+    assert.equal(mail.sent.length, before + 2);
+    assert.deepEqual(s.app.store.dueFollowUps(daysOn(60)), []);
+
+    other = await publish('https://ord.example', 'bo@example.com', 'Bo');
+    assert.equal(s.app.store.dueFollowUps(daysOn(8)).length, 1);
+    const link = /\/brev\/av\/([^\s]+)/.exec(s.app.store.dueFollowUps(daysOn(8))[0].text)[1];
+    await pub('POST', `/brev/av/${link}`, 'x=1', { 'Content-Type': 'application/x-www-form-urlencoded' });
+    assert.deepEqual(s.app.store.dueFollowUps(daysOn(8)), [], 'stopped');
+  });
+
+  test('news: a dry run first, then once per ref, not to an address that stopped', async () => {
+    const dry = (await admin('POST', '/api/admin/mailings/send', { kind: 'nyheter', ref: '2026-12-ljud-ai' })).json;
+    assert.equal(dry.would_send, 1, 'Bo stopped his mails');
+    assert.equal(dry.recipients, 1);
+    assert.match(dry.example.subject, /ljud och AI/);
+    assert.match(dry.example.text, /^Hej Anna!/);
+    assert.doesNotMatch(JSON.stringify(dry), /@example\.com/);
+    assert.equal((await admin('POST', '/api/admin/mailings/send', { kind: 'nyheter', dry_run: false })).status, 400, 'news needs a ref');
+    const before = mail.sent.length;
+    const sent = (await admin('POST', '/api/admin/mailings/send', { kind: 'nyheter', ref: '2026-12-ljud-ai', dry_run: false })).json;
+    assert.deepEqual([sent.sent, sent.of], [1, 1]);
+    assert.equal(mail.sent.length, before + 1);
+    assert.match(mail.sent.at(-1).text, /\/brev\/av\//);
+    const again = (await admin('POST', '/api/admin/mailings/send', { kind: 'nyheter', ref: '2026-12-ljud-ai', dry_run: false })).json;
+    assert.deepEqual([again.sent, again.already_sent], [0, 1]);
+    const custom = (await call(admin, 'send_mailing', { kind: 'nyheter', ref: 'x-2', subject: 'Hej {{namn}}', body: 'Om {{app}}.' })).data;
+    assert.deepEqual(custom.example, { subject: 'Hej Anna', text: 'Om Klockjakten.' });
+  });
+
+  test('changed terms: needs what changes and from when, and reaches every maker, also those who stopped', async () => {
+    assert.match((await call(admin, 'send_mailing', { kind: 'villkor', dry_run: false })).text, /andringar/);
+    const dry = (await call(admin, 'send_mailing', { kind: 'villkor', andringar: '- Ny punkt om AI.', galler_fran: '1 januari 2027' })).data;
+    assert.equal(dry.ref, TERMS.version);
+    assert.equal(dry.would_send, 2);
+    assert.match(dry.example.subject, /1 januari 2027/);
+    assert.match(dry.example.text, /Ny punkt om AI/);
+    assert.match(dry.example.text, /appen Klockjakten/);
+    const preview = (await call(admin, 'preview_mailing', { kind: 'en-vecka', app_id: other })).data;
+    assert.equal(preview.subject, 'En vecka med Ordjakten');
+    assert.equal((await call(admin, 'list_mailings', {})).data.templates.length, 5);
+    const open = await pub('POST', '/mcp', { jsonrpc: '2.0', id: ++n, method: 'tools/call', params: { name: 'list_mailings', arguments: {} } });
+    assert.ok(open.json.error || open.json.result?.isError, 'admin only');
+  });
+});

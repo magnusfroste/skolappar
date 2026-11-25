@@ -434,6 +434,47 @@ export function createTools({ store, images }) {
       handler: ({ dry_run = true }) => store.sendWeeklyDigest({ dryRun: dry_run }),
     },
     {
+      name: 'list_mailings',
+      title: 'Mejlen till skaparna',
+      description: 'De fem mallarna (godkand, en-vecka, en-manad, villkor, nyheter) med schema, hur många som gått ut, platshållare och de senaste utskicken. ' +
+        'godkand, en-vecka och en-manad skickas av sig själva; villkor och nyheter skickas med send_mailing. Mallarna är filer i repot (server/content/mail/).',
+      inputSchema: obj({ limit: { type: 'integer', minimum: 1, maximum: 500, default: 50 } }),
+      annotations: RO,
+      handler: ({ limit = 50 }) => store.mailingsOverview({ limit }),
+    },
+    {
+      name: 'preview_mailing',
+      title: 'Förhandsvisa ett mejl',
+      description: 'En mall ifylld för en app (app_id, annars den första i katalogen). subject och body ersätter mallens text för förhandsvisningen.',
+      inputSchema: obj({
+        kind: { type: 'string', enum: ['godkand', 'en-vecka', 'en-manad', 'villkor', 'nyheter'] },
+        app_id: uuid, subject: { type: 'string', maxLength: 200 }, body: { type: 'string', maxLength: 20000 },
+        andringar: { type: 'string', maxLength: 5000 }, galler_fran: { type: 'string', maxLength: 40 },
+      }, ['kind']),
+      annotations: RO,
+      handler: ({ kind, app_id, subject, body, andringar, galler_fran }) =>
+        store.previewMailing({ kind, appId: app_id, subject, body, vars: { ...(andringar ? { andringar } : {}), ...(galler_fran ? { galler_fran } : {}) } }) ?? fail('Ingen sådan mall.'),
+    },
+    {
+      name: 'send_mailing',
+      title: 'Skicka villkor eller nyheter till skaparna',
+      description: 'Ett mejl till alla med en publicerad app och bekräftad adress, en gång per ref. villkor: ref är villkorens version (standard: den nuvarande), kräver andringar och galler_fran ' +
+        '(minst 30 dagar fram), går ut även till den som stängt av utskick. nyheter: ref är ett kort id (t.ex. 2026-12-ljud-ai), subject/body ersätter mallens text, går inte till den som stängt av. ' +
+        'dry_run (standard) visar antal och ett exempel utan adresser. Skicka på riktigt bara när Magnus har sagt till.',
+      inputSchema: obj({
+        kind: { type: 'string', enum: ['villkor', 'nyheter'] },
+        ref: { type: 'string', maxLength: 60 }, subject: { type: 'string', maxLength: 200 }, body: { type: 'string', maxLength: 20000 },
+        andringar: { type: 'string', maxLength: 5000 }, galler_fran: { type: 'string', maxLength: 40 },
+        dry_run: { type: 'boolean', default: true },
+      }, ['kind']),
+      annotations: RW,
+      handler: async ({ kind, ref, subject, body, andringar, galler_fran, dry_run = true }) => {
+        const out = await store.sendBroadcast({ kind, ref, subject, body, vars: { ...(andringar ? { andringar } : {}), ...(galler_fran ? { galler_fran } : {}) }, dryRun: dry_run });
+        if (out.error) fail(out.error);
+        return out;
+      },
+    },
+    {
       name: 'set_setting',
       title: 'Ändra inställning',
       description: 'Skriv en plattformsinställning (varumärke, tema, typsnitt, SEO/AEO, analys, startsidans sektioner). Värdet är JSON.',
@@ -519,7 +560,8 @@ export function createMcpHandler({ store, images, checkApp, content, curriculum,
                 'helst en app där barnen stannar enligt in_app i app_stats (andel klara omgångar, minuter per besök). ' +
                 'Artiklar (resurser, Markdown): läs med get_resource, ändra delar med edit_resource (exakt text eller ett helt avsnitt), skapa eller ändra titel och publicering med upsert_resource; ' +
                 'en dold eller flyttad artikel pekas vidare med set_setting resource_redirects ({slug: sökväg}). ' +
-                'Veckobrevet till skaparna går ut av sig självt på måndagar kl. 08; send_weekly_letter visar vad som skulle skickas.'
+                'Veckobrevet till skaparna går ut av sig självt på måndagar kl. 08; send_weekly_letter visar vad som skulle skickas. ' +
+                'Mejlen till skaparna (godkänd, en vecka, en månad, villkor, nyheter): list_mailings; villkor och nyheter skickas med send_mailing, bara när Magnus säger till.'
               : PUBLIC_INSTRUCTIONS,
           },
         };

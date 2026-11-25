@@ -28,6 +28,8 @@ Kontrollen spelar inte appen – prova själv på iPad-storlek också.
 1. `list_categories` – välj exakt ett ämne, en årskurs och en typ, gärna enhet.
 2. `list_apps` med sökning – finns appen redan?
 3. Fråga föräldern om **förnamn** och **e-postadress**. Gissa aldrig, och använd inte barnets namn.
+   Visa **villkoren** (https://www.skolappar.com/villkor, eller `get_terms`) och fråga om föräldern
+   godkänner dem. Först när föräldern sagt ja skickar du `accept_terms: true`.
 4. `submit_app` med adress, namn (två till fyra ord), kort beskrivning, kategorier, förnamn och
    e-post. Ange i `curriculum_ids` de punkter i Lgr22 som appen tränar (id från `get_curriculum`),
    och skriv i `long_description` hur appen fungerar.

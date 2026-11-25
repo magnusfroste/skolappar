@@ -4,6 +4,7 @@
 import { createHash, randomBytes } from 'node:crypto';
 import { POINT_ID, AREA_ID } from './curriculum.mjs';
 import { GUIDE_SECTIONS, guideMarkdown, guideSectionIds } from './guide.mjs';
+import { TERMS } from './mailings.mjs';
 
 const uuid = { type: 'string', format: 'uuid' };
 const obj = (properties, required = []) => ({ type: 'object', properties, required, additionalProperties: false });
@@ -24,7 +25,7 @@ export const PUBLIC_INSTRUCTIONS =
   '0) check_app – kontrollera adressen och rätta det som är fail. ' +
   'Välj vad appen ska träna med get_curriculum (Lgr22) och ange punkterna som curriculum_ids. ' +
   '1) list_categories – välj ämne, årskurs och typ. 2) list_apps – se att appen inte redan finns. ' +
-  '3) submit_app – skicka in den med förälderns förnamn och e-postadress. Spara app_key ur svaret: den visas en gång. ' +
+  '3) submit_app – skicka in den med förälderns förnamn och e-postadress, när föräldern har godkänt villkoren (get_terms, accept_terms: true). Spara app_key ur svaret: den visas en gång. ' +
   '4) Be föräldern klicka på länken i mejlet från Skolappar; utan det publiceras appen inte. ' +
   '5) app_status – appar granskas en gång om dagen. 6) app_stats – berätta för barnet hur många som har spelat; med kodsnutten visar in_app ' +
   'också omgångar, resultat och på vilken nivå barnen slutar. Samma siffror kommer som veckobrev till föräldern varje måndag. ' +
@@ -64,6 +65,14 @@ export function createPublicTools({ store, images, checkApp, content, curriculum
         sections: GUIDE_SECTIONS.map((s) => ({ id: s.id, title: s.title })),
         markdown: guideMarkdown(section),
       }),
+    },
+    {
+      name: 'get_terms',
+      title: 'Villkoren för den som skickar in',
+      description: 'Villkoren föräldern godkänner när en app skickas in (Markdown, med version). Visa dem eller länken för föräldern före submit_app.',
+      inputSchema: obj({}),
+      annotations: RO,
+      handler: () => ({ url: 'https://www.skolappar.com/villkor', version: TERMS.version, markdown: TERMS.markdown }),
     },
     {
       name: 'get_starter',
@@ -234,7 +243,8 @@ export function createPublicTools({ store, images, checkApp, content, curriculum
         'Skicka in en app du har byggt och lagt ut på en egen https-adress. Den granskas (en gång om dagen) och publiceras sedan i katalogen. ' +
         'Kräver förälderns förnamn och e-postadress: föräldern får ett mejl med en länk att klicka på, och appen publiceras inte förrän det är gjort. ' +
         'Bara förnamnet visas; adressen visas aldrig. Svaret innehåller app_key – spara den, den visas bara nu – för update_my_app och withdraw_my_app. ' +
-        'Kortbild sätts efteråt med set_my_app_image. En app som ligger på Shipholm (<namn>.shipholm.dev) får adressen <namn>.skolappar.com när den godkänns.',
+        'Kortbild sätts efteråt med set_my_app_image. En app som ligger på Shipholm (<namn>.shipholm.dev) får adressen <namn>.skolappar.com när den godkänns. ' +
+        'Föräldern måste ha läst och godkänt villkoren (https://www.skolappar.com/villkor, läs dem med get_terms): visa länken, fråga, och skicka accept_terms: true först när föräldern har sagt ja.',
       inputSchema: obj({
         url: { type: 'string', format: 'uri', maxLength: 2048, description: 'Appens adress (https).' },
         title: { type: 'string', minLength: 2, maxLength: 120, description: 'Appens namn, två till fyra ord.' },
@@ -246,9 +256,11 @@ export function createPublicTools({ store, images, checkApp, content, curriculum
         curriculum_ids: curriculumIds,
         note: { type: 'string', maxLength: 2000, description: 'Valfritt meddelande till den som granskar.' },
         email_verified: { type: 'boolean', description: 'Bara för partner med X-Partner-Key: e-postadressen är redan verifierad hos partnern, så bekräftelsemejlet hoppas över. Utan partnernyckel ignoreras fältet.' },
-      }, ['url', 'title', 'description', 'first_name', 'email']),
+        accept_terms: { type: 'boolean', description: 'true när föräldern har läst villkoren (https://www.skolappar.com/villkor) och godkänt dem. Aldrig utan att fråga.' },
+      }, ['url', 'title', 'description', 'first_name', 'email', 'accept_terms']),
       annotations: RW,
       handler: (input, ctx) => {
+        if (input.accept_terms !== true) fail('Villkoren måste godkännas. Visa föräldern https://www.skolappar.com/villkor (eller läs dem med get_terms), fråga om det är okej, och skicka igen med accept_terms: true.');
         if (!/^https:\/\//i.test(input.url)) fail('Appens adress måste börja med https://.');
         const listed = store.listedAt(input.url);
         if (listed) fail(`Appen finns redan i katalogen (id ${listed}).`);
@@ -260,7 +272,7 @@ export function createPublicTools({ store, images, checkApp, content, curriculum
           long_description: input.long_description, note: input.note, creator_name: input.first_name,
           categoryIds: input.category_ids, keyHash: createHash('sha256').update(appKey).digest('hex'),
           // a partner (e.g. Shipholm Studio) labels the submission and may vouch for the address
-          source: ctx.partner || null, emailVerified: Boolean(ctx.partner && input.email_verified),
+          source: ctx.partner || null, emailVerified: Boolean(ctx.partner && input.email_verified), termsVersion: TERMS.version,
         });
         const unknownPoints = input.curriculum_ids ? store.setCurriculum(id, input.curriculum_ids) : [];
         const vouched = Boolean(ctx.partner && input.email_verified);

@@ -134,17 +134,6 @@ export function confirmSubmissionMail({ siteUrl, token, appUrl }) {
   };
 }
 
-export function appPublishedMail({ siteUrl, appId, title }) {
-  const link = `${siteUrl}/app/${appId}`;
-  return {
-    subject: `Nu finns "${title}" på Skolappar`,
-    text:
-      `Hej!\n\nAppen du tipsade om, "${title}", är nu publicerad på Skolappar:\n${link}\n\n` +
-      `Varje måndag får du ett kort veckobrev om hur appen används. Det går att stänga av med en länk i brevet.\n\n` +
-      `Tack för att du delar med dig!\n\n– Skolappar`,
-  };
-}
-
 export function appKeysMail({ siteUrl, token }) {
   const link = `${siteUrl}/nyckel/${token}`;
   return {

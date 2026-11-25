@@ -132,7 +132,7 @@ describe('check_app over MCP', () => {
       assert.match(first.text, /"passed":\s*false/);
       assert.match(first.text, /viewport/);
 
-      const sub = await call(pub, 'submit_app', { url: 'https://klocka.example/', title: 'Klockjakten', description: 'Öva klockan med hela och halva timmar.', first_name: 'Anna', email: 'p@example.com' });
+      const sub = await call(pub, 'submit_app', { url: 'https://klocka.example/', title: 'Klockjakten', description: 'Öva klockan med hela och halva timmar.', first_name: 'Anna', email: 'p@example.com', accept_terms: true });
       const id = /"id":\s*"([0-9a-f-]{36})"/.exec(sub.text)[1];
       await new Promise((r) => setTimeout(r, 50));
       const st = await call(pub, 'app_status', { id });

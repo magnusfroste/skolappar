@@ -2,6 +2,7 @@ import { useMemo, useState } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
 import { AppAnalyticsPanel } from '@/components/AppAnalyticsPanel';
 import { ADMIN_SECTIONS } from '@/lib/adminSections';
+import { MailingsPanel } from '@/components/admin/MailingsPanel';
 import { ChangesReview } from '@/components/admin/ChangesReview';
 import { Check, X, Star, Clock, ExternalLink, Trash2, Plus, Edit2, Shield, Settings, FileText, Eye, EyeOff, Lightbulb, MessageSquare, ThumbsUp, TrendingUp, Search } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -206,6 +207,7 @@ function AdminContent() {
       return (
         app.title.toLowerCase().includes(q) ||
         (app.profile?.display_name ?? '').toLowerCase().includes(q) ||
+        (app.submitter_email ?? '').toLowerCase().includes(q) ||
         (app.categories ?? []).some((c) => (c?.name ?? '').toLowerCase().includes(q))
       );
     });
@@ -488,6 +490,10 @@ function AdminContent() {
             <ChangesReview categories={categories ?? []} />
           </TabsContent>
 
+          <TabsContent value="mailings">
+            <MailingsPanel />
+          </TabsContent>
+
           <TabsContent value="all">
             <Card>
               <CardHeader className="flex flex-col gap-3">
@@ -506,9 +512,9 @@ function AdminContent() {
                       <Input
                         value={appQuery}
                         onChange={(e) => setAppQuery(e.target.value)}
-                        placeholder="Sök appar"
+                        placeholder="Sök app, namn eller e-post"
                         className="h-9 pl-9 text-sm"
-                        aria-label="Sök på appnamn eller ägare"
+                        aria-label="Sök på appnamn, ägare eller e-post"
                       />
                     </div>
                     <Select value={appStatus} onValueChange={(v) => setAppStatus(v as AppStatus | 'all')}>
@@ -579,7 +585,17 @@ function AdminContent() {
                             <span className="font-medium truncate">{app.title}</span>
                             <AppStatusBadge status={app.status} />
                           </div>
-                          <p className="text-xs text-muted-foreground">{app.profile?.display_name || 'Okänd'}</p>
+                          <p className="text-xs text-muted-foreground">
+                            {app.profile?.display_name || 'Okänd'}
+                            {app.submitter_email && (
+                              <>
+                                {' · '}
+                                <a href={`mailto:${app.submitter_email}`} className="underline-offset-2 hover:underline">{app.submitter_email}</a>
+                                {!app.email_confirmed && ' (ej bekräftad)'}
+                              </>
+                            )}
+                            {app.source && ` · via ${app.source}`}
+                          </p>
                           <AppCategoryChips app={app} />
                           {app.status === 'delisted' && app.delist_reason && (
                             <p className="text-xs text-slate-500 mt-1 italic">📝 {app.delist_reason}</p>

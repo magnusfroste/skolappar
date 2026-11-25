@@ -10,6 +10,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
+import { Checkbox } from '@/components/ui/checkbox';
 import { useSubmitSuggestion } from '@/hooks/useSubmitApp';
 import { ApiError } from '@/lib/api';
 
@@ -42,6 +43,7 @@ export default function SuggestApp() {
   const [description, setDescription] = useState(() => from('description', 500));
   const [note, setNote] = useState('');
   const [website, setWebsite] = useState(''); // honeypot
+  const [terms, setTerms] = useState(false);
   const [touched, setTouched] = useState(false);
   const [done, setDone] = useState(false);
 
@@ -52,7 +54,7 @@ export default function SuggestApp() {
   const onSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setTouched(true);
-    if (!urlOk || !emailOk) return;
+    if (!urlOk || !emailOk || !terms) return;
     try {
       await submit.mutateAsync({
         url: normalizedUrl,
@@ -61,6 +63,7 @@ export default function SuggestApp() {
         description: description.trim() || undefined,
         note: note.trim() || undefined,
         website: website || undefined,
+        accept_terms: true,
       });
       setDone(true);
     } catch {
@@ -84,7 +87,7 @@ export default function SuggestApp() {
               </p>
               <div className="flex gap-2 justify-center pt-2">
                 <Button asChild variant="outline"><Link to="/">Till startsidan</Link></Button>
-                <Button onClick={() => { setDone(false); setUrl(''); setTitle(''); setDescription(''); setNote(''); setTouched(false); }}>
+                <Button onClick={() => { setDone(false); setUrl(''); setTitle(''); setDescription(''); setNote(''); setTerms(false); setTouched(false); }}>
                   Tipsa om en till
                 </Button>
               </div>
@@ -135,10 +138,18 @@ export default function SuggestApp() {
                   <input id="website" tabIndex={-1} autoComplete="off" value={website} onChange={(e) => setWebsite(e.target.value)} />
                 </div>
                 {submit.isError && <p className="text-sm text-destructive" role="alert">{errorMessage(submit.error)}</p>}
-                <p className="text-xs text-muted-foreground">
-                  Genom att skicka godkänner du våra <Link to="/villkor" className="underline">villkor</Link> och
-                  vår <Link to="/integritet" className="underline">integritetspolicy</Link>.
-                </p>
+                <div className="space-y-1">
+                  <div className="flex items-start gap-2">
+                    <Checkbox id="terms" checked={terms} onCheckedChange={(v) => setTerms(v === true)} aria-invalid={touched && !terms} className="mt-0.5" />
+                    <Label htmlFor="terms" className="text-sm font-normal leading-snug">
+                      Jag har läst och godkänner <Link to="/villkor" target="_blank" className="underline">villkoren</Link> *
+                    </Label>
+                  </div>
+                  {touched && !terms && <p className="text-sm text-destructive">Du behöver godkänna villkoren för att skicka.</p>}
+                  <p className="text-xs text-muted-foreground">
+                    Så hanterar vi din e-postadress: <Link to="/integritet" className="underline">integritetspolicyn</Link>.
+                  </p>
+                </div>
                 <Button type="submit" size="lg" className="w-full gap-2" disabled={submit.isPending}>
                   {submit.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Rocket className="h-4 w-4" />}
                   Skicka tips

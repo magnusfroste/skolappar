@@ -17,7 +17,7 @@ const Privacy = () => {
         <main className="flex-1 container max-w-3xl mx-auto px-4 py-12">
           <article className="space-y-8">
             <p className="text-sm text-muted-foreground">
-              Senast uppdaterad: 2024-12-09
+              Senast uppdaterad: 2026-11-25
             </p>
             
             <h1 className="text-3xl font-bold">Integritetspolicy</h1>
@@ -64,6 +64,8 @@ const Privacy = () => {
               </p>
               <ul className="list-disc list-inside text-muted-foreground space-y-1.5 ml-2">
                 <li>Bekräfta din e-postadress och meddela dig när appen du tipsat om publiceras</li>
+                <li>Skicka veckobrev, uppföljningar och nyheter om dina appar – de stänger du av med länken i mejlet</li>
+                <li>Berätta när villkoren ändras, och spara vilken version av villkoren du godkände och när</li>
                 <li>Kontakta dig vid frågor om appen eller idén du skickat in</li>
                 <li>Förhindra missbruk (till exempel för många inskick på kort tid)</li>
                 <li>Förbättra och utveckla plattformen</li>
@@ -100,7 +102,7 @@ const Privacy = () => {
                 Vi säljer aldrig dina personuppgifter. Vi delar endast uppgifter med:
               </p>
               <ul className="list-disc list-inside text-muted-foreground space-y-1.5 ml-2">
-                <li>Tekniska leverantörer som hjälper oss driva plattformen (hosting, databas)</li>
+                <li>Tekniska leverantörer som hjälper oss driva plattformen: Shipholm (drift, i EU) och Cloudflare (utskick av mejl)</li>
                 <li>Myndigheter om vi är skyldiga enligt lag</li>
               </ul>
             </section>

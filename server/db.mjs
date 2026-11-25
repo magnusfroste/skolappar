@@ -202,6 +202,24 @@ const MIGRATIONS = [
   `
   ALTER TABLE apps ADD COLUMN digest_off INTEGER NOT NULL DEFAULT 0;
   `,
+  // 11: which version of the terms the submitter accepted, and when; every mail to makers
+  // (one row per mail, kind + ref: the app for follow-ups, the terms version, the news id).
+  `
+  ALTER TABLE apps ADD COLUMN terms_version TEXT;
+  ALTER TABLE apps ADD COLUMN terms_accepted_at TEXT;
+  CREATE TABLE mail_sends (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    kind TEXT NOT NULL,
+    ref TEXT NOT NULL,
+    address TEXT NOT NULL,
+    app_id TEXT,
+    subject TEXT,
+    result TEXT NOT NULL,
+    sent_at TEXT NOT NULL
+  );
+  CREATE UNIQUE INDEX mail_sends_once_idx ON mail_sends(kind, ref, address);
+  CREATE INDEX mail_sends_time_idx ON mail_sends(sent_at);
+  `,
 ];
 
 export function openDatabase(dataDir) {
