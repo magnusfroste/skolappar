@@ -449,3 +449,11 @@ export function useSendMailing() {
     onSuccess: (_r, input) => { if (input.dry_run === false) queryClient.invalidateQueries({ queryKey: ['admin-mailings'] }); },
   });
 }
+
+export function useConfirmEmail() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (email: string) => adminApi.post<{ email: string; confirmed_apps: number }>('/api/admin/confirm-email', { email }),
+    onSuccess: () => { invalidateApps(queryClient); queryClient.invalidateQueries({ queryKey: ['admin-mailings'] }); },
+  });
+}

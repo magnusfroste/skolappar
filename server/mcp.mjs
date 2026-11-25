@@ -434,6 +434,15 @@ export function createTools({ store, images }) {
       handler: ({ dry_run = true }) => store.sendWeeklyDigest({ dryRun: dry_run }),
     },
     {
+      name: 'confirm_email',
+      title: 'Markera en e-postadress som bekräftad',
+      description: 'Alla appar med den här skapar-adressen räknas som bekräftade, som om länken i bekräftelsemejlet hade öppnats. Skickar inget. ' +
+        'Bara när Magnus vet att adressen är rätt (t.ex. hans egen).',
+      inputSchema: obj({ email: { type: 'string', format: 'email', maxLength: 254 } }, ['email']),
+      annotations: RW,
+      handler: ({ email }) => ({ email, confirmed_apps: store.confirmAddress(email) }),
+    },
+    {
       name: 'list_mailings',
       title: 'Mejlen till skaparna',
       description: 'De fem mallarna (godkand, en-vecka, en-manad, villkor, nyheter) med schema, hur många som gått ut, platshållare och de senaste utskicken. ' +
