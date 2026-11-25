@@ -36,3 +36,8 @@ Frågorna läses upp med inspelade repliker i `ljud/` (en MP3 per replik, gjorda
 repliker i `lines.json`, gör filerna med `speak` (skill `shipholm-voice`), ladda ner dem till `ljud/`
 och sätt `sound`/`hintSound` på uppgifterna. Saknas en fil läser webbläsarens egen röst upp `say` i
 stället, så appen fungerar även utan ljudfiler.
+
+Bygger appen meningar av data ("Vilken ordklass är " + ord) ska varje färdig mening ha en egen
+replik i `lines.json`, gjord från appens data – inte fragment. Kontrollera att det verkligen låter:
+spela appen och se att `ljud/*.mp3` hämtas. Kodsnutten räknar det också, så `app_stats` visar hur
+stor del av uppläsningen som är inspelad (`in_app.voice`).
