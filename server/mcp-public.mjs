@@ -281,9 +281,15 @@ export function createPublicTools({ store, images, checkApp, content, curriculum
         email_verified: { type: 'boolean', description: 'Bara för partner med X-Partner-Key: e-postadressen är redan verifierad hos partnern, så bekräftelsemejlet hoppas över. Utan partnernyckel ignoreras fältet.' },
         accept_terms: { type: 'boolean', description: 'true när föräldern har läst villkoren (https://www.skolappar.com/villkor) och godkänt dem. Aldrig utan att fråga.' },
         shipholm_attestation: { type: 'string', maxLength: 4000, description: 'Ligger appen på Shipholm och har kontot en verifierad e-postadress: intyget från Shipholms app_attestation(app). Stämmer adressen och appens url behövs inget bekräftelsemejl.' },
-      }, ['url', 'title', 'description', 'first_name', 'email']),   // accept_terms is checked in the handler, whose message tells the agent what to do
+      }, ['url', 'title', 'description']),   // first_name, email and accept_terms are checked in the handler, whose messages tell the agent what to do
       annotations: RW,
       handler: async (input, ctx) => {
+        const missing = [!input.first_name && 'förnamn (first_name)', !input.email && 'e-postadress (email)'].filter(Boolean);
+        if (missing.length) {
+          fail(`Fråga föräldern om ${missing.join(' och ')} – gissa aldrig, och använd inte barnets namn. ` +
+            'Bara förnamnet visas vid appen; e-postadressen visas aldrig och används för bekräftelse, besked om granskningen och veckobrevet. ' +
+            'Ligger appen på Shipholm och har kontot en verifierad adress: skicka med Shipholms app_attestation som shipholm_attestation, så behövs ingen bekräftelselänk.');
+        }
         if (input.accept_terms !== true) fail('Villkoren måste godkännas. Visa föräldern https://www.skolappar.com/villkor (eller läs dem med get_terms), fråga om det är okej, och skicka igen med accept_terms: true.');
         if (!/^https:\/\//i.test(input.url)) fail('Appens adress måste börja med https://.');
         const listed = store.listedAt(input.url);

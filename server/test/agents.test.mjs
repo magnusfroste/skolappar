@@ -66,3 +66,18 @@ describe('answers an agent can act on (ZeroClaw, 2026-11-25)', () => {
     assert.match((await call('check_app', {})).text, /publika https-adressen/);
   });
 });
+
+describe('submit_app without the parent\'s name or address says what to do', () => {
+  let s; let pub; let n = 0;
+  before(async () => { s = await startServer(); pub = api(s.base); });
+  after(() => s.stop());
+  test('ask the parent – not a bare "required"', async () => {
+    const r = await pub('POST', '/mcp', { jsonrpc: '2.0', id: ++n, method: 'tools/call', params: { name: 'submit_app', arguments: {
+      url: 'https://x.example', title: 'Klockjakten', description: 'Öva klockan med hela och halva timmar.', accept_terms: true } } });
+    const text = r.json.result.content[0].text;
+    assert.equal(r.json.result.isError, true);
+    assert.match(text, /Fråga föräldern om förnamn \(first_name\) och e-postadress \(email\)/);
+    assert.match(text, /visas aldrig/);
+    assert.match(text, /app_attestation/);
+  });
+});
