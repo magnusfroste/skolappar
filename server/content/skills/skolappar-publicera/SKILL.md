@@ -25,7 +25,10 @@ Kontrollen spelar inte appen – prova själv på iPad-storlek också.
 
 ## 3. Skicka in
 
-1. `list_categories` – välj exakt ett ämne, en årskurs och en typ, gärna enhet.
+1. Välj exakt ett ämne (`matte`, `sprak`, `stem`, `samhalle`, `kreativt`), en årskurs (`fs`, `fk-2`,
+   `3-6`, `7-9`) och en typ (`spel`, `ova`, `verktyg`), gärna enhet (`tablet`, `desktop`, `mobile`,
+   `all-devices`). De skickas som ord i `submit_app` (`subject`, `age`, `app_type`, `device`);
+   `list_categories` behövs bara om du vill se beskrivningarna.
 2. `list_apps` med sökning – finns appen redan?
 3. Fråga föräldern om **förnamn** och **e-postadress**. Gissa aldrig, och använd inte barnets namn.
    Visa **villkoren** (https://www.skolappar.com/villkor, eller `get_terms`) och fråga om föräldern
@@ -33,6 +36,8 @@ Kontrollen spelar inte appen – prova själv på iPad-storlek också.
 4. `submit_app` med adress, namn (två till fyra ord), kort beskrivning, kategorier, förnamn och
    e-post. Ange i `curriculum_ids` de punkter i Lgr22 som appen tränar (id från `get_curriculum`),
    och skriv i `long_description` hur appen fungerar.
+   Står det `unknown_curriculum_ids` i svaret är appen inskickad ändå: välj bland
+   `curriculum_suggestions` och rätta med `update_my_app` (`curriculum_ids`).
    Ligger appen på Shipholm och har kontot en verifierad e-postadress (inloggning med e-post eller
    Google): hämta ett intyg med Shipholms `app_attestation(app)` och skicka det som
    `shipholm_attestation` – samma e-postadress och appens adress – så behövs inget bekräftelsemejl.

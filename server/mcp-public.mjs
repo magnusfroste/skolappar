@@ -276,7 +276,11 @@ export function createPublicTools({ store, images, checkApp, content, curriculum
         first_name: { type: 'string', pattern: FIRST_NAME, description: 'Förälderns förnamn – bara förnamnet, inget efternamn och inte barnets namn.' },
         email: { type: 'string', format: 'email', maxLength: 254, description: 'Förälderns e-postadress, för bekräftelse och besked.' },
         category_ids: { type: 'array', items: uuid, maxItems: 20, description: categoryHint },
-        curriculum_ids: curriculumIds,
+        subject: { type: 'string', maxLength: 40, description: 'I stället för category_ids, med ord: matte, sprak, stem, samhalle eller kreativt.' },
+        age: { type: 'string', maxLength: 40, description: 'Årskurs med ord: fs, fk-2, 3-6 eller 7-9.' },
+        app_type: { type: 'string', maxLength: 40, description: 'Typ med ord: spel, ova eller verktyg.' },
+        device: { type: 'string', maxLength: 40, description: 'Valfritt: tablet, desktop, mobile eller all-devices.' },
+        curriculum_ids: { ...curriculumIds, items: { type: 'string', maxLength: 80 } },
         note: { type: 'string', maxLength: 2000, description: 'Valfritt meddelande till den som granskar.' },
         email_verified: { type: 'boolean', description: 'Bara för partner med X-Partner-Key: e-postadressen är redan verifierad hos partnern, så bekräftelsemejlet hoppas över. Utan partnernyckel ignoreras fältet.' },
         accept_terms: { type: 'boolean', description: 'true när föräldern har läst villkoren (https://www.skolappar.com/villkor) och godkänt dem. Aldrig utan att fråga.' },
@@ -292,6 +296,20 @@ export function createPublicTools({ store, images, checkApp, content, curriculum
         }
         if (input.accept_terms !== true) fail('Villkoren måste godkännas. Visa föräldern https://www.skolappar.com/villkor (eller läs dem med get_terms), fråga om det är okej, och skicka igen med accept_terms: true.');
         if (!/^https:\/\//i.test(input.url)) fail('Appens adress måste börja med https://.');
+        // categories by word as well as by id: one call less for an agent (no list_categories first)
+        const plain = (v) => String(v || '').trim().toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[–—]/g, '-');
+        const ALIASES = { matematik: 'matte', math: 'matte', svenska: 'sprak', engelska: 'sprak', language: 'sprak', samhallskunskap: 'samhalle',
+          ipad: 'tablet', platta: 'tablet', surfplatta: 'tablet', dator: 'desktop', mobil: 'mobile', alla: 'all-devices', game: 'spel', practice: 'ova', tool: 'verktyg' };
+        const byWord = { subject: 'ämne', age: 'årskurs', app_type: 'typ', device: 'enhet' };
+        const worded = [];
+        for (const [type, label] of Object.entries(byWord)) {
+          if (!input[type]) continue;
+          const cats = store.listCategories({ type });
+          const k = ALIASES[plain(input[type])] || plain(input[type]);
+          const hit = cats.find((c) => plain(c.slug) === k || plain(c.name) === k);
+          if (!hit) fail(`Okänd ${label} "${input[type]}". Välj bland: ${cats.map((c) => c.slug).join(', ')}.`);
+          worded.push(hit.id);
+        }
         const listed = store.listedAt(input.url);
         if (listed) fail(`Appen finns redan i katalogen (id ${listed}).`);
         const limit = ctx.submitAllowed?.();
@@ -301,11 +319,28 @@ export function createPublicTools({ store, images, checkApp, content, curriculum
         const { id, unknown_category_ids, already_confirmed } = store.createSubmission({
           url: input.url, email: input.email, title: input.title, description: input.description,
           long_description: input.long_description, note: input.note, creator_name: input.first_name,
-          categoryIds: input.category_ids, keyHash: createHash('sha256').update(appKey).digest('hex'),
+          categoryIds: [...new Set([...(input.category_ids || []), ...worded])], keyHash: createHash('sha256').update(appKey).digest('hex'),
           // a partner (e.g. Shipholm Studio) labels the submission and may vouch for the address
           source: ctx.partner || null, emailVerified: Boolean(ctx.partner && input.email_verified) || Boolean(attested?.ok), termsVersion: TERMS.version,
         });
-        const unknownPoints = input.curriculum_ids ? store.setCurriculum(id, input.curriculum_ids) : [];
+        // tidy what an agent sends ("ma.1–3.3.3" -> "MA.1-3.3.3"); anything that is still not an id is
+        // searched for, so the answer suggests the nearest points instead of a bare "invalid"
+        const tidy = (v) => String(v).trim().toUpperCase().replace(/[–—]/g, '-').replace(/\s+/g, '');
+        const wanted = (input.curriculum_ids || []).map(tidy);
+        const wellFormed = wanted.filter((v) => new RegExp(POINT_ID).test(v));
+        const unknownPoints = [...(wellFormed.length ? store.setCurriculum(id, wellFormed) : []),
+          ...(input.curriculum_ids || []).filter((v, k) => !wellFormed.includes(wanted[k]))];
+        const suggested = unknownPoints.length
+          ? [...new Map(unknownPoints.flatMap((v) => {
+              // a well-formed id that does not exist: the other points of its area; words: a search
+              const area = /^([A-ZÅÄÖ]{2,4}\.\d-\d\.\d{1,2})\./.exec(tidy(v))?.[1];
+              if (area && curriculum.area(area)) return curriculum.search({ area, limit: 3 });
+              const q = String(v).replace(/^[A-ZÅÄÖ]{2,4}\.[\d.-]*/i, '').trim();
+              // narrowed to the app's subject when that word names one (matte -> MA)
+              const subj = [input.subject, /^([A-ZÅÄÖ]{2,4})\./i.exec(String(v))?.[1]].find((w) => w && curriculum.subjectCode(w));
+              return q ? curriculum.search({ q, subject: subj, limit: 3 }) : [];
+            }).map((p) => [p.id, { id: p.id, text: p.text }])).values()].slice(0, 5)
+          : [];
         const vouched = Boolean(ctx.partner && input.email_verified) || already_confirmed || Boolean(attested?.ok);
         if (!vouched) store.sendConfirmation(id).catch(() => {});
         // the reviewer sees the outcome next to the submission; app_status shows it to the agent
@@ -328,7 +363,12 @@ export function createPublicTools({ store, images, checkApp, content, curriculum
             ]),
           ],
           ...(unknown_category_ids.length ? { unknown_category_ids } : {}),
-          ...(unknownPoints.length ? { unknown_curriculum_ids: unknownPoints } : {}),
+          ...(unknownPoints.length ? {
+            unknown_curriculum_ids: unknownPoints,
+            ...(suggested.length ? { curriculum_suggestions: suggested } : {}),
+            curriculum_hint: 'Id i läroplanen ser ut som MA.1-3.3.3 (ämneskod.stadium.område.punkt) och kommer från get_curriculum, t.ex. subject: "MA", search: "klockan". ' +
+              'Appen är inskickad ändå; lägg till de rätta punkterna med update_my_app (curriculum_ids).',
+          } : {}),
         };
       },
     },
