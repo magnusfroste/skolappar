@@ -51,7 +51,8 @@ export const GUIDE_SECTIONS = [
 - **Samla inte in något** om barnet: inget namn som skickas iväg, ingen spårning, inga analysskript från tredje part.
 - Spara framsteg **bara på den egna enheten** (\`localStorage\`). Ett smeknamn som stannar på enheten går bra.
 - Ingen chatt och inget innehåll från andra användare.
-- Använder appen AI ska nyckeln ligga på en server, aldrig i koden som skickas till webbläsaren, och barnets svar ska inte sparas.`,
+- Använder appen AI ska nyckeln ligga på en server, aldrig i koden som skickas till webbläsaren, och barnets svar ska inte sparas.
+- **Ett undantag: läsappar** får låta barnet läsa högt och kontrollera läsningen med Shipholms taligenkänning (se avsnittet om fria bilder, ljud och typsnitt). Den körs i Sverige, sparar varken ljud eller text och svarar bara vilka ord som hördes. Appen ska säga det där barnet spelar in, och gå att använda utan att spela in.`,
   },
   {
     id: 'pedagogik',
@@ -100,6 +101,7 @@ export const GUIDE_SECTIONS = [
 - Sidan har en \`<title>\` med appens namn, en ikon och \`<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">\`.
 - Gärna ett webbmanifest med ikon, så att appen går att lägga på hemskärmen.
 - Tål dålig uppkoppling: när appen väl är laddad ska den inte behöva nätet för att fungera.
+- Publicerar du appen på Shipholm (verktyget publish_site) blir den installerbar och fungerar utan nät av sig själv: Shipholm lägger till det som behövs. Ge den en \`<title>\` och en ikon (\`icon-512.png\`, \`apple-touch-icon.png\` eller \`favicon.svg\`).
 - Typsnitt, bilder och ljud ska vara dina egna eller fria att använda (se avsnittet om fria bilder, ljud och typsnitt). Lägg dem i appen i stället för att hämta dem från andra webbplatser.
 - Prova på en riktig iPad eller i webbläsarens enhetsläge (1024 × 768 och 768 × 1024) innan du skickar in.`,
   },
@@ -138,6 +140,7 @@ export const GUIDE_SECTIONS = [
     body: `Använd bara material som du gjort själv eller som får användas fritt, och lägg filerna i appen i stället för att länka till dem. Licenser ändras: läs vad som står hos källan innan du använder något, och spara var du tog det.
 
 **Bilder och symboler**
+- **Illustrationer från Shipholm**: verktyget draw på Shipholms MCP (skill shipholm-draw) ritar en bild som SVG i en och samma bilderboksstil – mjuka former, få färger, tjock mörk kontur, ingen text och inget läskigt – så att alla bilder i appen hör ihop. Beskriv bilden konkret ("tre röda äpplen i en korg"), ladda ner filen till appen (till exempel \`bilder/apple.svg\`) och titta på den innan du använder den; i ett räknespel ska antalet stämma. Kostar lite av kontots Ship credits; en bild som ritats förut är gratis. Kräver ett Shipholm-konto som verktyget speak nedan.
 - **Emoji från systemet**: kräver inga filer och ingen licens, och barn känner igen dem.
 - **Egen SVG**: enkla former ritade i koden. Skalar till alla skärmar och väger nästan ingenting.
 - **OpenMoji** (openmoji.org): emoji som SVG, CC BY-SA 4.0 – ange källan.
@@ -160,6 +163,13 @@ export const GUIDE_SECTIONS = [
 - **Webbläsarens talsyntes** (\`speechSynthesis\` med \`lang = "sv-SE"\`) för text som inte går att veta i förväg, och som reserv när en fil saknas. Rösten finns på enheten och låter olika på olika enheter; på iPad måste den startas av ett tryck.
 - Inga personuppgifter i replikerna – barnets namn eller svar ska aldrig skickas för att bli uppläst.
 - Vill du ha en alldeles egen röst: spela in själv, gärna med barnet. Det är fritt, och roligare.
+
+**Barnet läser högt (läsappar)**
+- Shipholms taligenkänning lyssnar på när barnet läser en rad och svarar vilka ord som hördes: \`https://api.shipholm.com/listen.js\` (ladda ner filen till appen), \`ShipholmListen.start()\` efter ett tryck och \`rec.check(raden)\`. Gratis och utan nyckel, på svenska. Skill shipholm-listen.
+- Den körs på en server i Sverige. Ljudet jämförs med raden och kastas direkt – varken ljud eller text sparas, och appen får aldrig veta vad som hördes, bara vilka ord som stämde.
+- Det fungerar bara när appen ligger på Shipholm, på sin egen adress.
+- Visa texten \`ShipholmListen.notice\` (eller samma sak med egna ord) där barnet spelar in, och ha alltid en väg vidare utan inspelning ("Jag har läst").
+- "3" och "tre" räknas lika och ett extra ord på slutet struntar den i, men en fel ändelse ("matta" för "mattan") räknas som fel – det är just läsningen.
 
 **Ord och innehåll**
 - Läroplanen (Lgr22) på skolverket.se är offentlig.
@@ -201,7 +211,7 @@ export const GUIDE_SECTIONS = [
 - Alla knappar är minst 44 px och inget kräver hover eller dubbelklick.
 - Sidan zoomar inte vid dubbeltryck och rullar inte i sidled.
 - Ingen reklam, inga köp, inga länkar ut, ingen spårning.
-- Inget om barnet lämnar enheten.
+- Inget om barnet lämnar enheten (utom läsning som kontrolleras av Shipholms taligenkänning, och appen säger det).
 - Barnet får direkt återkoppling och kan alltid försöka igen.
 - Svårigheten stiger i små steg och en omgång har ett tydligt slut.
 - All text är på svenska med å, ä och ö, och passar åldern.
