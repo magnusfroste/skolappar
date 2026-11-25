@@ -24,11 +24,13 @@ import { Label } from '@/components/ui/label';
 import { DarkModeToggle } from '@/components/DarkModeToggle';
 import { ADMIN_SECTIONS } from '@/lib/adminSections';
 import { ApiError, setAdminKey } from '@/lib/api';
-import { useIsAdmin } from '@/hooks/useAdmin';
+import { useIsAdmin, useReports } from '@/hooks/useAdmin';
 import { useBranding } from '@/hooks/useBranding';
 import logoFallback from '@/assets/kotten-mark.svg';
 
 function AdminSidebar({ onLogout }: { onLogout: () => void }) {
+  // only rendered once the key is accepted, so the count can be asked for
+  const openReports = useReports('open').data?.open ?? 0;
   const { state, toggleSidebar } = useSidebar();
   const collapsed = state === 'collapsed';
   const location = useLocation();
@@ -72,6 +74,9 @@ function AdminSidebar({ onLogout }: { onLogout: () => void }) {
                       <Link to={`/admin?tab=${item.tab}`}>
                         <item.icon className="h-4 w-4" />
                         <span>{item.title}</span>
+                        {item.tab === 'reports' && openReports > 0 && (
+                          <span className="ml-auto rounded-full bg-destructive px-1.5 text-xs font-medium text-destructive-foreground">{openReports}</span>
+                        )}
                       </Link>
                     </SidebarMenuButton>
                   </SidebarMenuItem>

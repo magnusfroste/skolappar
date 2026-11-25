@@ -220,6 +220,24 @@ const MIGRATIONS = [
   CREATE UNIQUE INDEX mail_sends_once_idx ON mail_sends(kind, ref, address);
   CREATE INDEX mail_sends_time_idx ON mail_sends(sent_at);
   `,
+  // 12: anyone can report a listed app (inappropriate, wrongly tagged, broken, other); an admin or
+  // Hermes handles it (delist, resolved, dismissed). reporter: a hash of the IP address and the day,
+  // only to stop one person from filing the same report again and again.
+  `
+  CREATE TABLE app_reports (
+    id TEXT PRIMARY KEY,
+    app_id TEXT NOT NULL REFERENCES apps(id) ON DELETE CASCADE,
+    reason TEXT NOT NULL,
+    message TEXT,
+    email TEXT,
+    reporter TEXT,
+    status TEXT NOT NULL DEFAULT 'open',
+    handled_note TEXT,
+    created_at TEXT NOT NULL,
+    handled_at TEXT
+  );
+  CREATE INDEX app_reports_status_idx ON app_reports(status, created_at);
+  `,
 ];
 
 export function openDatabase(dataDir) {

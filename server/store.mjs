@@ -46,6 +46,8 @@ function personOrNull(name) {
   return name ? { display_name: name, avatar_url: null } : null;
 }
 
+export const REPORT_REASON_IDS = ['inappropriate', 'mistagged', 'broken', 'other'];
+
 export function createStore(db, { mailer, curriculum, shipholm, siteUrl = 'https://www.skolappar.com', log = console } = {}) {
   const voterSalt = serverSecret(db);
 
@@ -542,6 +544,93 @@ export function createStore(db, { mailer, curriculum, shipholm, siteUrl = 'https
          FROM mail_sends s LEFT JOIN apps a ON a.id = s.app_id ORDER BY s.sent_at DESC, s.id DESC LIMIT ?`
       ).all(Math.min(Math.max(limit, 1), 500)),
     };
+  }
+
+
+  // ---------- reports: anyone can flag a listed app; an admin or Hermes handles it ----------
+
+  const REPORT_REASONS = {
+    inappropriate: 'Olämpligt innehåll',
+    mistagged: 'Fel ämne eller ålder',
+    broken: 'Fungerar inte',
+    other: 'Annat',
+  };
+
+  /** A new report. {duplicate: true} when the same reporter already reported this app today. */
+  function createReport({ appId, reason, message, email, reporterKey }) {
+    const app = db.prepare(`SELECT id, title FROM apps WHERE id = ? AND status IN ('approved','featured')`).get(appId);
+    if (!app) return null;
+    const day = now().slice(0, 10);
+    const reporter = reporterKey ? createHash('sha256').update(`${serverSecret(db, 'digest_secret')}:report:${day}:${reporterKey}`).digest('hex').slice(0, 32) : null;
+    if (reporter && db.prepare(`SELECT 1 FROM app_reports WHERE app_id = ? AND reporter = ? AND status = 'open'`).get(appId, reporter)) {
+      return { duplicate: true, app };
+    }
+    const id = randomUUID();
+    db.prepare(`INSERT INTO app_reports (id, app_id, reason, message, email, reporter, created_at) VALUES (?, ?, ?, ?, ?, ?, ?)`)
+      .run(id, appId, reason, nul(message), nul(email), reporter, now());
+    return { id, app };
+  }
+
+  function reportRow(r) {
+    return {
+      id: r.id, status: r.status, reason: r.reason, reason_name: REPORT_REASONS[r.reason] || r.reason,
+      message: r.message, email: r.email, created_at: r.created_at, handled_at: r.handled_at, handled_note: r.handled_note,
+      app: { id: r.app_id, title: r.title, url: r.url, image_url: r.image_url, status: r.app_status },
+      open_reports_for_app: r.open_for_app,
+    };
+  }
+
+  /** Reports, newest first; status 'open' (default), 'handled' or 'all'. */
+  function listReports({ status = 'open', limit = 100 } = {}) {
+    const where = status === 'all' ? '' : status === 'handled' ? `WHERE r.status <> 'open'` : `WHERE r.status = 'open'`;
+    return db.prepare(
+      `SELECT r.*, a.title, a.url, a.image_url, a.status AS app_status,
+         (SELECT COUNT(*) FROM app_reports o WHERE o.app_id = r.app_id AND o.status = 'open') AS open_for_app
+       FROM app_reports r JOIN apps a ON a.id = r.app_id ${where} ORDER BY r.created_at DESC LIMIT ?`
+    ).all(Math.min(Math.max(limit, 1), 500)).map(reportRow);
+  }
+
+  const openReportCount = () => db.prepare(`SELECT COUNT(*) AS n FROM app_reports WHERE status = 'open'`).get().n;
+
+  /**
+   * Handle a report: 'delist' takes the app out of the catalogue (with the note as the reason) and
+   * closes every open report of it; 'resolved' (fixed, e.g. the tags) and 'dismissed' close this one.
+   * Returns {report, delisted_app_id?} or null.
+   */
+  function handleReport(id, { action, note }) {
+    const r = db.prepare('SELECT * FROM app_reports WHERE id = ?').get(id);
+    if (!r) return null;
+    const t = now();
+    let delisted = null;
+    transaction(db, () => {
+      if (action === 'delist') {
+        const reason = note || `Rapporterad: ${REPORT_REASONS[r.reason] || r.reason}`;
+        updateApp(r.app_id, { status: 'delisted', delist_reason: reason });
+        db.prepare(`UPDATE app_reports SET status = 'delisted', handled_note = ?, handled_at = ? WHERE app_id = ? AND status = 'open'`).run(reason, t, r.app_id);
+        delisted = r.app_id;
+      } else {
+        db.prepare('UPDATE app_reports SET status = ?, handled_note = ?, handled_at = ? WHERE id = ?').run(action, nul(note), t, id);
+      }
+    });
+    const row = db.prepare(
+      `SELECT r.*, a.title, a.url, a.image_url, a.status AS app_status,
+         (SELECT COUNT(*) FROM app_reports o WHERE o.app_id = r.app_id AND o.status = 'open') AS open_for_app
+       FROM app_reports r JOIN apps a ON a.id = r.app_id WHERE r.id = ?`).get(id);
+    return { report: reportRow(row), ...(delisted ? { delisted_app_id: delisted } : {}) };
+  }
+
+  /** Tell the owner about a new report (setting report_email), fire and forget. */
+  async function notifyReport(reportId) {
+    const to = getSetting('report_email');
+    if (!mailer || typeof to !== 'string' || !to.includes('@')) return { sent: false, reason: 'no_report_email' };
+    const r = listReports({ status: 'all', limit: 500 }).find((x) => x.id === reportId);
+    if (!r) return { sent: false };
+    const text = `Någon har rapporterat en app på Skolappar.\n\n` +
+      `App: ${r.app.title}\n${siteUrl}/app/${r.app.id}\n${r.app.url}\n\n` +
+      `Skäl: ${r.reason_name}\n${r.message ? `Meddelande: ${r.message}\n` : ''}${r.email ? `Svar till: ${r.email}\n` : ''}` +
+      `Öppna rapporter för appen: ${r.open_reports_for_app}\n\n` +
+      `Hantera: ${siteUrl}/admin?tab=reports (eller list_reports / handle_report över MCP)\n\n– Skolappar`;
+    try { return await mailer.send({ to, subject: `Rapport: ${r.app.title} – ${r.reason_name}`, text }); } catch { return { sent: false, reason: 'error' }; }
   }
 
   /** Keep the outcome of a check on the app. */
@@ -1402,7 +1491,7 @@ export function createStore(db, { mailer, curriculum, shipholm, siteUrl = 'https
     listPublicApps, listAdminApps, getApp, topApps, recentApps, relatedApps,
     createApp, updateApp, deleteApp, setAppCategories, trackClick,
     createSubmission, confirmEmail, sendConfirmation, resendMail,
-    appKeyMatches, saveCheck, appAtHost, recordEvents, inAppStats, stopDigest, digestApp, weeklyDigests, sendWeeklyDigest, maybeSendWeeklyDigest, sendBroadcast, confirmAddress, dueFollowUps, maybeSendFollowUps, previewMailing, mailingsOverview, proposeChange, listChanges, reviewChange, startKeyRecovery, keyRecoveryValid, finishKeyRecovery, setOwnImage, setCurriculum, curriculumUsed, syncAddress, releaseAddress, listedAt, appStatus, appStats,
+    appKeyMatches, saveCheck, appAtHost, recordEvents, inAppStats, stopDigest, digestApp, weeklyDigests, sendWeeklyDigest, maybeSendWeeklyDigest, sendBroadcast, confirmAddress, createReport, listReports, openReportCount, handleReport, notifyReport, dueFollowUps, maybeSendFollowUps, previewMailing, mailingsOverview, proposeChange, listChanges, reviewChange, startKeyRecovery, keyRecoveryValid, finishKeyRecovery, setOwnImage, setCurriculum, curriculumUsed, syncAddress, releaseAddress, listedAt, appStatus, appStats,
     toggleUpvote, myUpvotes,
     listResources, getResource, getResourceBySlug, createResource, updateResource, deleteResource,
     allSettings, listSettings, getSetting, setSetting,

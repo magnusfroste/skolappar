@@ -34,6 +34,7 @@ const STATIC = {
   '/startmall': { title: 'Startmallen', description: 'En färdig liten skolapp där det svåra redan är löst: touch, återkoppling, ljud, uppläsning och belöning. Fri att använda.' },
   '/testa-din-app': { title: 'Testa din app', description: 'Kontrollera din app mot Skolappars byggguide innan du skickar in den.' },
   '/villkor': { title: 'Villkor', description: 'Villkoren för dig som skickar in en app till Skolappar: vad du lovar om appen, granskningen, mejlen vi skickar och dina uppgifter.' },
+  '/rapportera': { title: 'Rapportera en app', description: 'Har du hittat en app med olämpligt innehåll, fel ämne eller ålder, eller som inte fungerar? Berätta för oss.' },
   '/integritet': { title: 'Integritet', description: 'Hur Skolappar hanterar uppgifter: inga konton, inga cookies för spårning, ingen reklam.' },
 };
 const NOINDEX = /^\/(admin|min-sida|auth|reset-password|profil|ideer\/ny)(\/|$)/;
@@ -168,7 +169,7 @@ export function pageFor(path, { store, siteUrl }) {
 
   if (STATIC[p]) {
     return { status: 200, canonical: canonical(p), title: fullTitle(STATIC[p].title), description: STATIC[p].description,
-      body: `<h1>${esc(STATIC[p].title)}</h1><p>${esc(STATIC[p].description)}</p>` };
+      body: `<h1>${esc(STATIC[p].title)}</h1><p>${esc(STATIC[p].description)}</p>`, ...(p === '/rapportera' ? { noindex: true } : {}) };
   }
 
   const idea = /^\/ideer\/([^/]+)$/.exec(p);

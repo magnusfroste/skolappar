@@ -13,7 +13,7 @@ import { fileURLToPath } from 'node:url';
 import { mkdirSync, accessSync, constants as fsConstants } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { openDatabase, schemaVersion } from './db.mjs';
-import { createStore, APP_STATUSES, IDEA_STATUSES } from './store.mjs';
+import { createStore, APP_STATUSES, IDEA_STATUSES, REPORT_REASON_IDS } from './store.mjs';
 import { createImageStore, MAX_IMAGE_BYTES, sniffImage } from './images.mjs';
 import { createImporter, ImportError } from './importer.mjs';
 import { createMcpHandler } from './mcp.mjs';
@@ -112,6 +112,7 @@ export function createApp(config, { fetchImpl = globalThis.fetch, fetchOutside, 
   const partnerCheckLimiter = createRateLimiter({ limit: 500, windowMs: HOUR });
   const partnerUploadLimiter = createRateLimiter({ limit: 200, windowMs: HOUR });
   const ideaLimiter = createRateLimiter({ limit: config.submitLimit, windowMs: HOUR });
+  const reportLimiter = createRateLimiter({ limit: Number(config.env?.REPORT_RATE_LIMIT) || 10, windowMs: HOUR });
   const voteLimiter = createRateLimiter({ limit: config.voteLimit, windowMs: HOUR });
   // the snippet sends at most every 30 s and when the page is left; more than this from one address is not a child playing
   const eventLimiter = createRateLimiter({ limit: Number(config.env?.EVENT_RATE_LIMIT) || 60, windowMs: 60_000 });
@@ -356,6 +357,30 @@ export function createApp(config, { fetchImpl = globalThis.fetch, fetchOutside, 
     res.writeHead(204);
     res.end();
   });
+  // anyone can report a listed app; the owner gets a mail (setting report_email), admin and Hermes handle it
+  route('POST', '/api/reports', async ({ req }) => {
+    const body = check({
+      type: 'object',
+      properties: {
+        app_id: { type: 'string', format: 'uuid' },
+        reason: { type: 'string', enum: REPORT_REASON_IDS },
+        message: { type: 'string', maxLength: 2000 },
+        email: { type: 'string', format: 'email', maxLength: 254 },
+        website: { type: 'string', maxLength: 500 },   // honeypot
+      },
+      required: ['app_id', 'reason'],
+    }, await readJson(req));
+    limit(reportLimiter, req);
+    if (body.website) return { status: 201, body: { ok: true } };
+    if (body.reason === 'other' && !String(body.message || '').trim()) throw new HttpError(400, 'Describe the problem when the reason is "other"');
+    const out = store.createReport({ appId: body.app_id, reason: body.reason, message: body.message?.trim(), email: body.email, reporterKey: clientIp(req) });
+    if (!out) throw new HttpError(404, 'App not found');
+    if (!out.duplicate) {
+      log.info?.(`report ${out.id} for ${body.app_id}: ${body.reason}`);
+      store.notifyReport(out.id).catch(() => {});
+    }
+    return { status: 201, body: { ok: true } };
+  });
   route('POST', '/api/submissions', async ({ req }) => {
     const body = check(SUBMISSION, await readJson(req));
     limit(submitLimiter, req);
@@ -444,6 +469,17 @@ export function createApp(config, { fetchImpl = globalThis.fetch, fetchOutside, 
   admin('GET', '/api/admin/changes', () => store.listChanges());
 
   // mails to makers: the five templates, what has gone out, previews and the admin's broadcasts
+  admin('GET', '/api/admin/reports', ({ query }) => ({
+    open: store.openReportCount(),
+    reports: store.listReports({ status: ['open', 'handled', 'all'].includes(query.get('status')) ? query.get('status') : 'open' }),
+  }));
+  admin('POST', '/api/admin/reports/:id', async ({ req, params }) => {
+    const b = check({ type: 'object', properties: { action: { type: 'string', enum: ['delist', 'resolved', 'dismissed'] }, note: { type: 'string', maxLength: 500 } }, required: ['action'], additionalProperties: false }, await readJson(req));
+    const out = found(store.handleReport(needId(params.id), { action: b.action, note: b.note?.trim() || undefined }), 'Report not found');
+    // a delisted app on Shipholm gives its skolappar address back
+    const address = out.delisted_app_id ? await store.syncAddress(out.delisted_app_id) : null;
+    return address ? { ...out, address } : out;
+  });
   admin('POST', '/api/admin/confirm-email', async ({ req }) => {
     const b = check({ type: 'object', properties: { email: { type: 'string', format: 'email', maxLength: 254 } }, required: ['email'], additionalProperties: false }, await readJson(req));
     return { email: b.email, confirmed_apps: store.confirmAddress(b.email) };
