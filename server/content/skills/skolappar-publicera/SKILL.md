@@ -22,6 +22,9 @@ godkänner i webbläsaren (ingen nyckel att kopiera), appen får `<namn>.shiphol
 
 `check_app` med adressen. Rätta allt som är `fail` och kör igen; ta `warn` på allvar.
 Kontrollen spelar inte appen – prova själv på iPad-storlek också.
+Svaret säger också vad appen behöver internet för (`needs_internet`: AI, uppläsning,
+taligenkänning). Det märker katalogen på kortet av sig själv – fyll inte i något. Berätta det för
+föräldern, och se till att appen säger till vänligt om tjänsten inte svarar (guidens avsnitt `natet`).
 
 ## 3. Skicka in
 

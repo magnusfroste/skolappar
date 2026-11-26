@@ -8,6 +8,7 @@ import { sv } from 'date-fns/locale';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { NeedsInternet } from '@/components/NeedsInternet';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { ShareButton } from '@/components/ShareButton';
@@ -233,6 +234,8 @@ export default function AppDetail() {
             )}
           </div>
         )}
+
+        <NeedsInternet needs={app.needs_internet} variant="line" />
 
         {/* Description */}
         <Card className="p-5 bg-card/80 backdrop-blur-sm">

@@ -24,7 +24,7 @@ const DESTRUCTIVE = { readOnlyHint: false, destructiveHint: true, openWorldHint:
 
 const defined = (o) => Object.fromEntries(Object.entries(o).filter(([, v]) => v !== undefined));
 
-export function createTools({ store, images, journey }) {
+export function createTools({ store, images, checkApp, journey }) {
   const tools = [
     {
       name: 'platform_stats',
@@ -458,6 +458,29 @@ export function createTools({ store, images, journey }) {
       },
     },
     {
+      name: 'recheck_apps',
+      title: 'Kontrollera alla publicerade appar igen',
+      description: 'Kör den automatiska kontrollen (check_app) på varje publicerad app igen, en i taget, och sparar resultatet – ' +
+        'till exempel efter att kontrollen lärt sig något nytt (vad appen behöver internet för, som katalogen visar på kortet). ' +
+        'Svarar med hur många som kontrollerades och vilka som behöver internet.',
+      inputSchema: obj({}),
+      annotations: { readOnlyHint: false, destructiveHint: false, idempotentHint: true },
+      handler: async () => {
+        if (!checkApp) fail('Kontrollen är inte tillgänglig just nu.');
+        const apps = store.listAdminApps().filter((a) => ['approved', 'featured'].includes(a.status));
+        const online = [];
+        let failed = 0;
+        for (const a of apps) {
+          try {
+            const result = await checkApp(a.url);
+            store.saveCheck(a.id, result);
+            if (result.needs_internet?.length) online.push({ title: a.title, needs_internet: result.needs_internet });
+          } catch { failed += 1; }
+        }
+        return { checked: apps.length - failed, failed, needs_internet: online };
+      },
+    },
+    {
       name: 'list_reports',
       title: 'Rapporterade appar',
       description: 'Rapporter från besökare: olämpligt innehåll (inappropriate), fel ämne eller ålder (mistagged), fungerar inte (broken) eller annat (other), med meddelande. ' +
@@ -555,7 +578,7 @@ function fail(message) {
 }
 
 export function createMcpHandler({ store, images, checkApp, journey, content, curriculum, siteUrl = 'https://www.skolappar.org', log = console }) {
-  const adminTools = createTools({ store, images, journey });
+  const adminTools = createTools({ store, images, checkApp, journey });
   const publicTools = createPublicTools({ store, images, checkApp, content, curriculum, siteUrl, fail, imageHint: IMAGE_HINT, categoryHint: CATEGORY_HINT });
   // With a key: the administration, plus the open tools it has no version of (submit_app, app_status …).
   const adminNames = new Set(adminTools.map((t) => t.name));

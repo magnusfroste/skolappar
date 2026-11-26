@@ -13,14 +13,14 @@ function fakeFetch(status, json) {
 }
 
 const MSG = { to: 'tipsare@example.se', subject: 'Hej', text: 'Text' };
-const CF = { MAIL_PROVIDER: 'cloudflare', MAIL_API_KEY: 'cf-token', MAIL_CLOUDFLARE_ACCOUNT_ID: 'acc123', MAIL_FROM: 'Skolappar <hej@skolappar.com>' };
+const CF = { MAIL_PROVIDER: 'cloudflare', MAIL_API_KEY: 'cf-token', MAIL_CLOUDFLARE_ACCOUNT_ID: 'acc123', MAIL_FROM: 'Skolappar <hej@skolappar.org>' };
 const CF_OK = { success: true, errors: [], result: { delivered: ['tipsare@example.se'], permanent_bounces: [], queued: [] } };
 
 describe('mailer', () => {
   test('parseAddress', () => {
-    assert.deepEqual(parseAddress('Skolappar <hej@skolappar.com>'), { name: 'Skolappar', address: 'hej@skolappar.com' });
-    assert.deepEqual(parseAddress('"Skol Appar" <hej@skolappar.com>'), { name: 'Skol Appar', address: 'hej@skolappar.com' });
-    assert.deepEqual(parseAddress('hej@skolappar.com'), { name: '', address: 'hej@skolappar.com' });
+    assert.deepEqual(parseAddress('Skolappar <hej@skolappar.org>'), { name: 'Skolappar', address: 'hej@skolappar.org' });
+    assert.deepEqual(parseAddress('"Skol Appar" <hej@skolappar.org>'), { name: 'Skol Appar', address: 'hej@skolappar.org' });
+    assert.deepEqual(parseAddress('hej@skolappar.org'), { name: '', address: 'hej@skolappar.org' });
   });
 
   test('stub by default; incomplete settings fall back to the stub', async () => {
@@ -44,7 +44,7 @@ describe('mailer', () => {
     const [c] = f.calls;
     assert.equal(c.url, 'https://api.cloudflare.com/client/v4/accounts/acc123/email/sending/send');
     assert.equal(c.init.headers.Authorization, 'Bearer cf-token');
-    assert.deepEqual(c.body, { from: { address: 'hej@skolappar.com', name: 'Skolappar' }, to: 'tipsare@example.se', subject: 'Hej', text: 'Text' });
+    assert.deepEqual(c.body, { from: { address: 'hej@skolappar.org', name: 'Skolappar' }, to: 'tipsare@example.se', subject: 'Hej', text: 'Text' });
     assert.ok(!log.lines.some((l) => l.includes('tipsare@')), 'recipients are never logged');
   });
 
@@ -59,13 +59,13 @@ describe('mailer', () => {
 
   test('brevo: request shape', async () => {
     const f = fakeFetch(201, { messageId: '<x@brevo>' });
-    const m = createMailer({ MAIL_PROVIDER: 'brevo', MAIL_API_KEY: 'brevo-key', MAIL_FROM: 'Skolappar <hej@skolappar.com>' }, { fetchImpl: f.impl, log: quietLog() });
+    const m = createMailer({ MAIL_PROVIDER: 'brevo', MAIL_API_KEY: 'brevo-key', MAIL_FROM: 'Skolappar <hej@skolappar.org>' }, { fetchImpl: f.impl, log: quietLog() });
     assert.deepEqual(await m.send({ ...MSG, html: '<p>Text</p>' }), { sent: true });
     const [c] = f.calls;
     assert.equal(c.url, 'https://api.brevo.com/v3/smtp/email');
     assert.equal(c.init.headers['api-key'], 'brevo-key');
     assert.deepEqual(c.body, {
-      sender: { email: 'hej@skolappar.com', name: 'Skolappar' },
+      sender: { email: 'hej@skolappar.org', name: 'Skolappar' },
       to: [{ email: 'tipsare@example.se' }],
       subject: 'Hej',
       textContent: 'Text',
@@ -75,9 +75,9 @@ describe('mailer', () => {
 
   test('resend-compatible API stays the default when MAIL_API_URL is set', async () => {
     const f = fakeFetch(200, { id: '1' });
-    const m = createMailer({ MAIL_API_URL: 'https://mail.example/emails', MAIL_API_KEY: 'k', MAIL_FROM: 'Skolappar <hej@skolappar.com>' }, { fetchImpl: f.impl, log: quietLog() });
+    const m = createMailer({ MAIL_API_URL: 'https://mail.example/emails', MAIL_API_KEY: 'k', MAIL_FROM: 'Skolappar <hej@skolappar.org>' }, { fetchImpl: f.impl, log: quietLog() });
     assert.equal(m.provider, 'resend');
     assert.deepEqual(await m.send(MSG), { sent: true });
-    assert.deepEqual(f.calls[0].body, { from: 'Skolappar <hej@skolappar.com>', to: ['tipsare@example.se'], subject: 'Hej', text: 'Text' });
+    assert.deepEqual(f.calls[0].body, { from: 'Skolappar <hej@skolappar.org>', to: ['tipsare@example.se'], subject: 'Hej', text: 'Text' });
   });
 });

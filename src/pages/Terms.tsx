@@ -39,7 +39,7 @@ const Terms = () => {
           ) : error || !data ? (
             <p className="text-muted-foreground">
               Villkoren kunde inte visas just nu. Försök igen om en stund, eller mejla{" "}
-              <a href="mailto:info@skolappar.com" className="underline">info@skolappar.com</a>.
+              <a href="mailto:info@skolappar.org" className="underline">info@skolappar.org</a>.
             </p>
           ) : (
             <article className="space-y-4">

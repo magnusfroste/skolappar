@@ -27,18 +27,22 @@ innehåll ligger på `https://www.skolappar.org/guide.md` och `https://www.skola
    Då visar `app_stats` hur långt barnen kommer och var de slutar – anonymt. Guidens avsnitt `kodsnutten`.
 6. **Ge appen en röst**: det appen säger varje gång (frågor, beröm) blir inspelade repliker – Shipholms
    verktyg speak gör MP3-filer med en svensk röst, gratis (skill shipholm-voice). Ladda ner dem till
-   appen; webbläsarens röst läser resten. Guidens avsnitt `resurser`.
+   appen. Text som inte går att veta i förväg (barnets egen saga, ett AI-svar) läses upp medan appen
+   används med `POST https://api.shipholm.com/speak` – ingen nyckel, ingen egen server. Guidens avsnitt `resurser`.
    **Bilder**: Shipholms verktyg draw ritar illustrationer som SVG i en och samma bilderboksstil
    (skill shipholm-draw) – figurer, djur, saker att räkna. En läsapp kan låta barnet läsa högt och
    kontrollera orden med Shipholms taligenkänning (skill shipholm-listen); inget sparas, och appen säger det.
    **AI**: en app med egen server på Shipholm får AI utan egen nyckel med verktyget enable_ai (skill
    shipholm-ai). Skriv i appen att barnet pratar med en AI, fråga aldrig efter namn, och visa ett vänligt
    besked när dagens AI är slut (402). Guidens avsnitt `barnet`.
-7. **Gör det till barnets app**: eget namn, egna färger, en figur eller ett tema barnet valt.
+7. **Det som går över nätet** (AI, uppläsning av egen text, taligenkänning) visar ett vänligt besked om
+   det inte svarar. Du behöver inte ange det någonstans – `check_app` ser anropen i koden och katalogen
+   märker kortet själv ("Använder internet för AI"). Guidens avsnitt `natet`.
+8. **Gör det till barnets app**: eget namn, egna färger, en figur eller ett tema barnet valt.
    Material som får användas fritt står i guidens avsnitt `resurser`.
-8. **Prova som ett barn**: i webbläsarens enhetsläge 1024 × 768 och 768 × 1024, med bara klick.
+9. **Prova som ett barn**: i webbläsarens enhetsläge 1024 × 768 och 768 × 1024, med bara klick.
    Svara fel med flit – får man en ledtråd och ett nytt försök? Tar en omgång slut?
-9. **Gå igenom checklistan** (`get_guide` med `section: "checklista"`).
+10. **Gå igenom checklistan** (`get_guide` med `section: "checklista"`).
 
 ## Det som oftast går fel
 
@@ -47,6 +51,7 @@ innehåll ligger på `https://www.skolappar.org/guide.md` och `https://www.skola
 - Sidan zoomar vid dubbeltryck (`touch-action: manipulation` saknas).
 - Text på engelska, eller å, ä och ö som blivit fel.
 - Ett analysskript följde med från byggverktyget. Ta bort det: ingenting om barnet får lämna enheten.
+- En knapp för AI eller uppläsning gör ingenting när tjänsten inte svarar. Säg det vänligt.
 - Appen gör fem saker. Gör en, och gör den bra.
 
 När appen är klar: använd skillen `skolappar-publicera`.

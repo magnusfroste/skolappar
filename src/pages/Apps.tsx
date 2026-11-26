@@ -379,6 +379,7 @@ export default function Apps() {
                       categories={app.categories}
                       hasUpvoted={userUpvotes.includes(app.id)}
                       onUpvote={() => handleUpvote(app.id)}
+                      needsInternet={app.needs_internet}
                     />
                   )
                 )}
