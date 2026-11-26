@@ -36,7 +36,7 @@ export function loadConfig(env = process.env) {
     port: Number(env.PORT) || 8080,
     dataDir: resolvePath(env.DATA_DIR || join(here, '..', 'data')),
     distDir: resolvePath(env.STATIC_DIR || join(here, '..', 'dist')),
-    siteUrl: (env.SITE_URL || 'https://www.skolappar.com').replace(/\/+$/, ''),
+    siteUrl: (env.SITE_URL || 'https://www.skolappar.org').replace(/\/+$/, ''),
     adminKey: env.ADMIN_KEY || '',
     agentKeyHashes: parseKeyHashes(env.AGENT_KEY_HASHES),
     // partners such as Shipholm Studio: "name:sha256hex" pairs, comma separated (X-Partner-Key)
@@ -397,7 +397,7 @@ export function createApp(config, { fetchImpl = globalThis.fetch, fetchOutside, 
 
   // Admin API (Authorization: Bearer $ADMIN_KEY)
   // A creator's agent uploads the card image as a file, with the key submit_app gave it:
-  //   curl -X PUT --data-binary @card.png -H "X-App-Key: sapp_…" https://www.skolappar.com/api/apps/<id>/image
+  //   curl -X PUT --data-binary @card.png -H "X-App-Key: sapp_…" https://www.skolappar.org/api/apps/<id>/image
   route('PUT', '/api/apps/:id/image', async ({ req, params }) => {
     const partner = partnerOf(req);
     if (partner) {
@@ -670,22 +670,34 @@ a.btn{display:inline-block;margin-top:16px;padding:12px 22px;border-radius:999px
   const canonicalHost = new URL(config.siteUrl).host.toLowerCase();
   const apexHost = canonicalHost.startsWith('www.') ? canonicalHost.slice(4) : null;
   const baseHost = apexHost || canonicalHost;
+  // Domains the site had before (2026-11-26: skolappar.com -> skolappar.org). Their pages move to the
+  // main address with a 301; what apps and agents call (/mcp, /api/…, /kotten.js, card images) and
+  // anything that is not a GET is still answered there, since a redirected POST loses its body.
+  const legacyDomains = String(config.env?.SITE_ALIASES ?? (baseHost === 'skolappar.com' ? '' : 'skolappar.com'))
+    .split(',').map((d) => d.trim().toLowerCase()).filter((d) => d && d !== baseHost);
+  const servedOnLegacy = (path) => path === '/mcp' || path === '/kotten.js' || path === '/healthz' || path.startsWith('/api/') || path.startsWith('/images/');
 
   async function handle(req, res) {
     const url = new URL(req.url || '/', 'http://localhost');
     const path = url.pathname;
 
     const host = String(req.headers.host || '').toLowerCase().replace(/:\d+$/, '');
+    const legacy = legacyDomains.find((d) => host === d || host === `www.${d}`);
+    if (legacy && (req.method === 'GET' || req.method === 'HEAD') && !servedOnLegacy(path)) {
+      res.writeHead(301, { Location: config.siteUrl + (req.url || '/'), 'Cache-Control': 'public, max-age=86400' });
+      return res.end();
+    }
     if (apexHost && host === apexHost && path !== '/healthz') {
       const status = req.method === 'GET' || req.method === 'HEAD' ? 301 : 308;
       res.writeHead(status, { Location: config.siteUrl + (req.url || '/'), 'Cache-Control': 'public, max-age=86400' });
       return res.end();
     }
 
-    // <something>.skolappar.com that no app has: the platform sends it here (a wildcard route with the
+    // <something>.skolappar.org that no app has: the platform sends it here (a wildcard route with the
     // lowest priority) – a friendly page with Kotten and the apps whose names are closest, never the site itself
-    if (host.endsWith(`.${baseHost}`) && host !== canonicalHost && host !== `www.${baseHost}` && path !== '/healthz') {
-      const name = host.slice(0, -(baseHost.length + 1));
+    const under = [baseHost, ...legacyDomains].find((d) => host.endsWith(`.${d}`) && host !== `www.${d}`);
+    if (under && host !== canonicalHost && path !== '/healthz') {
+      const name = host.slice(0, -(under.length + 1));
       return sendText(res, 404, noSuchAppPage(name, store.listPublicApps({ sort: 'recommended' })), 'text/html; charset=utf-8',
         { 'Cache-Control': 'no-cache', 'X-Robots-Tag': 'noindex' });
     }

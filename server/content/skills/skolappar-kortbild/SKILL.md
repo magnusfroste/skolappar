@@ -1,6 +1,6 @@
 ---
 name: skolappar-kortbild
-description: Gör och ladda upp kortbilden som visar en app i katalogen på skolappar.com. Använd när en inskickad skolapp saknar bild eller när bilden ska göras om.
+description: Gör och ladda upp kortbilden som visar en app i katalogen på skolappar.org. Använd när en inskickad skolapp saknar bild eller när bilden ska göras om.
 ---
 
 # Kortbild till en skolapp
@@ -40,7 +40,7 @@ Med appens `app_key` (från `submit_app`), medan appen väntar på granskning:
 - En bildfil:
 
 ```bash
-curl -X PUT --data-binary @kortbild.png -H "X-App-Key: <app_key>" https://www.skolappar.com/api/apps/<id>/image
+curl -X PUT --data-binary @kortbild.png -H "X-App-Key: <app_key>" https://www.skolappar.org/api/apps/<id>/image
 ```
 
 Titta på resultatet: `app_status` visar läget, och bilden syns på kortet när appen är publicerad.

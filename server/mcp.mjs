@@ -145,7 +145,7 @@ export function createTools({ store, images, checkApp }) {
       description:
         'Uppdatera en app: innehåll, status (approved = godkänn, rejected = avslå, featured = utvald, delisted = avlista), ' +
         'utvald-flagga och kategorier. När ett tips godkänns för första gången får tipsaren (om e-posten är bekräftad) ett mejl. ' +
-        'En app som ligger på Shipholm (<namn>.shipholm.dev) får adressen <namn>.skolappar.com när den godkänns och lämnar tillbaka den när den avlistas; ' +
+        'En app som ligger på Shipholm (<namn>.shipholm.dev) får adressen <namn>.skolappar.org när den godkänns och lämnar tillbaka den när den avlistas; ' +
         'svaret har då address: {url, changed, note}. note säger varför en adress inte kunde ges.',
       inputSchema: obj({
         id: uuid,
@@ -564,7 +564,7 @@ function fail(message) {
   throw new ToolFailure(message);
 }
 
-export function createMcpHandler({ store, images, checkApp, content, curriculum, siteUrl = 'https://www.skolappar.com', log = console }) {
+export function createMcpHandler({ store, images, checkApp, content, curriculum, siteUrl = 'https://www.skolappar.org', log = console }) {
   const adminTools = createTools({ store, images, checkApp });
   const publicTools = createPublicTools({ store, images, checkApp, content, curriculum, siteUrl, fail, imageHint: IMAGE_HINT, categoryHint: CATEGORY_HINT });
   // With a key: the administration, plus the open tools it has no version of (submit_app, app_status …).
@@ -629,7 +629,7 @@ export function createMcpHandler({ store, images, checkApp, content, curriculum,
             capabilities: { tools: { listChanged: false } },
             serverInfo: { name: 'skolappar', title: ctx.role === 'admin' ? 'Skolappar admin' : 'Skolappar', version: '1.1.0' },
             instructions: ctx.role === 'admin'
-              ? 'Administrera skolappar.com: granska tips (list_submissions) och ändringar av publicerade appar (list_changes, review_change), prova appen, sätt kategorier och bild, ' +
+              ? 'Administrera skolappar.org: granska tips (list_submissions) och ändringar av publicerade appar (list_changes, review_change), prova appen, sätt kategorier och bild, ' +
                 'godkänn (update_app status approved, bara när e-postadressen är bekräftad) eller avslå (rejected). ' +
                 'Hantera även idéer, resurser, kategorier och inställningar. Veckans spelraket på startsidan väljs med set_setting weekly_app_id (en publicerad apps id; tom sträng döljer platsen) – ' +
                 'helst en app där barnen stannar enligt in_app i app_stats (andel klara omgångar, minuter per besök). ' +

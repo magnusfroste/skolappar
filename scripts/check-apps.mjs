@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /**
- * Hälsokoll av alla publicerade appar på skolappar.com.
+ * Hälsokoll av alla publicerade appar på skolappar.org.
  *
  * Läser listan över publicerade appar från sajtens eget API (/api/apps)
  * och gör en HTTP-förfrågan mot varje app-URL. Skriver en tabell till stdout,
@@ -10,7 +10,7 @@
  * Körs lokalt:   node scripts/check-apps.mjs
  * Körs i CI:     .github/workflows/app-health.yml (varje måndag)
  *
- * Miljövariabler (valfria): SITE_URL (standard https://www.skolappar.com), HEALTH_REPORT
+ * Miljövariabler (valfria): SITE_URL (standard https://www.skolappar.org), HEALTH_REPORT
  */
 import { writeFileSync } from 'node:fs';
 import { resolve, dirname } from 'node:path';
@@ -18,7 +18,7 @@ import { fileURLToPath } from 'node:url';
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const env = process.env;
-const SITE_URL = (env.SITE_URL || 'https://www.skolappar.com').replace(/\/+$/, '');
+const SITE_URL = (env.SITE_URL || 'https://www.skolappar.org').replace(/\/+$/, '');
 
 const TIMEOUT_MS = 20_000;
 const UA =

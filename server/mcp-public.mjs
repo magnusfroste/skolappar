@@ -18,7 +18,7 @@ export const PUBLIC_INSTRUCTIONS =
   'Skolappar.com är en katalog med pedagogiska webbappar som föräldrar byggt, ofta tillsammans med sina barn. ' +
   'Du behöver ingen nyckel. Arbetsgången finns som skills (list_skills, get_skill) och en färdig startmall med get_starter. Läs get_guide INNAN du bygger: den säger vad en skolapp ska klara (iPad och touch, inget konto, ' +
   'svenska, återkoppling) och slutar med en checklista. ' +
-  'Lägg in Skolappars kodsnutt (<script src="https://www.skolappar.com/kotten.js" defer></script>, guidens avsnitt kodsnutten) och rapportera ' +
+  'Lägg in Skolappars kodsnutt (<script src="https://www.skolappar.org/kotten.js" defer></script>, guidens avsnitt kodsnutten) och rapportera ' +
   'omgångar och nivåer med skolappar.event – anonymt, så ser föräldern hur långt barnen kommer. ' +
   'Har appen ingen adress än: publish_on_shipholm lägger ut den gratis (föräldern godkänner i webbläsaren). ' +
   'Gör så här när appen är byggd och ligger på en egen https-adress: ' +
@@ -61,7 +61,7 @@ export function createPublicTools({ store, images, checkApp, content, curriculum
       inputSchema: obj({ section: { type: 'string', enum: guideSectionIds() } }),
       annotations: RO,
       handler: ({ section }) => ({
-        url: 'https://www.skolappar.com/bygg',
+        url: 'https://www.skolappar.org/bygg',
         sections: GUIDE_SECTIONS.map((s) => ({ id: s.id, title: s.title })),
         markdown: guideMarkdown(section),
       }),
@@ -72,7 +72,7 @@ export function createPublicTools({ store, images, checkApp, content, curriculum
       description: 'Villkoren föräldern godkänner när en app skickas in (Markdown, med version). Visa dem eller länken för föräldern före submit_app.',
       inputSchema: obj({}),
       annotations: RO,
-      handler: () => ({ url: 'https://www.skolappar.com/villkor', version: TERMS.version, markdown: TERMS.markdown }),
+      handler: () => ({ url: 'https://www.skolappar.org/villkor', version: TERMS.version, markdown: TERMS.markdown }),
     },
     {
       name: 'get_starter',
@@ -154,19 +154,19 @@ export function createPublicTools({ store, images, checkApp, content, curriculum
       title: 'Lägg ut appen på Shipholm',
       description:
         'Har appen ingen egen adress än? Så här lägger du ut den på Shipholm (europeisk drift, gratis för små appar) utan att föräldern behöver ' +
-        'kopiera någon nyckel. Svarar med stegen och kommandona. Appen får adressen <namn>.shipholm.dev direkt, och <namn>.skolappar.com när den har godkänts i katalogen.',
+        'kopiera någon nyckel. Svarar med stegen och kommandona. Appen får adressen <namn>.shipholm.dev direkt, och <namn>.skolappar.org när den har godkänts i katalogen.',
       inputSchema: obj({ name: { type: 'string', pattern: '^[a-z0-9][a-z0-9-]{1,38}[a-z0-9]$', description: 'Önskat namn i adressen: små bokstäver, siffror och bindestreck, t.ex. klockjakten.' } }),
       annotations: RO,
       handler: ({ name = '<namn>' }) => ({
         address_now: `https://${name}.shipholm.dev`,
-        address_when_listed: `https://${name}.skolappar.com`,
+        address_when_listed: `https://${name}.skolappar.org`,
         steps: [
           'Bygg appen till en mapp med statiska filer (index.html överst). Startmallen är redan sådan.',
           'Be om åtkomst: curl -s -X POST https://api.shipholm.com/agent/start -H "Content-Type: application/json" -d \'{"name": "<vad du är, t.ex. Claude Code hos Anna>"}\'',
           'Visa föräldern verification_url och user_code ur svaret: "Öppna länken, logga in med Google eller e-post (första gången skapas ett gratis konto) och tryck Allow om koden stämmer."',
           'Fråga efter nyckeln var femte sekund tills status är approved: curl -s -X POST https://api.shipholm.com/agent/token -H "Content-Type: application/json" -d \'{"device_code": "…"}\'. Spara token; den visas en gång.',
           'Anslut till https://api.shipholm.com/mcp med Authorization: Bearer <token>. Hämta skillen shipholm-static-site (get_skill) och följ den: upload_site och sedan publish_site med appens namn.',
-          `Kontrollera adressen med check_app här, och skicka in med submit_app och url https://${name}.shipholm.dev. När appen godkänns byts adressen i katalogen till https://${name}.skolappar.com.`,
+          `Kontrollera adressen med check_app här, och skicka in med submit_app och url https://${name}.shipholm.dev. När appen godkänns byts adressen i katalogen till https://${name}.skolappar.org.`,
           `Har kontot en verifierad e-postadress (inloggning med e-post eller Google): hämta app_attestation(app: "${name}") hos Shipholm och skicka det som shipholm_attestation i submit_app, så behövs inget bekräftelsemejl.`,
         ],
         note: 'Nyckeln gäller förälderns Shipholm-konto och kan dras tillbaka där under API keys. Lägg den aldrig i appens kod.',
@@ -266,8 +266,8 @@ export function createPublicTools({ store, images, checkApp, content, curriculum
         'Skicka in en app du har byggt och lagt ut på en egen https-adress. Den granskas (en gång om dagen) och publiceras sedan i katalogen. ' +
         'Kräver förälderns förnamn och e-postadress: föräldern får ett mejl med en länk att klicka på, och appen publiceras inte förrän det är gjort. ' +
         'Bara förnamnet visas; adressen visas aldrig. Svaret innehåller app_key – spara den, den visas bara nu – för update_my_app och withdraw_my_app. ' +
-        'Kortbild sätts efteråt med set_my_app_image. En app som ligger på Shipholm (<namn>.shipholm.dev) får adressen <namn>.skolappar.com när den godkänns. ' +
-        'Föräldern måste ha läst och godkänt villkoren (https://www.skolappar.com/villkor, läs dem med get_terms): visa länken, fråga, och skicka accept_terms: true först när föräldern har sagt ja.',
+        'Kortbild sätts efteråt med set_my_app_image. En app som ligger på Shipholm (<namn>.shipholm.dev) får adressen <namn>.skolappar.org när den godkänns. ' +
+        'Föräldern måste ha läst och godkänt villkoren (https://www.skolappar.org/villkor, läs dem med get_terms): visa länken, fråga, och skicka accept_terms: true först när föräldern har sagt ja.',
       inputSchema: obj({
         url: { type: 'string', format: 'uri', maxLength: 2048, description: 'Appens adress (https).' },
         title: { type: 'string', minLength: 2, maxLength: 120, description: 'Appens namn, två till fyra ord.' },
@@ -283,7 +283,7 @@ export function createPublicTools({ store, images, checkApp, content, curriculum
         curriculum_ids: { ...curriculumIds, items: { type: 'string', maxLength: 80 } },
         note: { type: 'string', maxLength: 2000, description: 'Valfritt meddelande till den som granskar.' },
         email_verified: { type: 'boolean', description: 'Bara för partner med X-Partner-Key: e-postadressen är redan verifierad hos partnern, så bekräftelsemejlet hoppas över. Utan partnernyckel ignoreras fältet.' },
-        accept_terms: { type: 'boolean', description: 'true när föräldern har läst villkoren (https://www.skolappar.com/villkor) och godkänt dem. Aldrig utan att fråga.' },
+        accept_terms: { type: 'boolean', description: 'true när föräldern har läst villkoren (https://www.skolappar.org/villkor) och godkänt dem. Aldrig utan att fråga.' },
         shipholm_attestation: { type: 'string', maxLength: 4000, description: 'Ligger appen på Shipholm och har kontot en verifierad e-postadress: intyget från Shipholms app_attestation(app). Stämmer adressen och appens url behövs inget bekräftelsemejl.' },
       }, ['url', 'title', 'description']),   // first_name, email and accept_terms are checked in the handler, whose messages tell the agent what to do
       annotations: RW,
@@ -294,7 +294,7 @@ export function createPublicTools({ store, images, checkApp, content, curriculum
             'Bara förnamnet visas vid appen; e-postadressen visas aldrig och används för bekräftelse, besked om granskningen och veckobrevet. ' +
             'Ligger appen på Shipholm och har kontot en verifierad adress: skicka med Shipholms app_attestation som shipholm_attestation, så behövs ingen bekräftelselänk.');
         }
-        if (input.accept_terms !== true) fail('Villkoren måste godkännas. Visa föräldern https://www.skolappar.com/villkor (eller läs dem med get_terms), fråga om det är okej, och skicka igen med accept_terms: true.');
+        if (input.accept_terms !== true) fail('Villkoren måste godkännas. Visa föräldern https://www.skolappar.org/villkor (eller läs dem med get_terms), fråga om det är okej, och skicka igen med accept_terms: true.');
         if (!/^https:\/\//i.test(input.url)) fail('Appens adress måste börja med https://.');
         // categories by word as well as by id: one call less for an agent (no list_categories first)
         const plain = (v) => String(v || '').trim().toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[–—]/g, '-');
@@ -358,7 +358,7 @@ export function createPublicTools({ store, images, checkApp, content, curriculum
             'Spara app_key: den visas inte igen.',
             // an offer for apps hosted elsewhere – the parent decides, and creates the account themselves
             ...(onShipholm(input.url) ? [] : [
-              `Erbjud ${input.first_name} (fråga, kräv inget): med ett gratis Shipholm-konto får appen adressen <namn>.skolappar.com när den godkänns, ` +
+              `Erbjud ${input.first_name} (fråga, kräv inget): med ett gratis Shipholm-konto får appen adressen <namn>.skolappar.org när den godkänns, ` +
               'och kan läsa upp med en inspelad svensk röst (guidens avsnitt resurser). Vill föräldern det: publish_on_shipholm – föräldern godkänner kontot själv i webbläsaren. Annars ligger appen kvar där den är.',
             ]),
           ],

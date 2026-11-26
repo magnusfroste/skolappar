@@ -4,7 +4,7 @@ A small educational web app with the hard parts already solved, to build your ow
 Plain HTML, CSS and JavaScript: no build step, no packages, no server. Open `index.html` through
 any static web server, or publish the folder as it is.
 
-It follows the build guide at https://www.skolappar.com/bygg:
+It follows the build guide at https://www.skolappar.org/bygg:
 
 - iPad first, portrait and landscape; works with mouse and keyboard too
 - touch: large buttons, no double-tap zoom, no pull-to-refresh, safe areas
@@ -25,7 +25,7 @@ It follows the build guide at https://www.skolappar.com/bygg:
 4. Change the `<title>` and description in `index.html`, the name in `manifest.webmanifest`
    and the icon in `icon.svg`.
 
-Then check and submit the app over MCP at https://www.skolappar.com/mcp (`check_app`, `submit_app`).
+Then check and submit the app over MCP at https://www.skolappar.org/mcp (`check_app`, `submit_app`).
 
 The template is free to use and change, with or without saying where it came from.
 

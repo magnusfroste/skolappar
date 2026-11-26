@@ -91,7 +91,7 @@ export function BrandingSettingsPanel() {
           </div>
           <div className="space-y-2">
             <Label>Domän</Label>
-            <Input value={form.brand_domain} onChange={e => updateField('brand_domain', e.target.value)} placeholder="skolappar.com" />
+            <Input value={form.brand_domain} onChange={e => updateField('brand_domain', e.target.value)} placeholder="skolappar.org" />
           </div>
           <div className="space-y-2">
             <Label>Tagline</Label>

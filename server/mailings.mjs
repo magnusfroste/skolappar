@@ -43,7 +43,7 @@ export const PLACEHOLDERS = {
   appar: '"appen X" eller "apparna X, Y och Z"',
   lank: 'appens sida på Skolappar',
   statistik: 'en mening om hur appen har använts (en vecka, en månad)',
-  webbplats: 'https://www.skolappar.com',
+  webbplats: 'https://www.skolappar.org',
   av: 'länken som stänger av veckobrev, uppföljningar och nyheter',
   shipholm: 'ett stycke om Shipholm för appar som ligger någon annanstans (tomt för appar på Shipholm)',
   andringar: 'vad som ändras i villkoren (skrivs vid utskicket)',
@@ -70,14 +70,14 @@ export function appsPhrase(titles) {
 }
 
 /**
- * Does the app already run on Shipholm? Its address is <name>.shipholm.dev, or <name>.skolappar.com,
+ * Does the app already run on Shipholm? Its address is <name>.shipholm.dev, or <name>.skolappar.org,
  * which only an app on Shipholm gets (origin_url keeps where it came from).
  */
 export function onShipholm(...urls) {
   return urls.some((u) => {
     try {
       const h = new URL(u).hostname.toLowerCase();
-      return h.endsWith('.shipholm.dev') || (h.endsWith('.skolappar.com') && h !== 'www.skolappar.com');
+      return h.endsWith('.shipholm.dev') || ['skolappar.org', 'skolappar.com'].some((d) => h.endsWith(`.${d}`) && h !== `www.${d}`);
     } catch { return false; }
   });
 }
@@ -88,6 +88,6 @@ export function onShipholm(...urls) {
  */
 export function shipholmOffer({ app }) {
   return 'Ligger appen någon annanstans? Med ett gratis Shipholm-konto (europeisk drift) får den adressen ' +
-    `namn.skolappar.com och kan läsa upp med en riktig svensk röst. Säg till din AI-agent: "Lägg ut ${app} på Shipholm ` +
+    `namn.skolappar.org och kan läsa upp med en riktig svensk röst. Säg till din AI-agent: "Lägg ut ${app} på Shipholm ` +
     'med Skolappars publish_on_shipholm." Du godkänner kontot själv i webbläsaren. Appen får lika gärna ligga kvar där den är.';
 }

@@ -13,7 +13,7 @@ export const GUIDE_TITLE = 'Så bygger du en skolapp';
 export const GUIDE_INTRO =
   'En skolapp är en liten webbapp som tränar en sak och som ett barn kan börja använda direkt, utan konto och utan hjälp. ' +
   'Den här guiden är till för dig som bygger – själv, med ditt barn eller med en AI-agent. Följer appen guiden fungerar den ' +
-  'för barnen som spelar, och den blir godkänd på skolappar.com.';
+  'för barnen som spelar, och den blir godkänd på skolappar.org.';
 
 /** Sections in reading order. `id` is what get_guide takes; `body` is Markdown without a heading. */
 export const GUIDE_SECTIONS = [
@@ -22,7 +22,7 @@ export const GUIDE_SECTIONS = [
     title: 'Idén: en sak per app',
     body: `- Välj **ett** tydligt mål, till exempel "öva tiokamrater" eller "känna igen klockslag". En app som gör en sak bra slår en som gör fem saker halvbra.
 - Bestäm **ämne och årskurs** innan du bygger. Det styr språk, svårighet och hur mycket text som får finnas.
-- Utgå gärna från barnets egen idé. Saknas en idé finns en lista på skolappar.com/ideer (verktyget \`list_ideas\`) med vad lärare och föräldrar önskar sig.
+- Utgå gärna från barnets egen idé. Saknas en idé finns en lista på skolappar.org/ideer (verktyget \`list_ideas\`) med vad lärare och föräldrar önskar sig.
 - Se efter i katalogen (\`list_apps\`) om något liknande redan finns, och gör då något eget av det.`,
   },
   {
@@ -118,7 +118,7 @@ export const GUIDE_SECTIONS = [
     id: 'startmall',
     title: 'Startmallen',
     body: `- Skolappars startmall är en liten färdig app där det svåra redan är löst: touch-inställningarna för iPad, omgångar med återkoppling och ledtråd, stigande svårighet, ljud av och på, uppläsning på svenska, belöning, sparning på enheten, ikon och webbmanifest.
-- Prova den på skolappar.com/starter/ och hämta filerna med \`get_starter\`. Den är ren HTML, CSS och JavaScript utan byggsteg.
+- Prova den på skolappar.org/starter/ och hämta filerna med \`get_starter\`. Den är ren HTML, CSS och JavaScript utan byggsteg.
 - Innehållet ligger i \`tasks.js\` och motorn i \`app.js\`. Byt innehållet och låt motorn vara.
 - Mallen är fri att använda och ändra. Du behöver den inte – men det den gör ska din app också göra.`,
   },
@@ -128,7 +128,7 @@ export const GUIDE_SECTIONS = [
     body: `Lägg in en rad i appens \`<head>\`, så får du veta hur appen används – utan att något om barnet lämnar enheten:
 
 \`\`\`html
-<script src="https://www.skolappar.com/kotten.js" defer></script>
+<script src="https://www.skolappar.org/kotten.js" defer></script>
 \`\`\`
 
 - Den räknar själv att appen startas och hur länge den spelas.
@@ -200,11 +200,11 @@ export const GUIDE_SECTIONS = [
   {
     id: 'skicka-in',
     title: 'Skicka in appen',
-    body: `**Ingen adress än?** Appen kan läggas ut på Shipholm, gratis för små appar och i Europa: \`publish_on_shipholm\` ger stegen. Föräldern godkänner i webbläsaren, och ingen nyckel behöver kopieras. Appen får \`<namn>.shipholm.dev\` direkt och \`<namn>.skolappar.com\` när den har godkänts. Alla andra värdar går lika bra.
+    body: `**Ingen adress än?** Appen kan läggas ut på Shipholm, gratis för små appar och i Europa: \`publish_on_shipholm\` ger stegen. Föräldern godkänner i webbläsaren, och ingen nyckel behöver kopieras. Appen får \`<namn>.shipholm.dev\` direkt och \`<namn>.skolappar.org\` när den har godkänts. Alla andra värdar går lika bra.
 
-**Som förälder:** fyll i formuläret på skolappar.com/tipsa med appens adress och din e-postadress.
+**Som förälder:** fyll i formuläret på skolappar.org/tipsa med appens adress och din e-postadress.
 
-**Som agent:** anslut till \`https://www.skolappar.com/mcp\` (MCP över HTTP, ingen nyckel) och gör så här:
+**Som agent:** anslut till \`https://www.skolappar.org/mcp\` (MCP över HTTP, ingen nyckel) och gör så här:
 
 1. \`check_app\` – kontrollera adressen mot guiden och rätta det som brister.
 2. \`list_apps\` – se att appen inte redan finns.

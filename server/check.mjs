@@ -42,7 +42,7 @@ const decode = (s) => s.replace(/&amp;/g, '&').replace(/&lt;/g, '<').replace(/&g
 
 export function createChecker({ fetchPage, now = () => Date.now() }) {
   const get = (url, timeoutMs) => fetchPage(url, {
-    timeoutMs, headers: { 'User-Agent': 'skolappar-check/1.0 (+https://www.skolappar.com/bygg)', Accept: 'text/html,*/*;q=0.8', 'Accept-Language': 'sv' },
+    timeoutMs, headers: { 'User-Agent': 'skolappar-check/1.0 (+https://www.skolappar.org/bygg)', Accept: 'text/html,*/*;q=0.8', 'Accept-Language': 'sv' },
   });
 
   /** Check one address. Never throws for what the address does; the findings say it. */
@@ -60,7 +60,7 @@ export function createChecker({ fetchPage, now = () => Date.now() }) {
           'Språket och att innehållet passar åldern (avsnitt sprak).',
           'Kontrast, textstorlek och att appen fungerar utan ljud (avsnitt tillganglighet).',
         ],
-        guide: 'https://www.skolappar.com/bygg',
+        guide: 'https://www.skolappar.org/bygg',
         checked_at: new Date(now()).toISOString(),
       };
     };
@@ -131,7 +131,7 @@ export function createChecker({ fetchPage, now = () => Date.now() }) {
     const scripts = tags(html, 'script').map((s) => attr(s, 'src')).filter(Boolean).map(resolve).filter(Boolean);
     const styles = links.filter((l) => /\bstylesheet\b/.test(l.rel) && l.href).map((l) => resolve(l.href)).filter(Boolean);
     const own = [...scripts, ...styles].filter((u) => u.host === final.host);
-    const isSkolappar = (u) => /(^|\.)skolappar\.com$/.test(u.host);
+    const isSkolappar = (u) => /(^|\.)skolappar\.(com|org)$/.test(u.host);
     const foreignScripts = [...new Set(scripts.filter((u) => u.host !== final.host && !isSkolappar(u)).map((u) => u.host))];
     const snippet = scripts.some((u) => isSkolappar(u) && u.pathname === '/kotten.js');
 
@@ -159,7 +159,7 @@ export function createChecker({ fetchPage, now = () => Date.now() }) {
     else add('snippet', 'warn', 'Kodsnutten kotten.js saknas. Med den ser skaparen hur långt barnen kommer och var de slutar – anonymt.', 'kodsnutten');
 
     const out = [...new Set(tags(html, 'a').map((a) => attr(a, 'href')).filter((h) => h && /^https?:/i.test(h)).map(resolve)
-      .filter((u) => u && u.host !== final.host && !/(^|\.)skolappar\.com$/.test(u.host)).map((u) => u.host))];
+      .filter((u) => u && u.host !== final.host && !/(^|\.)skolappar\.(com|org)$/.test(u.host)).map((u) => u.host))];
     if (out.length) add('no_links_out', 'warn', `Första sidan länkar ut till: ${out.slice(0, 5).join(', ')}. En skolapp ska inte leda barnet ut ur appen.`, 'barnet');
     else add('no_links_out', 'ok', 'Inga länkar ut ur appen på första sidan.', 'barnet');
 
