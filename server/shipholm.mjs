@@ -48,8 +48,21 @@ export function createShipholm(env = process.env, { fetchImpl = globalThis.fetch
     }
   }
 
+  /** One tool call the way the simplest agent makes it: a single POST, no initialize, no session. */
+  async function callDirect(tool, args) {
+    const { message } = await post({ jsonrpc: '2.0', id: 1, method: 'tools/call', params: { name: tool, arguments: args } });
+    if (!message) throw new Error('Shipholm sent an empty answer');
+    if (message.error) throw new Error(message.error.message || 'Shipholm refused');
+    const result = message.result || {};
+    const text = (result.content || []).filter((c) => c.type === 'text').map((c) => c.text).join('\n');
+    if (result.isError) throw new Error(text || 'Shipholm refused');
+    return result.structuredContent?.result ?? result.structuredContent ?? (text ? JSON.parse(text) : {});
+  }
+
   return {
     configured: Boolean(apiKey),
+    call,
+    callDirect,
     ownDomain,
     /** 'klockan' for https://klockan.shipholm.dev/…; null for an app that does not run on Shipholm. */
     labelOf(url) {

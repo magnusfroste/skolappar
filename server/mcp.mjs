@@ -24,7 +24,7 @@ const DESTRUCTIVE = { readOnlyHint: false, destructiveHint: true, openWorldHint:
 
 const defined = (o) => Object.fromEntries(Object.entries(o).filter(([, v]) => v !== undefined));
 
-export function createTools({ store, images, checkApp }) {
+export function createTools({ store, images, checkApp, journey }) {
   const tools = [
     {
       name: 'platform_stats',
@@ -445,6 +445,19 @@ export function createTools({ store, images, checkApp }) {
       handler: ({ days = 30, role }) => store.mcpUsage({ days, role }),
     },
     {
+      name: 'journey',
+      title: 'Provföräldern: hela vägen en förälders agent går',
+      description: 'Varje morgon (från 05 UTC) går en provförälder hela vägen utifrån: Shipholms MCP med ett enda anrop, publicera en liten sida ' +
+        '(provforaldern.shipholm.dev), att den visas från den delade servern, uppläsning, AI, Shipholms intyg, submit_app med dry_run hos Skolappar ' +
+        'och att Studio svarar. Svarar med senaste körningen, steg för steg. run: true kör nu (ett par minuter). Ett fel mejlas till report_email en gång om dagen.',
+      inputSchema: obj({ run: { type: 'boolean', default: false } }),
+      annotations: { readOnlyHint: false, destructiveHint: false, idempotentHint: true },
+      handler: async ({ run = false }) => {
+        if (!journey) fail('Provföräldern är inte påslagen här.');
+        return run ? journey.run() : (journey.last() || { note: 'Ingen körning än. Kör med run: true.' });
+      },
+    },
+    {
       name: 'recheck_apps',
       title: 'Kontrollera alla publicerade appar igen',
       description: 'Kör den automatiska kontrollen (check_app) på varje publicerad app igen, en i taget, och sparar resultatet – ' +
@@ -564,8 +577,8 @@ function fail(message) {
   throw new ToolFailure(message);
 }
 
-export function createMcpHandler({ store, images, checkApp, content, curriculum, siteUrl = 'https://www.skolappar.org', log = console }) {
-  const adminTools = createTools({ store, images, checkApp });
+export function createMcpHandler({ store, images, checkApp, journey, content, curriculum, siteUrl = 'https://www.skolappar.org', log = console }) {
+  const adminTools = createTools({ store, images, checkApp, journey });
   const publicTools = createPublicTools({ store, images, checkApp, content, curriculum, siteUrl, fail, imageHint: IMAGE_HINT, categoryHint: CATEGORY_HINT });
   // With a key: the administration, plus the open tools it has no version of (submit_app, app_status …).
   const adminNames = new Set(adminTools.map((t) => t.name));

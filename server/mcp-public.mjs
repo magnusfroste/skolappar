@@ -285,6 +285,7 @@ export function createPublicTools({ store, images, checkApp, content, curriculum
         email_verified: { type: 'boolean', description: 'Bara för partner med X-Partner-Key: e-postadressen är redan verifierad hos partnern, så bekräftelsemejlet hoppas över. Utan partnernyckel ignoreras fältet.' },
         accept_terms: { type: 'boolean', description: 'true när föräldern har läst villkoren (https://www.skolappar.org/villkor) och godkänt dem. Aldrig utan att fråga.' },
         shipholm_attestation: { type: 'string', maxLength: 4000, description: 'Ligger appen på Shipholm och har kontot en verifierad e-postadress: intyget från Shipholms app_attestation(app). Stämmer adressen och appens url behövs inget bekräftelsemejl.' },
+        dry_run: { type: 'boolean', description: 'true: prova hela inskicket utan att något sparas eller mejlas – svaret säger vad som skulle hända (kategorier, läroplan, intyg, kontrollen av adressen).' },
       }, ['url', 'title', 'description']),   // first_name, email and accept_terms are checked in the handler, whose messages tell the agent what to do
       annotations: RW,
       handler: async (input, ctx) => {
@@ -312,6 +313,24 @@ export function createPublicTools({ store, images, checkApp, content, curriculum
         }
         const listed = store.listedAt(input.url);
         if (listed) fail(`Appen finns redan i katalogen (id ${listed}).`);
+        if (input.dry_run) {
+          // everything a submission checks, nothing stored, mailed or counted as a submission
+          const limit = ctx.checkAllowed?.();
+          if (limit && !limit.ok) fail(`För många kontroller härifrån just nu. Försök igen om ${Math.ceil((limit.retryAfter || 3600) / 60)} minuter.`);
+          const attested = input.shipholm_attestation ? await store.attestedEmail(input.shipholm_attestation, { email: input.email, url: input.url }) : null;
+          const ids = (input.curriculum_ids || []).map((v) => String(v).trim().toUpperCase().replace(/[–—]/g, '-').replace(/\s+/g, ''));
+          const result = checkApp ? await checkApp(input.url) : null;
+          return {
+            dry_run: true,
+            would_submit: Boolean(result?.passed ?? true),
+            categories: store.listCategories().filter((c) => worded.includes(c.id) || (input.category_ids || []).includes(c.id)).map((c) => ({ type: c.type, slug: c.slug })),
+            unknown_curriculum_ids: curriculum.sort(ids).unknown,
+            email_confirmed: Boolean(attested?.ok) || store.emailConfirmed(input.email),
+            ...(attested ? { attestation: attested.ok ? 'ok' : attested.reason } : {}),
+            check: result && { passed: result.passed, failed: result.checks.filter((c) => c.status === 'fail').map((c) => c.message), needs_internet: result.needs_internet || [] },
+            next: ['Inget har sparats. Skicka igen utan dry_run när allt ser rätt ut.'],
+          };
+        }
         const limit = ctx.submitAllowed?.();
         if (limit && !limit.ok) fail(`För många inskick härifrån just nu. Försök igen om ${Math.ceil((limit.retryAfter || 3600) / 60)} minuter.`);
         const attested = input.shipholm_attestation ? await store.attestedEmail(input.shipholm_attestation, { email: input.email, url: input.url }) : null;

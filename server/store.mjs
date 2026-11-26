@@ -726,6 +726,11 @@ export function createStore(db, { mailer, curriculum, shipholm, siteUrl = 'https
   }
 
   /** Keep the outcome of a check on the app. */
+  /** Has this address been confirmed for an app before? (A new app of it needs no confirmation mail.) */
+  function emailConfirmed(email) {
+    return Boolean(email) && Boolean(db.prepare('SELECT 1 FROM apps WHERE lower(submitter_email) = lower(?) AND email_confirmed = 1 LIMIT 1').get(String(email).trim()));
+  }
+
   function saveCheck(id, result) {
     db.prepare('UPDATE apps SET check_result = ?, check_passed = ?, checked_at = ? WHERE id = ?')
       .run(JSON.stringify(result), result.passed ? 1 : 0, result.checked_at, id);
@@ -1605,7 +1610,7 @@ export function createStore(db, { mailer, curriculum, shipholm, siteUrl = 'https
     listPublicApps, listAdminApps, getApp, topApps, recentApps, relatedApps,
     createApp, updateApp, deleteApp, setAppCategories, trackClick,
     createSubmission, confirmEmail, sendConfirmation, resendMail,
-    appKeyMatches, saveCheck, appAtHost, recordEvents, inAppStats, stopDigest, digestApp, weeklyDigests, sendWeeklyDigest, maybeSendWeeklyDigest, sendBroadcast, confirmAddress, recordMcp, mcpUsage, attestedEmail, createReport, listReports, openReportCount, handleReport, notifyReport, dueFollowUps, maybeSendFollowUps, previewMailing, mailingsOverview, proposeChange, listChanges, reviewChange, startKeyRecovery, keyRecoveryValid, finishKeyRecovery, setOwnImage, setCurriculum, curriculumUsed, syncAddress, releaseAddress, listedAt, appStatus, appStats,
+    appKeyMatches, saveCheck, emailConfirmed, appAtHost, recordEvents, inAppStats, stopDigest, digestApp, weeklyDigests, sendWeeklyDigest, maybeSendWeeklyDigest, sendBroadcast, confirmAddress, recordMcp, mcpUsage, attestedEmail, createReport, listReports, openReportCount, handleReport, notifyReport, dueFollowUps, maybeSendFollowUps, previewMailing, mailingsOverview, proposeChange, listChanges, reviewChange, startKeyRecovery, keyRecoveryValid, finishKeyRecovery, setOwnImage, setCurriculum, curriculumUsed, syncAddress, releaseAddress, listedAt, appStatus, appStats,
     toggleUpvote, myUpvotes,
     listResources, getResource, getResourceBySlug, createResource, updateResource, deleteResource,
     allSettings, listSettings, getSetting, setSetting,

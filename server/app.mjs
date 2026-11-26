@@ -1,6 +1,7 @@
 // The HTTP application: routes for the public API, admin API, MCP, images,
 // SEO files and the single-page frontend.
 import { createShipholm } from './shipholm.mjs';
+import { createJourney } from './journey.mjs';
 import { loadCurriculum } from './curriculum.mjs';
 import { loadContent } from './content.mjs';
 import { createSafeFetch } from './safefetch.mjs';
@@ -101,7 +102,8 @@ export function createApp(config, { fetchImpl = globalThis.fetch, fetchOutside, 
   const store = createStore(db, { mailer, curriculum, shipholm, siteUrl: config.siteUrl, log });
   const images = createImageStore(config.dataDir, db);
   const importer = createImporter({ store, images, fetchImpl: fetchOutside, log });
-  const mcp = createMcpHandler({ store, images: { ...images, download: (u) => images.download(u, { fetchImpl: fetchOutside }) }, checkApp, content, curriculum, siteUrl: config.siteUrl, log });
+  const journey = createJourney({ shipholm, store, mailer, siteUrl: config.siteUrl, fetchImpl, log });
+  const mcp = createMcpHandler({ store, images: { ...images, download: (u) => images.download(u, { fetchImpl: fetchOutside }) }, checkApp, journey, content, curriculum, siteUrl: config.siteUrl, log });
   const statics = createStatic(config.distDir);
   const submitLimiter = createRateLimiter({ limit: config.submitLimit, windowMs: HOUR });
   const checkLimiter = createRateLimiter({ limit: config.checkLimit || 30, windowMs: HOUR });
@@ -848,6 +850,7 @@ a.btn{display:inline-block;margin-top:16px;padding:12px 22px;border-radius:999px
   const digestTimer = config.env?.DIGEST === 'off' ? null : setInterval(() => {
     store.maybeSendWeeklyDigest().catch((err) => log.warn?.(`weekly letter failed: ${err?.message || err}`));
     store.maybeSendFollowUps().catch((err) => log.warn?.(`follow-ups failed: ${err?.message || err}`));
+    if (config.env?.JOURNEY !== 'off') journey.maybeRun().catch((err) => log.warn?.(`journey failed: ${err?.message || err}`));
   }, HOUR);
   digestTimer?.unref?.();
 

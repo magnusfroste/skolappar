@@ -36,7 +36,9 @@ föräldern, och se till att appen säger till vänligt om tjänsten inte svarar
 3. Fråga föräldern om **förnamn** och **e-postadress**. Gissa aldrig, och använd inte barnets namn.
    Visa **villkoren** (https://www.skolappar.org/villkor, eller `get_terms`) och fråga om föräldern
    godkänner dem. Först när föräldern sagt ja skickar du `accept_terms: true`.
-4. `submit_app` med adress, namn (två till fyra ord), kort beskrivning, kategorier, förnamn och
+4. Osäker på något? Kör `submit_app` först med `dry_run: true` – svaret säger vad som skulle hända
+   (kategorier, läroplan, intyg, kontrollen) och inget sparas eller mejlas.
+5. `submit_app` med adress, namn (två till fyra ord), kort beskrivning, kategorier, förnamn och
    e-post. Ange i `curriculum_ids` de punkter i Lgr22 som appen tränar (id från `get_curriculum`),
    och skriv i `long_description` hur appen fungerar.
    Står det `unknown_curriculum_ids` i svaret är appen inskickad ändå: välj bland
@@ -44,10 +46,10 @@ föräldern, och se till att appen säger till vänligt om tjänsten inte svarar
    Ligger appen på Shipholm och har kontot en verifierad e-postadress (inloggning med e-post eller
    Google): hämta ett intyg med Shipholms `app_attestation(app)` och skicka det som
    `shipholm_attestation` – samma e-postadress och appens adress – så behövs inget bekräftelsemejl.
-5. **Spara `app_key`** ur svaret där du kan hitta den igen (till exempel i projektets anteckningar,
+6. **Spara `app_key`** ur svaret där du kan hitta den igen (till exempel i projektets anteckningar,
    inte i appens kod). Den visas en gång och är det enda som låter dig ändra eller dra tillbaka appen.
-6. Sätt kortbilden – se skillen `skolappar-kortbild`.
-7. Säg till föräldern: "Du har fått ett mejl från Skolappar. Klicka på länken, annars publiceras
+7. Sätt kortbilden – se skillen `skolappar-kortbild`.
+8. Säg till föräldern: "Du har fått ett mejl från Skolappar. Klicka på länken, annars publiceras
    inte appen."
 
 ## 4. Följ upp
