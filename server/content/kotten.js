@@ -1,8 +1,8 @@
 /*
- * Skolappar's snippet: tells skolappar.com, anonymously, how an app is used, so the parent's
+ * Skolappar's snippet: tells skolappar.org, anonymously, how an app is used, so the parent's
  * agent can make it better. No cookies, no storage, no ids – only counts per app and day.
  *
- *   <script src="https://www.skolappar.com/kotten.js" defer></script>
+ *   <script src="https://www.skolappar.org/kotten.js" defer></script>
  *
  * It counts a start and the time played by itself. The app can add, when they happen:
  *   skolappar.event('round_start')         a round begins
@@ -19,7 +19,10 @@
  * really recorded. Only the two counts; never what was said.
  */
 (function () {
-  var ENDPOINT = 'https://www.skolappar.com/api/events';
+  // the events go back where the script came from (www.skolappar.org, or .com for apps that load it there)
+  var origin = 'https://www.skolappar.org';
+  try { if (document.currentScript && document.currentScript.src) origin = new URL(document.currentScript.src).origin; } catch (e) { /* keep the default */ }
+  var ENDPOINT = origin + '/api/events';
   var NAMES = { round_start: 1, round_done: 1, level: 1, hint: 1, sound_off: 1 };
   var queue = [{ e: 'start' }];
   var shownAt = document.visibilityState === 'visible' ? Date.now() : 0;

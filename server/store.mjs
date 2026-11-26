@@ -48,7 +48,7 @@ function personOrNull(name) {
 
 export const REPORT_REASON_IDS = ['inappropriate', 'mistagged', 'broken', 'other'];
 
-export function createStore(db, { mailer, curriculum, shipholm, siteUrl = 'https://www.skolappar.com', log = console } = {}) {
+export function createStore(db, { mailer, curriculum, shipholm, siteUrl = 'https://www.skolappar.org', log = console } = {}) {
   const voterSalt = serverSecret(db);
 
   /** sha256(voter id + server secret) – the raw browser id is never stored. */
@@ -1035,13 +1035,13 @@ export function createStore(db, { mailer, curriculum, shipholm, siteUrl = 'https
     return { app: getApp(id, { admin: true }), unknown_category_ids: unknown };
   }
 
-  // Names under skolappar.com that are never given to an app, whatever it is called on Shipholm.
+  // Names under skolappar.org that are never given to an app, whatever it is called on Shipholm.
   const RESERVED_LABELS = new Set(['www', 'api', 'admin', 'app', 'apps', 'mail', 'mcp', 'bygg', 'starter', 'skills', 'images', 'cf-bounce',
     'hermes', 'marre', 'skolappar', 'login', 'konto', 'help', 'hjalp', 'status', 'docs', 'blog', 'test', 'dev', 'staging', 'cdn', 'static']);
 
   /**
    * Make the app's address match its place in the catalogue. An app on Shipholm that is listed
-   * gets <name>.skolappar.com; when it leaves the catalogue it goes back to the address it came
+   * gets <name>.skolappar.org; when it leaves the catalogue it goes back to the address it came
    * with. Safe to call at any time and more than once. Returns {url, changed, note}.
    */
   async function syncAddress(id) {
@@ -1075,7 +1075,9 @@ export function createStore(db, { mailer, curriculum, shipholm, siteUrl = 'https
     const label = shipholm?.labelOf(r.origin_url);
     let failed = null;
     try {
-      if (label && shipholm.configured) await shipholm.revoke(label);
+      // under the domain it was given (an app listed before skolappar.org keeps <name>.skolappar.com)
+      const given = (() => { try { return new URL(r.url).hostname.split('.').slice(1).join('.'); } catch { return undefined; } })();
+      if (label && shipholm.configured) await shipholm.revoke(label, given || undefined);
     } catch (err) {
       // the catalogue stops using the address either way; the note tells the reviewer it may still answer
       failed = `Adressen ${r.url} kunde inte tas tillbaka hos Shipholm: ${err.message}`;

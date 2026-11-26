@@ -1,6 +1,6 @@
-// The address <name>.skolappar.com for an app that runs on Shipholm: given when the app is
+// The address <name>.skolappar.org for an app that runs on Shipholm: given when the app is
 // listed, taken back when it leaves the catalogue. Shipholm's tools grant_subdomain and
-// revoke_subdomain do it, called with an API key of the account that serves skolappar.com
+// revoke_subdomain do it, called with an API key of the account that serves skolappar.org
 // (SHIPHOLM_API_KEY). Without the key nothing happens and apps keep the address they came with.
 
 const PROTOCOL_VERSION = '2025-06-18';
@@ -16,7 +16,7 @@ export function createShipholm(env = process.env, { fetchImpl = globalThis.fetch
   const apiKey = env.SHIPHOLM_API_KEY || '';
   const apiUrl = env.SHIPHOLM_API_URL || 'https://api.shipholm.com/mcp';
   const platformDomain = (env.SHIPHOLM_APP_DOMAIN || 'shipholm.dev').toLowerCase();
-  const ownDomain = (env.ADDRESS_DOMAIN || 'skolappar.com').toLowerCase();
+  const ownDomain = (env.ADDRESS_DOMAIN || 'skolappar.org').toLowerCase();
 
   async function post(body, extra = {}) {
     const res = await fetchImpl(apiUrl, {
@@ -83,9 +83,10 @@ export function createShipholm(env = process.env, { fetchImpl = globalThis.fetch
     async verifyAttestation(attestation) {
       return call('verify_attestation', { attestation });
     },
-    async revoke(label) {
-      const out = await call('revoke_subdomain', { domain: `${label}.${ownDomain}` });
-      log.info?.(`shipholm: ${label}.${ownDomain} taken back`);
+    /** domain: the one the address was given under (an app listed before a move keeps its old one). */
+    async revoke(label, domain = ownDomain) {
+      const out = await call('revoke_subdomain', { domain: `${label}.${domain}` });
+      log.info?.(`shipholm: ${label}.${domain} taken back`);
       return out;
     },
   };

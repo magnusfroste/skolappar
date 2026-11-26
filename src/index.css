@@ -4,7 +4,7 @@
 @tailwind components;
 @tailwind utilities;
 
-/* skolappar.com Design System – lekfull, med svensk skog: Kottens brunt, mossgrönt och gran,
+/* skolappar.org Design System – lekfull, med svensk skog: Kottens brunt, mossgrönt och gran,
    orange som lekfärg. Ämnesfärgerna (kortramarna) är ett eget system och rörs inte här. */
 
 @layer base {

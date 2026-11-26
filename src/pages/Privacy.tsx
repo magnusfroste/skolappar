@@ -7,7 +7,7 @@ const Privacy = () => {
     <>
       <SEO
         title="Integritetspolicy"
-        description="Läs om hur skolappar.com hanterar och skyddar dina personuppgifter i enlighet med GDPR."
+        description="Läs om hur skolappar.org hanterar och skyddar dina personuppgifter i enlighet med GDPR."
         url="/integritet"
       />
       
@@ -23,7 +23,7 @@ const Privacy = () => {
             <h1 className="text-3xl font-bold">Integritetspolicy</h1>
             
             <p className="text-muted-foreground leading-relaxed">
-              Din integritet är viktig för oss. Denna policy beskriver hur skolappar.com 
+              Din integritet är viktig för oss. Denna policy beskriver hur skolappar.org 
               samlar in, använder och skyddar dina personuppgifter i enlighet med 
               EU:s dataskyddsförordning (GDPR).
             </p>
@@ -31,7 +31,7 @@ const Privacy = () => {
             <section className="space-y-3">
               <h2 className="text-xl font-semibold">1. Personuppgiftsansvarig</h2>
               <p className="text-muted-foreground leading-relaxed">
-                skolappar.com är personuppgiftsansvarig för behandlingen av dina 
+                skolappar.org är personuppgiftsansvarig för behandlingen av dina 
                 personuppgifter på denna plattform.
               </p>
               <p className="text-muted-foreground leading-relaxed">

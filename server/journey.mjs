@@ -108,7 +108,7 @@ export function createJourney({ shipholm, store, mailer, siteUrl, fetchImpl = gl
         return 'AI för appen svarar';
       });
       let attestation = null;
-      let email = 'provforaldern@skolappar.com';
+      let email = 'provforaldern@skolappar.org';
       await step(steps, 'attest', async () => {
         try {
           attestation = (await sh.callDirect('app_attestation', { app })).attestation;
