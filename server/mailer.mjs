@@ -6,7 +6,7 @@
 //               MAIL_API_KEY = API token with "Email Sending: Edit", MAIL_CLOUDFLARE_ACCOUNT_ID
 //   brevo       Brevo transactional API (MAIL_API_KEY = Brevo API key)
 //   resend      any Resend-compatible HTTP API (MAIL_API_URL, MAIL_API_KEY as Bearer token)
-// MAIL_FROM is the sender for all providers, e.g. "Skolappar <hej@skolappar.com>".
+// MAIL_FROM is the sender for all providers, e.g. "Skolappar <hej@skolappar.org>".
 // A missing setting falls back to the stub (logged at start). Recipient addresses are never logged.
 
 const TIMEOUT_MS = 15_000;

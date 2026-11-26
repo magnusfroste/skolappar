@@ -50,7 +50,7 @@ part, without a key, where a parent's agent submits the app it built and follows
 | `SITE_ALIASES` | no | earlier domains (comma-separated): their pages 301 to `SITE_URL`, while `/mcp`, `/api/…`, `/kotten.js` and `/images/…` are still answered there; default `skolappar.com` (the site moved to skolappar.org on 2026-11-26) |
 | `ADDRESS_DOMAIN` | no | the domain an app on Shipholm gets its address under when listed (`<name>.<domain>`); default `skolappar.org`. Apps listed before keep the address they were given |
 | `MAIL_PROVIDER` | no | `cloudflare`, `brevo`, `resend` or `stub` (see [Mail](#mail)). Default: `resend` if `MAIL_API_URL` is set, else `stub` (mails are only logged). |
-| `MAIL_FROM` | for mail | sender, e.g. `Skolappar <hej@skolappar.com>` |
+| `MAIL_FROM` | for mail | sender, e.g. `Skolappar <hej@skolappar.org>` |
 | `MAIL_API_KEY` | for mail (secret) | the provider's API token or key |
 | `MAIL_CLOUDFLARE_ACCOUNT_ID` | for `cloudflare` | the Cloudflare account that owns the sending domain |
 | `MAIL_API_URL` | for `resend` | endpoint of a Resend-compatible API |
