@@ -56,7 +56,7 @@ export default function StarterDemo() {
           <div>
             <h2 className="text-xl font-heading font-bold">Med en AI-agent</h2>
             <p className="mt-3 text-muted-foreground">
-              Be agenten ansluta till <code>https://www.skolappar.com/mcp</code> och hämta mallen med verktyget{" "}
+              Be agenten ansluta till <code>https://www.skolappar.org/mcp</code> och hämta mallen med verktyget{" "}
               <code>get_starter</code>, läsa guiden med <code>get_guide</code> och sedan bygga barnets idé ovanpå mallen.
               När appen är klar kan agenten kontrollera den med <code>check_app</code> och skicka in den med{" "}
               <code>submit_app</code>.

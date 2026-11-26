@@ -1,6 +1,6 @@
 # Skolappar 📚
 
-A Swedish catalogue of small educational web apps for children, made by parents (www.skolappar.com).
+A Swedish catalogue of small educational web apps for children, made by parents (www.skolappar.org).
 Visitors browse and play apps, upvote, suggest apps ("Tipsa om en app") and post app ideas. There are no
 user accounts; the site is administered at `/admin` and by an AI agent over MCP (`/mcp`). The same endpoint has an open
 part, without a key, where a parent's agent submits the app it built and follows it.
@@ -46,14 +46,16 @@ part, without a key, where a parent's agent submits the app it built and follows
 | `AGENT_KEY_HASHES` | no | SHA-256 hashes (hex, comma separated) of agent keys that open the administration tools of `/mcp` only – as `Authorization: Bearer …` or `X-Api-Key`. Holds the hash of the `skol_…` key the agent had on Supabase, so it keeps its key. New key: `openssl rand -hex 24`, hash it with `printf %s "$KEY" \| sha256sum`. |
 | `PORT` | no | default 8080 |
 | `DATA_DIR` | no | default `./data`; a persistent disk in production (`/data`) |
-| `SITE_URL` | no | absolute URLs in llms.txt, sitemap and mails; default `https://www.skolappar.com` |
+| `SITE_URL` | no | absolute URLs in llms.txt, sitemap and mails; default `https://www.skolappar.org` |
+| `SITE_ALIASES` | no | earlier domains (comma-separated): their pages 301 to `SITE_URL`, while `/mcp`, `/api/…`, `/kotten.js` and `/images/…` are still answered there; default `skolappar.com` (the site moved to skolappar.org on 2026-11-26) |
+| `ADDRESS_DOMAIN` | no | the domain an app on Shipholm gets its address under when listed (`<name>.<domain>`); default `skolappar.org`. Apps listed before keep the address they were given |
 | `MAIL_PROVIDER` | no | `cloudflare`, `brevo`, `resend` or `stub` (see [Mail](#mail)). Default: `resend` if `MAIL_API_URL` is set, else `stub` (mails are only logged). |
 | `MAIL_FROM` | for mail | sender, e.g. `Skolappar <hej@skolappar.com>` |
 | `MAIL_API_KEY` | for mail (secret) | the provider's API token or key |
 | `MAIL_CLOUDFLARE_ACCOUNT_ID` | for `cloudflare` | the Cloudflare account that owns the sending domain |
 | `MAIL_API_URL` | for `resend` | endpoint of a Resend-compatible API |
 | `SUBMIT_RATE_LIMIT` | no | submissions and ideas per IP and hour (default 5) |
-| `SHIPHOLM_API_KEY` | no (secret) | an API key of the Shipholm account that serves skolappar.com. With it an app at `<name>.shipholm.dev` gets `<name>.skolappar.com` when it is approved (Shipholm's `grant_subdomain`) and gives it back when it is delisted or deleted (`server/shipholm.mjs`, `syncAddress` in the store). Without it apps keep the address they came with |
+| `SHIPHOLM_API_KEY` | no (secret) | an API key of the Shipholm account that serves skolappar.org. With it an app at `<name>.shipholm.dev` gets `<name>.skolappar.org` when it is approved (Shipholm's `grant_subdomain`) and gives it back when it is delisted or deleted (`server/shipholm.mjs`, `syncAddress` in the store). Without it apps keep the address they came with |
 | `DIGEST` | no | `off` stops the weekly letter to makers (it is on by default and needs mail to be set up) |
 | `PARTNER_KEYS` | no (secret) | partners such as Shipholm Studio, as `name:sha256hex` pairs (comma separated). A partner sends its key as `X-Partner-Key` on `/mcp` and on the image upload. It opens no admin tool. It gets its own limits instead of the per-IP ones (submit 100, check 500, image 200 an hour), its submissions carry `source: <name>`, and `submit_app(email_verified: true)` skips the confirmation mail – for an address the partner has verified itself. A key that matches no partner is 401 |
 | `CHECK_RATE_LIMIT` | no | `check_app` calls without a key per IP and hour (default 30) |
@@ -74,11 +76,11 @@ and the MCP tool `resend_mail`. Full delivery history lives in Cloudflare (Email
 
 **Cloudflare (current).** [Email Sending](https://developers.cloudflare.com/email-service/) REST API, which
 reaches any recipient. Needs the Workers Paid plan on the account (3,000 mails a month included) and
-`skolappar.com` onboarded under *Compute → Email Service → Email Sending* (that adds the `cf-bounce` SPF/DKIM
+`skolappar.org` onboarded under *Compute → Email Service → Email Sending* (that adds the `cf-bounce` SPF/DKIM
 records and DMARC). Settings: `MAIL_PROVIDER=cloudflare`, `MAIL_FROM`, `MAIL_CLOUDFLARE_ACCOUNT_ID`, and
 `MAIL_API_KEY` = an account API token with only **Email Sending: Edit**.
 
-**Switch to Brevo.** In Brevo, verify the sender domain `skolappar.com` (it adds its own DKIM/DMARC TXT
+**Switch to Brevo.** In Brevo, verify the sender domain `skolappar.org` (it adds its own DKIM/DMARC TXT
 records; add them in Cloudflare DNS) and create an API key (*SMTP & API → API keys*). Then, on Shipholm
 (tenant `wm7w6gke`, app `skolappar`):
 
@@ -141,7 +143,7 @@ upserted in one transaction, images (apps' `image_url` and image settings) are d
 ## Hälsokoll av appar
 
 `scripts/check-apps.mjs` hämtar alla publicerade appar från sajtens API (`SITE_URL`, standard
-www.skolappar.com) och kontrollerar att varje app-URL svarar.
+www.skolappar.org) och kontrollerar att varje app-URL svarar.
 
 ```bash
 node scripts/check-apps.mjs

@@ -1,6 +1,6 @@
 ---
 name: skolappar-bygg
-description: Bygg en pedagogisk webbapp för barn (en "skolapp") som fungerar på iPad och blir godkänd på skolappar.com. Använd när någon vill göra ett lärospel eller en övningsapp åt ett barn, ensam eller tillsammans med barnet.
+description: Bygg en pedagogisk webbapp för barn (en "skolapp") som fungerar på iPad och blir godkänd på skolappar.org. Använd när någon vill göra ett lärospel eller en övningsapp åt ett barn, ensam eller tillsammans med barnet.
 ---
 
 # Bygg en skolapp
@@ -8,8 +8,8 @@ description: Bygg en pedagogisk webbapp för barn (en "skolapp") som fungerar p�
 En skolapp tränar **en** sak, startar direkt utan konto och går att spela med bara fingret på en iPad.
 Skolappar.com har en guide för vad som krävs och en startmall där det svåra redan är löst.
 
-Anslut till `https://www.skolappar.com/mcp` (MCP över HTTP, ingen nyckel). Finns ingen MCP: samma
-innehåll ligger på `https://www.skolappar.com/guide.md` och `https://www.skolappar.com/starter/`.
+Anslut till `https://www.skolappar.org/mcp` (MCP över HTTP, ingen nyckel). Finns ingen MCP: samma
+innehåll ligger på `https://www.skolappar.org/guide.md` och `https://www.skolappar.org/starter/`.
 
 ## Gör så här
 
@@ -22,7 +22,7 @@ innehåll ligger på `https://www.skolappar.com/guide.md` och `https://www.skola
 4. **Utgå från startmallen**: `get_starter` ger filerna. Byt `tasks.js` (innehållet) och låt
    `app.js` (motorn) vara: omgångar, återkoppling, svårighet, ljud, uppläsning och sparning finns redan.
    Bygger du med ett eget ramverk gäller samma krav – gå igenom guidens avsnitt `touch` och `barnet`.
-5. **Lägg in kodsnutten** (startmallen har den): en rad `<script src="https://www.skolappar.com/kotten.js" defer>`
+5. **Lägg in kodsnutten** (startmallen har den): en rad `<script src="https://www.skolappar.org/kotten.js" defer>`
    och `skolappar.event('level', n)` när barnet når en nivå, `skolappar.event('round_start')` och `skolappar.event('round_done', procent)` runt en omgång.
    Då visar `app_stats` hur långt barnen kommer och var de slutar – anonymt. Guidens avsnitt `kodsnutten`.
 6. **Ge appen en röst**: det appen säger varje gång (frågor, beröm) blir inspelade repliker – Shipholms

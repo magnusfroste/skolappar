@@ -11,7 +11,7 @@ export interface BrandingConfig {
 
 const DEFAULTS: BrandingConfig = {
   brand_name: "skolappar",
-  brand_domain: "skolappar.com",
+  brand_domain: "skolappar.org",
   brand_tagline: "Pedagogiska appar av föräldrar för barn",
   brand_logo_url: "",
   brand_favicon_url: "",

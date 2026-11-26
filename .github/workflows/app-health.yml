@@ -1,6 +1,6 @@
 name: App health check
 
-# Kontrollerar varje måndag att alla appar som listas på skolappar.com
+# Kontrollerar varje måndag att alla appar som listas på skolappar.org
 # fortfarande svarar. Öppnar (eller uppdaterar) ett issue om något är trasigt.
 on:
   schedule:
