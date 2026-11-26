@@ -90,7 +90,7 @@ export default function AppDetail() {
         jsonLd={appSchema}
       />
       
-      {playing && <AppPlayer url={app.url} title={app.title} onClose={() => setPlaying(false)} />}
+      {playing && <AppPlayer url={app.url} title={app.title} kotten={app.kotten} onClose={() => setPlaying(false)} />}
 
       {/* Navigation */}
       <PublicNav variant="solid" />

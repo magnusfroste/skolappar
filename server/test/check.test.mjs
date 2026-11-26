@@ -171,3 +171,21 @@ describe('check_app over MCP', () => {
     }
   });
 });
+
+describe('check_app: where Kotten sits', () => {
+  test('the corner an app asks for is read from its HTML', async () => {
+    const page = (meta) => GOOD.replace('<link rel="icon"', `${meta}<link rel="icon"`);
+    const run = (meta) => createChecker({ fetchPage: fakeWeb({
+      'https://k.example/': { body: page(meta) },
+      'https://k.example/app.css': { type: 'text/css', body: '.b{touch-action:manipulation}' },
+      'https://k.example/app.js': { type: 'text/javascript', body: '' },
+    }) })('https://k.example/');
+    assert.equal((await run('<meta name="skolappar:kotten" content="Top-Right">')).kotten, 'top-right');
+    const none = await run('');
+    assert.equal(none.kotten, null);
+    assert.match(none.checks.find((c) => c.id === 'kotten').message, /uppe till vänster/);
+    const odd = await run('<meta name="skolappar:kotten" content="middle">');
+    assert.equal(odd.kotten, null);
+    assert.equal(odd.checks.find((c) => c.id === 'kotten').status, 'warn');
+  });
+});

@@ -7,7 +7,7 @@ import { PublicNav } from "@/components/PublicNav";
 import { PublicFooter } from "@/components/PublicFooter";
 import { AppLaunchTile } from "@/components/AppLaunchTile";
 import { CategoryIcon } from "@/components/CategoryIcon";
-import { AppPlayer } from "@/components/AppPlayer";
+import { AppPlayer, type KottenCorner } from "@/components/AppPlayer";
 import { useTrackClick } from "@/hooks/useTrackClick";
 import { TopIdeasSection } from "@/components/TopIdeasSection";
 import { BuildYourOwn } from "@/components/BuildYourOwn";
@@ -25,7 +25,7 @@ const HOME_PAGE = 8;
 
 export default function Index() {
   const config = useSiteConfig();
-  const [playing, setPlaying] = useState<{ url: string; title: string } | null>(null);
+  const [playing, setPlaying] = useState<{ url: string; title: string; kotten?: KottenCorner | null } | null>(null);
   const trackClick = useTrackClick();
   const [subject, setSubject] = useState<string | null>(null);
   const [age, setAge] = useState<string | null>(null);
@@ -39,10 +39,10 @@ export default function Index() {
   // all apps in the same order, for "Mer som det här" (the same query as the gallery without filters)
   const { data: allApps } = useApps({ sort: "recommended" });
   const played = usePlayedInTab();
-  const play = (app: { id: string; url: string; title: string }) => {
+  const play = (app: { id: string; url: string; title: string; kotten?: KottenCorner | null }) => {
     trackClick.mutate(app.id);
     played.add(app.id);
-    setPlaying({ url: app.url, title: app.title });
+    setPlaying({ url: app.url, title: app.title, kotten: app.kotten });
   };
 
   const subjects = useMemo(() => categories?.filter((c) => c.type === "subject") ?? [], [categories]);
@@ -82,7 +82,7 @@ export default function Index() {
     <div className="min-h-screen bg-gradient-hero">
       <SEO url="/" jsonLd={combinedSchema} />
       <PublicNav variant="transparent" />
-      {playing && <AppPlayer url={playing.url} title={playing.title} onClose={() => setPlaying(null)} />}
+      {playing && <AppPlayer url={playing.url} title={playing.title} kotten={playing.kotten} onClose={() => setPlaying(null)} />}
 
       {/* Kompakt intro + filter */}
       <section className="container mx-auto px-4 pt-8 md:pt-14 pb-6">

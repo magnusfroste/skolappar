@@ -7,7 +7,7 @@ import { SEO } from "@/components/SEO";
 import { PublicNav } from "@/components/PublicNav";
 import { PublicFooter } from "@/components/PublicFooter";
 import { AppLaunchTile } from "@/components/AppLaunchTile";
-import { AppPlayer } from "@/components/AppPlayer";
+import { AppPlayer, type KottenCorner } from "@/components/AppPlayer";
 import { useTrackClick } from "@/hooks/useTrackClick";
 import type { App } from "@/hooks/useApps";
 import NotFound from "./NotFound";
@@ -17,7 +17,7 @@ interface Landing {
   title: string;
   description: string;
   intro: string;
-  apps: Pick<App, "id" | "title" | "description" | "url" | "image_url" | "categories">[];
+  apps: Pick<App, "id" | "title" | "description" | "url" | "image_url" | "categories" | "kotten">[];
   curriculum: { id: string; name: string; apps: number }[];
   related: { path: string; title: string; count: number }[];
   other_subjects: { path: string; title: string }[];
@@ -28,7 +28,7 @@ export default function SubjectApps() {
   const { subject, age } = useParams<{ subject: string; age?: string }>();
   const path = `/api/landing/${encodeURIComponent(subject || "")}${age ? `/${encodeURIComponent(age)}` : ""}`;
   const { data, isLoading, error } = useQuery({ queryKey: ["landing", subject, age], queryFn: () => api.get<Landing>(path) });
-  const [playing, setPlaying] = useState<{ url: string; title: string } | null>(null);
+  const [playing, setPlaying] = useState<{ url: string; title: string; kotten?: KottenCorner | null } | null>(null);
   const trackClick = useTrackClick();
 
   if (error) return <NotFound />;
@@ -38,7 +38,7 @@ export default function SubjectApps() {
     <div className="min-h-screen bg-background">
       {data && <SEO title={data.title} description={data.description} url={data.path} />}
       <PublicNav variant="solid" />
-      {playing && <AppPlayer url={playing.url} title={playing.title} onClose={() => setPlaying(null)} />}
+      {playing && <AppPlayer url={playing.url} title={playing.title} kotten={playing.kotten} onClose={() => setPlaying(null)} />}
       <div className="container mx-auto px-4 py-10">
         {isLoading || !data ? (
           <div className="space-y-4">
@@ -74,7 +74,7 @@ export default function SubjectApps() {
                   subjectColor={cat(app, "subject")?.color}
                   typeIcon={cat(app, "app_type")?.icon}
                   typeColor={cat(app, "app_type")?.color}
-                  onLaunch={() => { trackClick.mutate(app.id); setPlaying({ url: app.url, title: app.title }); }}
+                  onLaunch={() => { trackClick.mutate(app.id); setPlaying({ url: app.url, title: app.title, kotten: app.kotten }); }}
                 />
               ))}
             </div>
