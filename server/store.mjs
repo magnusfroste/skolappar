@@ -102,6 +102,11 @@ export function createStore(db, { mailer, curriculum, shipholm, siteUrl = 'https
 
   // ---------- apps ----------
 
+  function checkField(r, key) {
+    if (!r.check_result) return null;
+    try { return JSON.parse(r.check_result)[key] ?? null; } catch { return null; }
+  }
+
   /** From the last automatic check: ['ai', 'read_aloud', 'listen'] – what the app needs the internet for. */
   function needsInternet(r) {
     if (!r.check_result) return [];
@@ -757,6 +762,8 @@ export function createStore(db, { mailer, curriculum, shipholm, siteUrl = 'https
       guide_ok: r.check_passed === 1,
       // what needs the internet while the app is used (AI, reading aloud …), read from its code by the check
       needs_internet: needsInternet(r),
+      // the corner the app asked for Kotten, Skolappar's floating home button (<meta name="skolappar:kotten">)
+      kotten: checkField(r, 'kotten'),
       created_at: r.created_at,
       updated_at: r.updated_at,
     };

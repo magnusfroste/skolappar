@@ -48,8 +48,9 @@ innehåll ligger på `https://www.skolappar.org/guide.md` och `https://www.skola
 
 - Appen kräver inloggning eller ligger på en förhandsvisningsadress som bara byggaren kan öppna.
 - Knapparna är för små, eller något bygger på hover.
-- En knapp i övre vänstra hörnet: där ligger Skolappars flik (tillbaka till katalogen) när appen spelas
-  på skolappar.org. Lämna ungefär 70 × 50 px fritt där.
+- En knapp där Kotten sitter. På skolappar.org flyter Kotten, Skolappars hemknapp, uppe till vänster
+  ovanpå appen. Lämna ungefär 80 × 80 px fritt där, eller välj ett annat hörn med
+  `<meta name="skolappar:kotten" content="top-right">` – aldrig där tummarna styr ett spel.
 - Sidan zoomar vid dubbeltryck (`touch-action: manipulation` saknas).
 - Text på engelska, eller å, ä och ö som blivit fel.
 - Ett analysskript följde med från byggverktyget. Ta bort det: ingenting om barnet får lämna enheten.

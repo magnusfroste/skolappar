@@ -18,6 +18,8 @@ export interface App {
   creator_name?: string | null;
   /** What the app uses the internet for, found by the automatic check: 'ai', 'read_aloud', 'listen'. */
   needs_internet?: string[];
+  /** The corner the app asked for Kotten, Skolappar's home button (read from its HTML by the check). */
+  kotten?: 'top-left' | 'top-right' | 'bottom-left' | 'bottom-right' | null;
   profile?: {
     display_name: string | null;
     avatar_url: string | null;

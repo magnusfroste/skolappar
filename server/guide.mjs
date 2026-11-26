@@ -42,7 +42,7 @@ export const GUIDE_SECTIONS = [
 - Håll innehållet innanför säkra kanter: \`viewport-fit=cover\` och \`env(safe-area-inset-*)\`.
 - Dra-och-släpp ska gå med fingret (pointer events), inte bara med mus. Markera inte text av misstag: \`user-select: none\` på spelytan.
 - Ljud startar först efter att barnet tryckt på något. Ha en tydlig knapp för ljud av och på.
-- **Lämna övre vänstra hörnet fritt** – ungefär 70 × 50 px. När appen spelas på skolappar.org ligger Skolappars lilla flik där (pil och Kotten, tillbaka till katalogen). Lägg egna knappar till höger eller längre ner; en framstegsmätare som löper under fliken gör inget.`,
+- **Kotten, Skolappars hemknapp:** när appen spelas på skolappar.org flyter Kotten ovanpå den – en halvgenomskinlig rund knapp som leder hem till katalogen, innanför skärmens säkra kanter (kamera, notch, hemlinje). Den sitter **uppe till vänster**, utanför tummarnas räckvidd, så lämna ungefär 80 × 80 px där fritt från knappar och svarsalternativ. Behöver appen det hörnet (en tillbaka-knapp, en meny): välj ett annat med \`<meta name="skolappar:kotten" content="top-right">\` (\`top-left\`, \`top-right\`, \`bottom-left\`, \`bottom-right\`) – men inte ett hörn där tummarna styr ett spel. \`check_app\` läser raden, och barnet kan alltid dra Kotten till en annan plats.`,
   },
   {
     id: 'barnet',
@@ -221,7 +221,7 @@ export const GUIDE_SECTIONS = [
     body: `- [ ] Appen öppnas på sin https-adress utan inloggning.
 - Den fungerar på iPad, liggande och stående, med bara fingret.
 - Alla knappar är minst 44 px och inget kräver hover eller dubbelklick.
-- Övre vänstra hörnet (ungefär 70 × 50 px) är fritt från knappar – där ligger Skolappars flik.
+- Hörnet där Kotten sitter (uppe till vänster, eller det appen valt med \`skolappar:kotten\`) är fritt från knappar.
 - Sidan zoomar inte vid dubbeltryck och rullar inte i sidled.
 - Ingen reklam, inga köp, inga länkar ut, ingen spårning.
 - Inget om barnet lämnar enheten (utom läsning som kontrolleras av Shipholms taligenkänning, och appen säger det).

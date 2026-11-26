@@ -30,6 +30,8 @@ export function needsPhrase(needs) {
   return words.length <= 1 ? words.join('') : `${words.slice(0, -1).join(', ')} och ${words.at(-1)}`;
 }
 
+export const KOTTEN_CORNERS = ['top-left', 'top-right', 'bottom-left', 'bottom-right'];
+
 const GENERIC_TITLES = /^(vite( \+ \w+)*( \+ ts)?|react app|lovable( app| generated project)?|document|untitled|my app|new project|bolt|v0 app|home|index|app)$/i;
 const LOGIN_PATH = /\/(login|signin|sign-in|auth|oauth|sso|accounts?)(\/|\?|$)/i;
 
@@ -166,6 +168,13 @@ export function createChecker({ fetchPage, now = () => Date.now() }) {
     if (/touch-action/.test(text)) add('touch', 'ok', 'touch-action används, så dubbeltryck zoomar inte.', 'touch');
     else add('touch', 'warn', 'Hittade ingen touch-action. Sätt touch-action: manipulation på spelytan så att dubbeltryck inte zoomar.', 'touch');
 
+    // where Kotten (Skolappar's floating home button) sits while the app is played on skolappar.org
+    const corner = metas.map((m) => ((attr(m, 'name') || '').toLowerCase() === 'skolappar:kotten' ? (attr(m, 'content') || '').trim().toLowerCase() : null)).find((v) => v !== null);
+    const kotten = KOTTEN_CORNERS.includes(corner) ? corner : null;
+    if (corner !== undefined && !kotten) add('kotten', 'warn', `skolappar:kotten är "${corner}". Välj top-left, top-right, bottom-left eller bottom-right.`, 'touch');
+    else add('kotten', 'ok', kotten ? `Kotten, Skolappars hemknapp, sitter i hörnet ${kotten} när appen spelas på skolappar.org.`
+      : 'Kotten, Skolappars hemknapp, sitter uppe till vänster när appen spelas på skolappar.org. Ligger något viktigt där: välj ett annat hörn med <meta name="skolappar:kotten" content="top-right">.', 'touch');
+
     const needs = Object.keys(NEEDS_INTERNET).filter((k) => NEEDS_INTERNET[k].patterns.some((p) => text.includes(p)));
     if (needs.length) {
       add('needs_internet', 'ok', `Appen använder ${needsPhrase(needs)} över nätet. Katalogen visar det på kortet ("Använder internet för ${needsPhrase(needs)}") – inget att fylla i. ` +
@@ -178,6 +187,6 @@ export function createChecker({ fetchPage, now = () => Date.now() }) {
     add('weight', weight > HEAVY ? 'warn' : 'ok',
       `Sidan, dess skript och stilmallar väger ${partial ? 'minst ' : ''}${mb} MB${weight > HEAVY ? '. Det är tungt för en platta på skolans nät; komprimera och ladda bara det som behövs' : ''}.`, 'teknik');
 
-    return done({ final_url: final.href, title: title || null, needs_internet: needs });
+    return done({ final_url: final.href, title: title || null, needs_internet: needs, kotten });
   };
 }

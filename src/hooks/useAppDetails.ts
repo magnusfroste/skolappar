@@ -23,6 +23,8 @@ export interface AppDetails {
   url: string;
   image_url: string | null;
   needs_internet?: string[];
+  /** The corner the app asked for Kotten, Skolappar's home button (read from its HTML by the check). */
+  kotten?: 'top-left' | 'top-right' | 'bottom-left' | 'bottom-right' | null;
   upvotes_count: number;
   comments_count: number;
   clicks_count: number;
