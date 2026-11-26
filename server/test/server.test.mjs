@@ -617,13 +617,13 @@ describe('the open MCP: an agent submits an app and follows it', () => {
     assert.match(index.headers.get('content-security-policy'), /connect-src 'self'/);
     assert.equal(index.text, starter.files.find((f) => f.path === 'index.html').content);
     // the starter follows the guide it ships with: every file it refers to is there, nothing from elsewhere
-    for (const [, ref] of index.text.matchAll(/(?:href|src)="([^"]+)"/g)) assert.ok(names.includes(ref) || ref === 'https://www.skolappar.com/kotten.js', ref);
+    for (const [, ref] of index.text.matchAll(/(?:href|src)="([^"]+)"/g)) assert.ok(names.includes(ref) || ref === 'https://www.skolappar.org/kotten.js', ref);
     assert.match(index.text, /<html lang="sv">/);
     assert.match(index.text, /viewport-fit=cover/);
     assert.match((await pub('GET', '/starter/style.css')).text, /touch-action: manipulation/);
     assert.match((await pub('GET', '/starter/app.js')).headers.get('content-type'), /javascript/);
     assert.equal((await pub('GET', '/starter/../app.mjs')).status === 200 && /createApp/.test((await pub('GET', '/starter/../app.mjs')).text), false);
-    for (const f of starter.files.filter((x) => x.content !== undefined)) assert.doesNotMatch(f.content, /https?:\/\/(?!www\.skolappar\.com|www\.w3\.org)/, f.path);
+    for (const f of starter.files.filter((x) => x.content !== undefined)) assert.doesNotMatch(f.content, /https?:\/\/(?!www\.skolappar\.org|www\.w3\.org)/, f.path);
     // the recorded lines: every line in ljud/lines.json has its file, served as audio and listed with a url
     const lines = JSON.parse(starter.files.find((f) => f.path === 'ljud/lines.json').content);
     assert.ok(lines.length >= 9);

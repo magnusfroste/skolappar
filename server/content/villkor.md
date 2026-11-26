@@ -3,7 +3,7 @@ version: 2026-11-25
 ---
 # Villkor för Skolappar
 
-Skolappar (skolappar.com) är en gratis katalog med lärappar för barn som föräldrar och pedagoger har byggt. Villkoren gäller dig som skickar in en app – själv eller genom din AI-agent – och dig som använder katalogen.
+Skolappar (skolappar.org) är en gratis katalog med lärappar för barn som föräldrar och pedagoger har byggt. Villkoren gäller dig som skickar in en app – själv eller genom din AI-agent – och dig som använder katalogen.
 
 ## 1. Vem som får skicka in
 
@@ -29,7 +29,7 @@ Varje app granskas innan den visas, oftast inom ett dygn. Vi tittar på språket
 
 ## 5. Adress och statistik
 
-- En app som ligger på Shipholm får adressen *namn*.skolappar.com så länge den finns i katalogen. Tas den bort går adressen tillbaka.
+- En app som ligger på Shipholm får adressen *namn*.skolappar.org så länge den finns i katalogen. Tas den bort går adressen tillbaka.
 - Lägger du in kodsnutten (kotten.js) räknar vi hur appen används: starter, omgångar, nivåer och tid, som antal per dag. Inget om enskilda barn sparas – ingen identitet, ingen IP-adress.
 
 ## 6. Mejl vi skickar
