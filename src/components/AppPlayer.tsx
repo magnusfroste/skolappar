@@ -1,6 +1,6 @@
 import { useEffect } from "react";
-import { ArrowLeft, ExternalLink } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import { ArrowLeft } from "lucide-react";
+import { Kotten } from "@/components/Kotten";
 
 interface AppPlayerProps {
   url: string;
@@ -8,7 +8,12 @@ interface AppPlayerProps {
   onClose: () => void;
 }
 
-/** Visar en extern app i helskärm inne på Skolappar. */
+/**
+ * Visar en extern app i helskärm inne på Skolappar. Appen får nästan hela skärmen: överst bara en
+ * tunn strimma i Skolappars färg, och från den hänger en liten flik uppe till vänster (pil + Kotten)
+ * som leder tillbaka. Ingen "ny flik"-knapp – ett barn på en iPad ska inte öppna fyrtio flikar.
+ * Guiden ber apparna lämna det hörnet fritt (avsnittet touch).
+ */
 export function AppPlayer({ url, title, onClose }: AppPlayerProps) {
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => e.key === "Escape" && onClose();
@@ -34,31 +39,26 @@ export function AppPlayer({ url, title, onClose }: AppPlayerProps) {
         paddingBottom: "env(safe-area-inset-bottom)",
       }}
     >
-      <div className="flex items-center gap-2 px-2 h-14 border-b border-border bg-card shrink-0">
-        <Button
-          variant="ghost"
-          className="h-12 w-12 rounded-full bg-primary/10 text-primary hover:bg-primary/20"
-          size="icon"
+      <div className="h-1.5 shrink-0 bg-primary" aria-hidden="true" />
+      <div className="relative flex-1">
+        <button
+          type="button"
           onClick={onClose}
-          aria-label="Tillbaka till apparna"
+          aria-label="Tillbaka till Skolappar"
+          title="Tillbaka till Skolappar"
+          className="absolute left-3 top-0 z-10 flex h-11 items-center gap-0.5 rounded-b-2xl bg-primary pl-1.5 pr-2 pb-0.5 text-primary-foreground shadow-md transition-[padding] hover:pb-1.5 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
         >
-          <ArrowLeft className="w-7 h-7" strokeWidth={2.5} />
-        </Button>
-        <span className="flex-1 truncate font-heading font-semibold">{title}</span>
-        <Button variant="ghost" size="sm" className="h-12 gap-2" asChild>
-          <a href={url} target="_blank" rel="noopener noreferrer">
-            <span className="hidden sm:inline">Ny flik</span>
-            <ExternalLink className="w-4 h-4" />
-          </a>
-        </Button>
+          <ArrowLeft className="h-5 w-5" strokeWidth={3} aria-hidden="true" />
+          <Kotten mood="hej" attribute={false} className="h-7 w-7" title="" />
+        </button>
+        <iframe
+          src={url}
+          title={title}
+          className="absolute inset-0 h-full w-full border-0 bg-background"
+          allow="autoplay; fullscreen; clipboard-write; microphone; camera"
+          sandbox="allow-scripts allow-same-origin allow-forms allow-popups allow-modals allow-pointer-lock"
+        />
       </div>
-      <iframe
-        src={url}
-        title={title}
-        className="flex-1 w-full border-0 bg-background"
-        allow="autoplay; fullscreen; clipboard-write; microphone; camera"
-        sandbox="allow-scripts allow-same-origin allow-forms allow-popups allow-modals allow-pointer-lock"
-      />
     </div>
   );
 }

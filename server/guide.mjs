@@ -41,7 +41,8 @@ export const GUIDE_SECTIONS = [
 - Stäng av zoom vid dubbeltryck och dra-för-att-ladda-om på spelytan: \`touch-action: manipulation\` och \`overscroll-behavior: none\`.
 - Håll innehållet innanför säkra kanter: \`viewport-fit=cover\` och \`env(safe-area-inset-*)\`.
 - Dra-och-släpp ska gå med fingret (pointer events), inte bara med mus. Markera inte text av misstag: \`user-select: none\` på spelytan.
-- Ljud startar först efter att barnet tryckt på något. Ha en tydlig knapp för ljud av och på.`,
+- Ljud startar först efter att barnet tryckt på något. Ha en tydlig knapp för ljud av och på.
+- **Lämna övre vänstra hörnet fritt** – ungefär 70 × 50 px. När appen spelas på skolappar.org ligger Skolappars lilla flik där (pil och Kotten, tillbaka till katalogen). Lägg egna knappar till höger eller längre ner; en framstegsmätare som löper under fliken gör inget.`,
   },
   {
     id: 'barnet',
@@ -220,6 +221,7 @@ export const GUIDE_SECTIONS = [
     body: `- [ ] Appen öppnas på sin https-adress utan inloggning.
 - Den fungerar på iPad, liggande och stående, med bara fingret.
 - Alla knappar är minst 44 px och inget kräver hover eller dubbelklick.
+- Övre vänstra hörnet (ungefär 70 × 50 px) är fritt från knappar – där ligger Skolappars flik.
 - Sidan zoomar inte vid dubbeltryck och rullar inte i sidled.
 - Ingen reklam, inga köp, inga länkar ut, ingen spårning.
 - Inget om barnet lämnar enheten (utom läsning som kontrolleras av Shipholms taligenkänning, och appen säger det).

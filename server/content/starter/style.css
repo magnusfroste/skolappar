@@ -34,7 +34,8 @@ body {
   max-width: 1100px;
   margin: 0 auto;
 }
-.bar { display: flex; align-items: center; gap: var(--unit); }
+/* the top left corner stays free: on skolappar.org Skolappar's tab (back to the catalogue) is there */
+.bar { display: flex; align-items: center; gap: var(--unit); padding-left: 4.5rem; }
 .progress { flex: 1; height: 0.9em; border-radius: 99px; background: #dcd6c5; overflow: hidden; }
 .progress-fill { height: 100%; width: 0; border-radius: 99px; background: var(--right); transition: width 0.3s; }
 
