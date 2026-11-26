@@ -150,6 +150,27 @@ node scripts/check-apps.mjs
 GitHub Action `.github/workflows/app-health.yml` kör samma koll varje måndag och öppnar ett issue (etikett
 `app-health`) om någon app slutat svara.
 
+## The test parent (provföräldern)
+
+Every morning from 05 UTC the server walks the whole way a parent's agent goes, from the outside
+(`server/journey.mjs`), so a broken seam between Shipholm, Studio and Skolappar is seen the same morning:
+
+1. `mcp` – Shipholm's MCP with one plain POST (no initialize, no session), as the simplest agent does.
+2. `publish` – `upload_site` + `publish_site` of a tiny site, `provforaldern.shipholm.dev` (account of
+   `SHIPHOLM_API_KEY`), a new version a day.
+3. `served` – the new version answers from Shipholm's shared server for sites.
+4. `voice` – `POST api.shipholm.com/speak` from the site's own address.
+5. `ai` – the AI for apps without a server answers its pre-flight (no tokens spent).
+6. `attest` – `app_attestation`, checked back with `verify_attestation` (skipped for an account that
+   signs in with GitHub only).
+7. `submit` – this site's own MCP, `submit_app` with `dry_run: true`: categories by word, curriculum,
+   terms, the attestation and `check_app` – nothing is stored or mailed.
+8. `studio` – Shipholm Studio answers.
+
+The last run is kept (setting `journey_last`) and read with the admin tool `journey` (`run: true`
+runs it now). A failing day is mailed to `report_email` once a day; a mail also says when it works
+again. `JOURNEY=off` stops it.
+
 ## License
 
 MIT
