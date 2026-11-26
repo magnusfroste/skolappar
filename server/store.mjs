@@ -102,6 +102,12 @@ export function createStore(db, { mailer, curriculum, shipholm, siteUrl = 'https
 
   // ---------- apps ----------
 
+  /** From the last automatic check: ['ai', 'read_aloud', 'listen'] – what the app needs the internet for. */
+  function needsInternet(r) {
+    if (!r.check_result) return [];
+    try { return JSON.parse(r.check_result).needs_internet || []; } catch { return []; }
+  }
+
   /** The last automatic check, short: what failed and what was warned about. */
   function checkSummary(r) {
     if (!r.check_result) return null;
@@ -744,6 +750,8 @@ export function createStore(db, { mailer, curriculum, shipholm, siteUrl = 'https
       profile: personOrNull(r.creator_name),
       // true when the last automatic check of the address found nothing that breaks the build guide
       guide_ok: r.check_passed === 1,
+      // what needs the internet while the app is used (AI, reading aloud …), read from its code by the check
+      needs_internet: needsInternet(r),
       created_at: r.created_at,
       updated_at: r.updated_at,
     };

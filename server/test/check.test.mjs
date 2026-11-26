@@ -45,6 +45,21 @@ describe('check_app', () => {
     assert.ok(r.checks.every((c) => c.guide_section));
   });
 
+  test('what the app uses the internet for is read from its code – for the card, nothing to declare', async () => {
+    const web = (js) => createChecker({ fetchPage: fakeWeb({
+      'https://saga.example/': { body: GOOD },
+      'https://saga.example/app.css': { type: 'text/css', body: '.board{touch-action:manipulation}' },
+      'https://saga.example/app.js': { type: 'text/javascript', body: js },
+    }) })('https://saga.example/');
+    const both = await web('fetch("https://api.shipholm.com/speak",{method:"POST"});fetch("https://api.shipholm.com/ai/saga")');
+    assert.deepEqual(both.needs_internet, ['ai', 'read_aloud']);
+    assert.equal(status(both, 'needs_internet'), 'ok');
+    assert.equal(both.passed, true);
+    assert.match(both.checks.find((c) => c.id === 'needs_internet').message, /AI och uppläsning.*inget att fylla i/);
+    assert.deepEqual((await web('new Audio("/ljud/hej.mp3")')).needs_internet, []);
+    assert.deepEqual((await web('x("https://api.shipholm.com/listen")')).needs_internet, ['listen']);
+  });
+
   test('what breaks the guide is a fail; what could be better is a warning', async () => {
     const bad = `<html><head><title>Vite + React</title>
       <script src="https://www.googletagmanager.com/gtag/js?id=G-1"></script><script src="https://cdn.example.net/lib.js"></script></head>

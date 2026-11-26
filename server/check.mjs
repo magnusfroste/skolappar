@@ -16,6 +16,20 @@ const TRACKERS = [
   'amplitude.com', 'fullstory.com', 'plausible.io', 'posthog.com', 'adsbygoogle', 'analytics.tiktok.com', 'snap.licdn.com',
   'matomo.cloud', 'umami.is', 'logrocket.com', 'hs-scripts.com',
 ];
+// What needs the internet while the app is used – read from the app's own code, so the catalogue can
+// say it on the card without anyone declaring it (guide section natet). Shipholm's own services first.
+export const NEEDS_INTERNET = {
+  ai: { label: 'AI', patterns: ['api.shipholm.com/ai/', 'api.openai.com', 'generativelanguage.googleapis.com', 'api.anthropic.com', 'api.mistral.ai', 'api.groq.com', 'openrouter.ai/api'] },
+  read_aloud: { label: 'uppläsning', patterns: ['api.shipholm.com/speak', 'api.elevenlabs.io', 'texttospeech.googleapis.com'] },
+  listen: { label: 'taligenkänning', patterns: ['api.shipholm.com/listen'] },
+};
+
+/** "AI och uppläsning" for ['ai', 'read_aloud']. */
+export function needsPhrase(needs) {
+  const words = needs.map((n) => NEEDS_INTERNET[n]?.label).filter(Boolean);
+  return words.length <= 1 ? words.join('') : `${words.slice(0, -1).join(', ')} och ${words.at(-1)}`;
+}
+
 const GENERIC_TITLES = /^(vite( \+ \w+)*( \+ ts)?|react app|lovable( app| generated project)?|document|untitled|my app|new project|bolt|v0 app|home|index|app)$/i;
 const LOGIN_PATH = /\/(login|signin|sign-in|auth|oauth|sso|accounts?)(\/|\?|$)/i;
 
@@ -152,10 +166,18 @@ export function createChecker({ fetchPage, now = () => Date.now() }) {
     if (/touch-action/.test(text)) add('touch', 'ok', 'touch-action används, så dubbeltryck zoomar inte.', 'touch');
     else add('touch', 'warn', 'Hittade ingen touch-action. Sätt touch-action: manipulation på spelytan så att dubbeltryck inte zoomar.', 'touch');
 
+    const needs = Object.keys(NEEDS_INTERNET).filter((k) => NEEDS_INTERNET[k].patterns.some((p) => text.includes(p)));
+    if (needs.length) {
+      add('needs_internet', 'ok', `Appen använder ${needsPhrase(needs)} över nätet. Katalogen visar det på kortet ("Använder internet för ${needsPhrase(needs)}") – inget att fylla i. ` +
+        'Visa ett vänligt besked om tjänsten inte svarar.', 'natet');
+    } else {
+      add('needs_internet', 'ok', 'Appen verkar inte behöva internet medan den används.', 'natet');
+    }
+
     const mb = (weight / 1024 / 1024).toFixed(1);
     add('weight', weight > HEAVY ? 'warn' : 'ok',
       `Sidan, dess skript och stilmallar väger ${partial ? 'minst ' : ''}${mb} MB${weight > HEAVY ? '. Det är tungt för en platta på skolans nät; komprimera och ladda bara det som behövs' : ''}.`, 'teknik');
 
-    return done({ final_url: final.href, title: title || null });
+    return done({ final_url: final.href, title: title || null, needs_internet: needs });
   };
 }

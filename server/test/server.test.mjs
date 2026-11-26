@@ -12,7 +12,7 @@ import { startServer, startImageServer, api, samplePayload, CAT, APP1, APP2, PEN
 // Shipholm's own tools and fields, which the guide and skills point to (called on api.shipholm.com/mcp)
 const SHIPHOLM_NAMES = ['enable_ai', 'app_attestation', 'shipholm_attestation'];
 // submit_app's fields and answers, which the guide and skills name too
-const FIELD_NAMES = ['app_type', 'unknown_curriculum_ids', 'curriculum_suggestions'];
+const FIELD_NAMES = ['app_type', 'unknown_curriculum_ids', 'curriculum_suggestions', 'needs_internet'];
 
 const KEY = 'test-admin-key';
 const AGENT_KEY = 'skol_test-agent-key';
