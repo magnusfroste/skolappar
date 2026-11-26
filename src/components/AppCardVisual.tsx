@@ -4,6 +4,7 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { AppThumbnail } from '@/components/AppThumbnail';
+import { NeedsInternet } from '@/components/NeedsInternet';
 
 interface Category {
   id: string;
@@ -27,6 +28,7 @@ interface AppCardVisualProps {
   categories: Category[];
   hasUpvoted?: boolean;
   onUpvote?: () => void;
+  needsInternet?: string[];
 }
 
 export function AppCardVisual({
@@ -43,6 +45,7 @@ export function AppCardVisual({
   categories,
   hasUpvoted,
   onUpvote,
+  needsInternet,
 }: AppCardVisualProps) {
   const navigate = useNavigate();
 
@@ -133,6 +136,7 @@ export function AppCardVisual({
                 <Eye className="w-3 h-3" />
                 {clicksCount}
               </span>
+              <NeedsInternet needs={needsInternet} />
             </div>
           </div>
         </div>

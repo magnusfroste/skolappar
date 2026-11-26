@@ -106,6 +106,15 @@ export const GUIDE_SECTIONS = [
 - Prova på en riktig iPad eller i webbläsarens enhetsläge (1024 × 768 och 768 × 1024) innan du skickar in.`,
   },
   {
+    id: 'natet',
+    title: 'Internet',
+    body: `Appar räknar med internet, som allt annat på webben. Några saker går över nätet varje gång de används – AI, uppläsning av text barnet själv skrivit och taligenkänning – och för dem gäller bara:
+
+- **Ett vänligt besked när det inte svarar.** Ingen uppkoppling, eller "slut för i dag" (HTTP 429, för AI 402): visa en rad som "Uppläsningen fungerar inte just nu", och låt resten av appen fortsätta.
+
+**Katalogen märker appen själv.** Kontrollen (\`check_app\`) läser appens kod och ser när den anropar AI (\`api.shipholm.com/ai/\`, OpenAI, Gemini …), uppläsning (\`api.shipholm.com/speak\`, ElevenLabs …) eller taligenkänning (\`api.shipholm.com/listen\`). Då visar kortet "Använder internet för AI och uppläsning". Ingen behöver fylla i något: märkningen följer koden och uppdateras när appen kontrolleras igen. Kontrollens svar (\`needs_internet\`) säger vad katalogen kommer att visa.`,
+  },
+  {
     id: 'startmall',
     title: 'Startmallen',
     body: `- Skolappars startmall är en liten färdig app där det svåra redan är löst: touch-inställningarna för iPad, omgångar med återkoppling och ledtråd, stigande svårighet, ljud av och på, uppläsning på svenska, belöning, sparning på enheten, ikon och webbmanifest.
@@ -162,7 +171,8 @@ export const GUIDE_SECTIONS = [
 - **Inspelade repliker** (bäst för det appen säger varje gång: frågor, instruktioner, beröm): Shipholm gör MP3-filer av text med en svensk röst (Piper, rösten nst – fri att använda), gratis och utan tokens – verktyget speak på Shipholms MCP, skill shipholm-voice. Ladda ner filerna till appen (till exempel \`ljud/fraga-3.mp3\`) och spela dem efter ett tryck; länka aldrig till adressen. Då låter det likadant på alla enheter och fungerar utan nät. Startmallen gör så och har sina repliker i \`ljud/lines.json\`. Verktyget kräver ett gratis Shipholm-konto: ligger appen inte på Shipholm, fråga föräldern om ni ska skaffa ett (\`publish_on_shipholm\` på Skolappars MCP visar hur – föräldern godkänner i webbläsaren). Säger föräldern nej fungerar webbläsarens talsyntes nedan.
 - **Hela meningar, också de som byggs av data.** Säger appen \`fråga + ord\` – "Vilken ordklass är *katt*?" – ska varje sådan mening spelas in som en helhet, gjord av appens egna data (ordlistan, frågebanken) när appen byggs. Fragment som pusslas ihop låter fel, och spelar appen inte filen hörs bara webbläsarens röst.
 - **Bevis på att det låter:** en fil som finns är inte en fil som spelas. Spela appen i webbläsaren och se att \`ljud/*.mp3\` hämtas, eller titta i \`app_stats\`: kodsnutten räknar själv hur mycket som spelades in (\`in_app.voice.share_recorded\`).
-- **Webbläsarens talsyntes** (\`speechSynthesis\` med \`lang = "sv-SE"\`) för text som inte går att veta i förväg, och som reserv när en fil saknas. Rösten finns på enheten och låter olika på olika enheter; på iPad måste den startas av ett tryck.
+- **Text som inte går att veta i förväg** – en saga barnet skrivit, ett svar från appens AI – läses upp av samma svenska röst medan appen används: \`POST https://api.shipholm.com/speak\` med \`{"text": …}\` ger tillbaka MP3. Ingen nyckel och ingen egen server; bara appens egen adress på Shipholm får anropa den, högst 3 000 tecken per gång (skill shipholm-voice). Den går över nätet – se avsnittet natet.
+- **Webbläsarens talsyntes** (\`speechSynthesis\` med \`lang = "sv-SE"\`) som reserv när en fil saknas eller nätet är borta. Rösten finns på enheten och låter olika på olika enheter; på iPad måste den startas av ett tryck.
 - Inga personuppgifter i replikerna – barnets namn eller svar ska aldrig skickas för att bli uppläst.
 - Vill du ha en alldeles egen röst: spela in själv, gärna med barnet. Det är fritt, och roligare.
 
@@ -217,6 +227,7 @@ export const GUIDE_SECTIONS = [
 - Svårigheten stiger i små steg och en omgång har ett tydligt slut.
 - All text är på svenska med å, ä och ö, och passar åldern.
 - Appen går att använda utan ljud och har en ljudknapp.
+- AI och uppläsning visar ett vänligt besked om de inte svarar.
 - Sidan har titel, ikon och rätt viewport.
 - Namn, beskrivning, ämne, årskurs, typ och kortbild är klara.
 - Appen är kopplad till en till tre punkter i Lgr22, och beskrivningen säger hur den tränar dem.`,

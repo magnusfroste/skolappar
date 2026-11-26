@@ -22,6 +22,7 @@ export interface AppDetails {
   long_description: string | null;
   url: string;
   image_url: string | null;
+  needs_internet?: string[];
   upvotes_count: number;
   comments_count: number;
   clicks_count: number;

@@ -16,6 +16,8 @@ export interface App {
   created_at: string;
   user_id: string;
   creator_name?: string | null;
+  /** What the app uses the internet for, found by the automatic check: 'ai', 'read_aloud', 'listen'. */
+  needs_internet?: string[];
   profile?: {
     display_name: string | null;
     avatar_url: string | null;

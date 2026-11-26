@@ -41,3 +41,10 @@ Bygger appen meningar av data ("Vilken ordklass är " + ord) ska varje färdig m
 replik i `lines.json`, gjord från appens data – inte fragment. Kontrollera att det verkligen låter:
 spela appen och se att `ljud/*.mp3` hämtas. Kodsnutten räknar det också, så `app_stats` visar hur
 stor del av uppläsningen som är inspelad (`in_app.voice`).
+
+## Internet
+
+Lägger du till något som går över nätet – AI (`api.shipholm.com/ai/<app>`), uppläsning av text
+barnet skrivit (`api.shipholm.com/speak`) eller taligenkänning – visa en vänlig rad om det inte
+svarar ("Uppläsningen fungerar inte just nu"). Du behöver inte märka appen: `check_app` ser anropen
+och katalogen visar "Använder internet för …" på kortet (guidens avsnitt `natet`).
