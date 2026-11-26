@@ -46,11 +46,11 @@ Veckobrev, uppföljningar och nyheter stänger du av med länken i mejlet. Beske
 
 ## 7. Personuppgifter
 
-Vi sparar ditt förnamn, din e-postadress och när du godkände villkoren. Förnamnet visas vid appen; e-postadressen visas aldrig för någon annan. Vi använder den bara till mejlen ovan, och den lämnas inte ut. Mejlen skickas genom Cloudflare. Uppgifterna sparas så länge du har en app hos oss; vill du att vi tar bort dem, mejla [info@skolappar.com](mailto:info@skolappar.com). Mer i [integritetspolicyn](/integritet).
+Vi sparar ditt förnamn, din e-postadress och när du godkände villkoren. Förnamnet visas vid appen; e-postadressen visas aldrig för någon annan. Vi använder den bara till mejlen ovan, och den lämnas inte ut. Mejlen skickas genom Cloudflare. Uppgifterna sparas så länge du har en app hos oss; vill du att vi tar bort dem, mejla [info@skolappar.org](mailto:info@skolappar.org). Mer i [integritetspolicyn](/integritet).
 
 ## 8. Ansvar
 
-Skolappar är en katalog, inte utgivare av apparna. Den som har byggt en app ansvarar för den. Vi ansvarar inte för en apps innehåll, funktion eller tillgänglighet, eller för ändringar som görs i den efter granskningen. Hittar du något olämpligt, mejla [info@skolappar.com](mailto:info@skolappar.com) så tittar vi på det samma dag.
+Skolappar är en katalog, inte utgivare av apparna. Den som har byggt en app ansvarar för den. Vi ansvarar inte för en apps innehåll, funktion eller tillgänglighet, eller för ändringar som görs i den efter granskningen. Hittar du något olämpligt, mejla [info@skolappar.org](mailto:info@skolappar.org) så tittar vi på det samma dag.
 
 ## 9. Ändringar i villkoren
 
@@ -58,4 +58,4 @@ När villkoren ändras får alla som har en app i katalogen ett mejl om vad som 
 
 ## 10. Kontakt
 
-Frågor om villkoren: [info@skolappar.com](mailto:info@skolappar.com).
+Frågor om villkoren: [info@skolappar.org](mailto:info@skolappar.org).

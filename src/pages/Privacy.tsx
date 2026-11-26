@@ -37,10 +37,10 @@ const Privacy = () => {
               <p className="text-muted-foreground leading-relaxed">
                 Kontakt:{" "}
                 <a 
-                  href="mailto:info@skolappar.com" 
+                  href="mailto:info@skolappar.org" 
                   className="text-primary hover:underline"
                 >
-                  info@skolappar.com
+                  info@skolappar.org
                 </a>
               </p>
             </section>
@@ -132,10 +132,10 @@ const Privacy = () => {
               <p className="text-muted-foreground leading-relaxed">
                 För att utöva dina rättigheter, kontakta oss på{" "}
                 <a 
-                  href="mailto:info@skolappar.com" 
+                  href="mailto:info@skolappar.org" 
                   className="text-primary hover:underline"
                 >
-                  info@skolappar.com
+                  info@skolappar.org
                 </a>
               </p>
             </section>
@@ -170,10 +170,10 @@ const Privacy = () => {
               <p className="text-muted-foreground leading-relaxed">
                 Har du frågor om denna integritetspolicy? Kontakta oss på{" "}
                 <a 
-                  href="mailto:info@skolappar.com" 
+                  href="mailto:info@skolappar.org" 
                   className="text-primary hover:underline"
                 >
-                  info@skolappar.com
+                  info@skolappar.org
                 </a>
               </p>
             </section>
