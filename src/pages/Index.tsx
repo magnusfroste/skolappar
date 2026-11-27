@@ -90,10 +90,10 @@ export default function Index() {
         <div className="mx-auto flex max-w-5xl flex-col-reverse items-center gap-4 md:flex-row md:gap-10">
           <div className="min-w-0 flex-1 text-center md:text-left">
             <h1 className="text-4xl md:text-6xl font-heading font-black leading-tight text-balance">
-              Bygg en app tillsammans med <span className="text-gradient">ditt barn</span>
+              Bygg en app med ditt barn – och <span className="text-gradient">dela den med alla barn</span>
             </h1>
             <p className="mt-3 text-lg text-muted-foreground">
-              Barnet har idén, ni bygger den – med en AI-agent som hjälpreda. Efter svensk läroplan, och gratis att spela för alla.
+              Barnet har idén, ni bygger den med en AI-agent som hjälpreda. Sen hamnar den här, gratis för alla barn att spela. Efter svensk läroplan.
             </p>
             <div className="mt-5 flex flex-wrap justify-center gap-3 md:justify-start">
               <Button size="lg" className="h-12 rounded-full shadow-playful-lg" asChild>
