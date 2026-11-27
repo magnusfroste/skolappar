@@ -10,7 +10,7 @@ import { parseKeyHashes } from '../app.mjs';
 import { startServer, startImageServer, api, samplePayload, CAT, APP1, APP2, PENDING, IDEA1, PNG } from './helpers.mjs';
 
 // Shipholm's own tools and fields, which the guide and skills point to (called on api.shipholm.com/mcp)
-const SHIPHOLM_NAMES = ['enable_ai', 'app_attestation', 'shipholm_attestation'];
+const SHIPHOLM_NAMES = ['enable_ai', 'app_attestation', 'shipholm_attestation', 'rebuild_app'];
 // submit_app's fields and answers, which the guide and skills name too
 const FIELD_NAMES = ['app_type', 'unknown_curriculum_ids', 'curriculum_suggestions', 'needs_internet', 'dry_run'];
 

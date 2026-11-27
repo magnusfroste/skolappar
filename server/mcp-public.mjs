@@ -7,6 +7,8 @@ import { GUIDE_SECTIONS, guideMarkdown, guideSectionIds } from './guide.mjs';
 import { TERMS, onShipholm } from './mailings.mjs';
 
 const uuid = { type: 'string', format: 'uuid' };
+// where an app is asked for, its address or the name in it works too (mcp.mjs, agentArgs)
+const appId = { ...uuid, description: 'Appens id – eller dess adress (https://namn.skolappar.org/) eller namnet i adressen (namn).' };
 const obj = (properties, required = []) => ({ type: 'object', properties, required, additionalProperties: false });
 const RO = { readOnlyHint: true, openWorldHint: false };
 const RW = { readOnlyHint: false, openWorldHint: false };
@@ -15,9 +17,12 @@ const RW = { readOnlyHint: false, openWorldHint: false };
 const FIRST_NAME = '^[\\p{L}][\\p{L}\'’-]{0,39}$';
 
 export const PUBLIC_INSTRUCTIONS =
-  'Skolappar.com är en katalog med pedagogiska webbappar som föräldrar byggt, ofta tillsammans med sina barn. ' +
+  'Skolappar (skolappar.org) är en katalog med pedagogiska webbappar som föräldrar byggt tillsammans med sina barn och delar med alla barn. ' +
   'Du behöver ingen nyckel. Arbetsgången finns som skills (list_skills, get_skill) och en färdig startmall med get_starter. Läs get_guide INNAN du bygger: den säger vad en skolapp ska klara (iPad och touch, inget konto, ' +
   'svenska, återkoppling) och slutar med en checklista. ' +
+  'Två saker som oftast blir fel: 1) Rösten är inspelad – Shipholms speak med rösten omni (visa dess attribution), eller POST api.shipholm.com/speak för text som skapas medan appen körs. ' +
+  'Ingen speechSynthesis, inte ens som reserv: saknas ljudet, visa texten och var tyst. 2) Kotten, Skolappars hemknapp, flyter uppe till vänster när appen spelas här: håll det hörnet (ca 80 × 80 px) fritt, ' +
+  'eller välj ett annat med <meta name="skolappar:kotten" content="top-right">. ' +
   'Lägg in Skolappars kodsnutt (<script src="https://www.skolappar.org/kotten.js" defer></script>, guidens avsnitt kodsnutten) och rapportera ' +
   'omgångar och nivåer med skolappar.event – anonymt, så ser föräldern hur långt barnen kommer. ' +
   'Har appen ingen adress än: publish_on_shipholm lägger ut den gratis (föräldern godkänner i webbläsaren). ' +
@@ -29,7 +34,8 @@ export const PUBLIC_INSTRUCTIONS =
   '4) Be föräldern klicka på länken i mejlet från Skolappar; utan det publiceras appen inte. ' +
   '5) app_status – appar granskas en gång om dagen. 6) app_stats – berätta för barnet hur många som har spelat; med kodsnutten visar in_app ' +
   'också omgångar, resultat och på vilken nivå barnen slutar. Samma siffror kommer som veckobrev till föräldern varje måndag. ' +
-  'Ändringar av en publicerad app (update_my_app, set_my_app_image) granskas innan de syns. Tappad app_key: recover_app_keys. ' +
+  'Ändringar av en publicerad app (update_my_app, set_my_app_image) granskas innan de syns. Själva appen ändrar du på sin adress: ligger den på Shipholm bygger en push den av sig själv – ' +
+  'samla ändringarna i en push och anropa inte rebuild_app. Tappad app_key: recover_app_keys. ' +
   'Saknas en idé? list_ideas visar vad lärare och föräldrar önskar sig.';
 
 /** Tools open to everyone. `fail` throws the caller's ToolFailure; ctx carries the request's rate limit. */
@@ -189,7 +195,7 @@ export function createPublicTools({ store, images, checkApp, content, curriculum
         search: { type: 'string', minLength: 1, maxLength: 100 },
         subject: { type: 'string', maxLength: 60, description: 'Ämnets slug, t.ex. matte.' },
         age: { type: 'string', maxLength: 60, description: 'Årskursens slug, t.ex. fk-2.' },
-        sort: { type: 'string', enum: ['recommended', 'newest', 'popular', 'clicks'], default: 'recommended', description: 'recommended: the order of the start page (played now, children stay, new, lifted by us).' },
+        sort: { type: 'string', enum: ['recommended', 'newest', 'popular', 'clicks'], default: 'recommended', description: 'recommended: startsidans ordning (spelas nu, barnen stannar, nya, lyfta av oss).' },
         limit: { type: 'integer', minimum: 1, maximum: 200, default: 50 },
       }),
       annotations: RO,
@@ -201,7 +207,7 @@ export function createPublicTools({ store, images, checkApp, content, curriculum
       name: 'get_app',
       title: 'Hämta en publicerad app',
       description: 'En app i katalogen med beskrivning och kategorier.',
-      inputSchema: obj({ id: uuid }, ['id']),
+      inputSchema: obj({ id: appId }, ['id']),
       annotations: RO,
       handler: ({ id }) => publicView(store.getApp(id)) ?? fail('Appen finns inte i katalogen. En inskickad app som väntar: använd app_status.'),
     },
@@ -395,7 +401,7 @@ export function createPublicTools({ store, images, checkApp, content, curriculum
       name: 'app_status',
       title: 'Var är min app i granskningen?',
       description: 'Läget för en inskickad app: pending (väntar), approved eller featured (publicerad), rejected eller delisted (med skäl), och om e-postadressen är bekräftad.',
-      inputSchema: obj({ id: uuid }, ['id']),
+      inputSchema: obj({ id: appId }, ['id']),
       annotations: RO,
       handler: ({ id }) => store.appStatus(id) ?? fail('Ingen app med det id:t.'),
     },
@@ -406,7 +412,7 @@ export function createPublicTools({ store, images, checkApp, content, curriculum
         'Öppningar i dag, senaste 7 och 30 dagarna och totalt, gilla-markeringar, placering i sitt ämne och öppningar per dag i 30 dagar (UTC). ' +
         'Med kodsnutten kotten.js i appen (guidens avsnitt kodsnutten) även in_app för 30 dagar: starter, minuter per besök, omgångar, medelresultat, ledtrådar och per nivå hur många som nådde den och slutade där. ' +
         'Öppet för alla publicerade appar. En öppning är inte en unik besökare; ingenting om enskilda besökare finns.',
-      inputSchema: obj({ id: uuid }, ['id']),
+      inputSchema: obj({ id: appId }, ['id']),
       annotations: RO,
       handler: ({ id }) => store.appStats(id) ?? fail('Appen är inte publicerad (än). Läs läget med app_status.'),
     },

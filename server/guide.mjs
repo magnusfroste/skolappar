@@ -218,7 +218,7 @@ export const GUIDE_SECTIONS = [
   {
     id: 'checklista',
     title: 'Checklista före inskick',
-    body: `- [ ] Appen öppnas på sin https-adress utan inloggning.
+    body: `- Appen öppnas på sin https-adress utan inloggning.
 - Den fungerar på iPad, liggande och stående, med bara fingret.
 - Alla knappar är minst 44 px och inget kräver hover eller dubbelklick.
 - Hörnet där Kotten sitter (uppe till vänster, eller det appen valt med \`skolappar:kotten\`) är fritt från knappar.

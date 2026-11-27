@@ -112,3 +112,47 @@ describe('submit_app takes categories as words', () => {
     assert.match(r.text, /Okänd ämne "gympa".*matte/);
   });
 });
+
+describe('what agents send instead of the field (agent_usage, 2026-11-27)', () => {
+  let s; let pub; let admin; let n = 0; let klockan; let hemlig;
+  const call = async (who, name, args) => {
+    const r = await who('POST', '/mcp', { jsonrpc: '2.0', id: ++n, method: 'tools/call', params: { name, arguments: args } });
+    const result = r.json.result;
+    return { ok: !result.isError, text: result.content[0].text, data: result.structuredContent?.result };
+  };
+  before(async () => {
+    s = await startServer({ adminKey: 'k-syn' }); pub = api(s.base); admin = api(s.base, { key: 'k-syn' });
+    klockan = (await call(admin, 'create_app', { title: 'Klockan', description: 'Ställ klockan på hel och halv timme.', url: 'https://klockan.skolappar.test/' })).data.app.id;
+    hemlig = (await call(admin, 'create_app', { title: 'Hemligheten', description: 'Väntar fortfarande på granskning.', url: 'https://hemlig.skolappar.test/', status: 'pending' })).data.app.id;
+  });
+  after(() => s.stop());
+
+  test('an app by its address, the name in it or its title, where its id is asked for', async () => {
+    for (const args of [{ id: 'klockan' }, { id: 'Klockan' }, { id: 'https://klockan.skolappar.test/' }, { id: 'klockan.skolappar.test' },
+      { url: 'https://klockan.skolappar.test' }, { app: 'klockan' }, { app_id: klockan }]) {
+      const r = await call(pub, 'get_app', args);
+      assert.equal(r.ok, true, JSON.stringify(args) + ' ' + r.text);
+      assert.equal(r.data.id, klockan);
+    }
+    assert.equal((await call(pub, 'app_stats', { app: 'klockan' })).ok, true);
+    const none = await call(pub, 'get_app', { id: 'finns-inte' });
+    assert.equal(none.ok, false);
+    assert.match(none.text, /Hittar ingen app som "finns-inte".*namnet i adressen/s);
+  });
+
+  test('an app waiting for review is found by its address for app_status, never by its name for anyone', async () => {
+    const st = await call(pub, 'app_status', { url: 'https://hemlig.skolappar.test/' });
+    assert.equal(st.ok, true, st.text);
+    assert.equal((await call(pub, 'get_app', { id: 'hemlig' })).ok, false);
+    assert.equal((await call(pub, 'app_status', { id: 'Hemligheten' })).ok, true, 'its own agent knows the name too');
+    assert.equal((await call(admin, 'get_app', { id: 'hemlig' })).data.id, hemlig);
+  });
+
+  test('another word for the same field', async () => {
+    assert.equal((await call(pub, 'list_apps', { order_by: 'newest' })).ok, true);
+    assert.equal((await call(pub, 'get_curriculum', { subject: 'matte', grade: '1-3' })).ok, true);
+    const chk = await call(pub, 'check_app', { app: 'http://localhost:5173/' });
+    assert.match(chk.text, /når inte din dator/, 'app means the address for check_app');
+    assert.match((await call(pub, 'get_guide', { sektion: 'x' })).text, /okänt fält sektion/, 'a field the tool does not take is still refused');
+  });
+});

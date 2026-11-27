@@ -60,6 +60,12 @@ föräldern, och se till att appen säger till vänligt om tjänsten inte svarar
   hur den ligger till i sitt ämne. Med kodsnutten finns även fältet in_app: hur långt barnen kommer, på vilken nivå
   de slutar och hur många omgångar som blir klara – underlag för nästa version.
 - Själva appen på sin adress kan du förbättra när som helst, utan att fråga skolappar.
+  Ligger den på Shipholm från ett repo:
+  - Börja med `git pull` – någon annan (föräldern, en annan agent) kan ha pushat sedan sist.
+  - Samla ändringarna och pusha **en gång**. Varje push är ett bygge, och kontot har ett tak per timme.
+  - Shipholm bygger av sig själv efter en push. Anropa **inte** `rebuild_app` – det bygger samma
+    version igen och tar av taket.
+  - Vänta tills den nya versionen är ute (Shipholms `app_status`), och kör sedan `check_app` igen.
 - Ska katalogens text, kategorier eller kortbild ändras på en publicerad app: `update_my_app` eller
   `set_my_app_image`. Ändringen granskas först; den publicerade versionen ligger kvar tills dess.
   `app_status` visar `change`, och skälet om ändringen inte godkändes.
