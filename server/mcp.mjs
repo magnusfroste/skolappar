@@ -582,6 +582,37 @@ export function createMcpHandler({ store, images, checkApp, journey, content, cu
   const publicTools = createPublicTools({ store, images, checkApp, content, curriculum, siteUrl, fail, imageHint: IMAGE_HINT, categoryHint: CATEGORY_HINT });
   // With a key: the administration, plus the open tools it has no version of (submit_app, app_status …).
   const adminNames = new Set(adminTools.map((t) => t.name));
+  // What agents send instead of the field's name (agent_usage, 2026-11-27): another word for the same
+  // field, and an app's address or name where its id is asked for. Translated before the check, so
+  // the agent is not sent back for something the tool can understand; a field the tool does not take
+  // at all is still refused.
+  const SYNONYMS = { grade: 'stage', app_id: 'id', image: 'image_url', sort: 'order_by', order_by: 'sort' };
+  const IMAGE_TOOLS = new Set(['set_app_image', 'set_my_app_image']);
+  const APP_REF_TOOLS = new Set(['get_app', 'app_status', 'app_stats', 'check_app', 'update_app', 'set_app_image',
+    'update_my_app', 'set_my_app_image', 'review_change', 'resend_mail']);
+  const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+  function agentArgs(tool, args, ctx) {
+    if (!args || typeof args !== 'object' || Array.isArray(args)) return args;
+    const known = tool.inputSchema?.properties || {};
+    const out = { ...args };
+    const move = (from, to) => { if (from in out && !(from in known) && to in known && !(to in out)) { out[to] = out[from]; delete out[from]; } };
+    for (const [from, to] of Object.entries(SYNONYMS)) move(from, to);
+    if (IMAGE_TOOLS.has(tool.name)) move('url', 'image_url');        // the picture's address
+    else if (APP_REF_TOOLS.has(tool.name)) move('url', 'id');         // the app's address, where its id is asked for
+    if ('app' in out && !('app' in known)) move('app', APP_REF_TOOLS.has(tool.name) && 'id' in known && (tool.name !== 'check_app' || UUID_RE.test(String(out.app))) ? 'id' : 'url');
+    if (tool.name === 'get_resource' && typeof out.id === 'string' && !UUID_RE.test(out.id) && !out.slug) { out.slug = out.id; delete out.id; }
+    if (APP_REF_TOOLS.has(tool.name) && typeof out.id === 'string' && out.id && !UUID_RE.test(out.id)) {
+      const ref = out.id;
+      const id = store.findApp(ref, { publishedOnly: ctx.role !== 'admin' && tool.name !== 'app_status' });
+      if (!id) {
+        throw new ToolFailure(`Hittar ingen app som "${ref}". Ange appens id (från list_apps eller submit_app), hela adressen ` +
+          '(https://namn.skolappar.org/) eller namnet i adressen (namn).');
+      }
+      if (tool.name === 'check_app' && ctx.role !== 'admin') { delete out.id; out.url ??= store.getApp(id, { admin: true }).url; } else out.id = id;
+    }
+    return out;
+  }
+
   const toolsFor = {
     public: publicTools,
     admin: [...adminTools, ...publicTools.filter((t) => !adminNames.has(t.name))],
@@ -594,7 +625,13 @@ export function createMcpHandler({ store, images, checkApp, journey, content, cu
   async function callTool(params, ctx) {
     const tool = byName[ctx.role].get(params?.name);
     if (!tool) return { error: { code: -32602, message: `Unknown tool: ${params?.name}` } };
-    const args = params.arguments ?? {};
+    let args = params.arguments ?? {};
+    try {
+      args = agentArgs(tool, args, ctx);
+    } catch (err) {
+      if (err instanceof ToolFailure) return { result: { content: [{ type: 'text', text: err.message }], isError: true } };
+      throw err;
+    }
     // an unknown field is an error, not silently dropped: an agent that misspells one, or uses a field
     // from an older guide, must not be told "ok" when nothing it meant was done
     const known = tool.inputSchema?.properties || {};

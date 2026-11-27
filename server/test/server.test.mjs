@@ -10,7 +10,7 @@ import { parseKeyHashes } from '../app.mjs';
 import { startServer, startImageServer, api, samplePayload, CAT, APP1, APP2, PENDING, IDEA1, PNG } from './helpers.mjs';
 
 // Shipholm's own tools and fields, which the guide and skills point to (called on api.shipholm.com/mcp)
-const SHIPHOLM_NAMES = ['enable_ai', 'app_attestation', 'shipholm_attestation'];
+const SHIPHOLM_NAMES = ['enable_ai', 'app_attestation', 'shipholm_attestation', 'rebuild_app'];
 // submit_app's fields and answers, which the guide and skills name too
 const FIELD_NAMES = ['app_type', 'unknown_curriculum_ids', 'curriculum_suggestions', 'needs_internet', 'dry_run'];
 
@@ -136,7 +136,7 @@ describe('with ADMIN_KEY', () => {
 
     const settings = (await pub('GET', '/api/settings')).json;
     assert.match(settings.brand_logo_url, /^\/images\/[0-9a-f]{32}\.png$/);
-    assert.equal(settings.site_url, 'https://www.skolappar.com'); // not an image – unchanged
+    assert.equal(settings.site_url, 'https://skolappar.test', 'the address the site runs on, not the imported setting');
     assert.deepEqual(settings.theme_colors, { primary: '12 90% 58%' });
     assert.equal(settings.show_top_ideas, true);
     const mshots = (await pub('GET', `/api/apps/${APP2}`)).json;

@@ -6,7 +6,7 @@ description: Bygg en pedagogisk webbapp för barn (en "skolapp") som fungerar p�
 # Bygg en skolapp
 
 En skolapp tränar **en** sak, startar direkt utan konto och går att spela med bara fingret på en iPad.
-Skolappar.com har en guide för vad som krävs och en startmall där det svåra redan är löst.
+Skolappar.org har en guide för vad som krävs och en startmall där det svåra redan är löst.
 
 Anslut till `https://www.skolappar.org/mcp` (MCP över HTTP, ingen nyckel). Finns ingen MCP: samma
 innehåll ligger på `https://www.skolappar.org/guide.md` och `https://www.skolappar.org/starter/`.

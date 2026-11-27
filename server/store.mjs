@@ -258,6 +258,28 @@ export function createStore(db, { mailer, curriculum, shipholm, siteUrl = 'https
     return null;
   }
 
+  /**
+   * An app from what an agent has at hand instead of its id: its address (with or without https://),
+   * the name in its address ("klockan" for klockan.skolappar.org) or its title. Returns the id when
+   * exactly one app matches, else null. publishedOnly: a name or title is looked up among the
+   * published apps only (an address may also find the agent's own app that waits for review).
+   */
+  function findApp(ref, { publishedOnly = false } = {}) {
+    const r = String(ref || '').trim();
+    if (!r) return null;
+    const rows = db.prepare(`SELECT id, url, origin_url, title, status FROM apps WHERE status IN ('pending','approved','featured')`).all();
+    const hostOf = (u) => { try { return new URL(u).hostname.toLowerCase(); } catch { return null; } };
+    const one = (list) => (list.length === 1 ? list[0].id : null);
+    if (/[./]/.test(r)) {                                         // an address
+      const host = hostOf(/^https?:\/\//i.test(r) ? r : `https://${r}`);
+      return host ? one(rows.filter((a) => [a.url, a.origin_url].some((u) => u && hostOf(u) === host))) : null;
+    }
+    const name = r.toLowerCase();
+    const listed = rows.filter((a) => !publishedOnly || a.status !== 'pending');
+    return one(listed.filter((a) => (hostOf(a.url) || '').split('.')[0] === name))
+      || one(listed.filter((a) => String(a.title || '').trim().toLowerCase() === name));
+  }
+
   /** Add one report: events [{e, v?}] and the seconds played. Unknown names are dropped. */
   function recordEvents(appId, events = [], seconds = 0) {
     const day = now().slice(0, 10);
@@ -1618,7 +1640,7 @@ export function createStore(db, { mailer, curriculum, shipholm, siteUrl = 'https
     listPublicApps, listAdminApps, getApp, topApps, recentApps, relatedApps,
     createApp, updateApp, deleteApp, setAppCategories, trackClick,
     createSubmission, confirmEmail, sendConfirmation, resendMail,
-    appKeyMatches, saveCheck, emailConfirmed, appAtHost, recordEvents, inAppStats, stopDigest, digestApp, weeklyDigests, sendWeeklyDigest, maybeSendWeeklyDigest, sendBroadcast, confirmAddress, recordMcp, mcpUsage, attestedEmail, createReport, listReports, openReportCount, handleReport, notifyReport, dueFollowUps, maybeSendFollowUps, previewMailing, mailingsOverview, proposeChange, listChanges, reviewChange, startKeyRecovery, keyRecoveryValid, finishKeyRecovery, setOwnImage, setCurriculum, curriculumUsed, syncAddress, releaseAddress, listedAt, appStatus, appStats,
+    appKeyMatches, saveCheck, emailConfirmed, appAtHost, findApp, recordEvents, inAppStats, stopDigest, digestApp, weeklyDigests, sendWeeklyDigest, maybeSendWeeklyDigest, sendBroadcast, confirmAddress, recordMcp, mcpUsage, attestedEmail, createReport, listReports, openReportCount, handleReport, notifyReport, dueFollowUps, maybeSendFollowUps, previewMailing, mailingsOverview, proposeChange, listChanges, reviewChange, startKeyRecovery, keyRecoveryValid, finishKeyRecovery, setOwnImage, setCurriculum, curriculumUsed, syncAddress, releaseAddress, listedAt, appStatus, appStats,
     toggleUpvote, myUpvotes,
     listResources, getResource, getResourceBySlug, createResource, updateResource, deleteResource,
     allSettings, listSettings, getSetting, setSetting,

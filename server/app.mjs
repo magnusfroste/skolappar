@@ -323,7 +323,9 @@ export function createApp(config, { fetchImpl = globalThis.fetch, fetchOutside, 
   route('GET', '/api/curriculum/used', () => store.curriculumUsed());
   route('GET', '/api/resources', ({ query }) => store.listResources({ category: query.get('category') || undefined }));
   route('GET', '/api/resources/:slug', ({ params }) => found(store.getResourceBySlug(params.slug), 'Resource not found'));
-  route('GET', '/api/settings', () => store.allSettings());
+  // the address pages name as theirs (canonical, og:url) is where the site runs – never a setting that
+  // was left behind: site_url still said skolappar.com after the move, and every page named two (2026-11-27)
+  route('GET', '/api/settings', () => ({ ...store.allSettings(), site_url: config.siteUrl }));
   route('GET', '/api/terms', () => ({ version: TERMS.version, markdown: TERMS.markdown, html: markdownToHtml(TERMS.markdown, { headingOffset: 0 }) }));
   route('GET', '/api/ideas', ({ query }) => store.listIdeas({
     status: query.get('status') || undefined,

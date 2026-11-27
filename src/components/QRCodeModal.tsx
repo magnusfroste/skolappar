@@ -80,7 +80,7 @@ export function QRCodeModal({ open, onOpenChange, url, title }: QRCodeModalProps
         <body>
           <h1>${title}</h1>
           ${svgData}
-          <p>Scanna för att öppna appen på Skolappar.com</p>
+          <p>Scanna för att öppna appen på Skolappar.org</p>
         </body>
       </html>
     `);
