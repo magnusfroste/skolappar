@@ -42,7 +42,43 @@ innehåll ligger på `https://www.skolappar.org/guide.md` och `https://www.skola
    Material som får användas fritt står i guidens avsnitt `resurser`.
 9. **Prova som ett barn**: i webbläsarens enhetsläge 1024 × 768 och 768 × 1024, med bara klick.
    Svara fel med flit – får man en ledtråd och ett nytt försök? Tar en omgång slut?
-10. **Gå igenom checklistan** (`get_guide` med `section: "checklista"`).
+10. **Kontrollera Kottens hörn** (se nedan) i 1024 × 768, 768 × 1024 och 390 × 844, på varje skärm i
+    appen (start, spel, slut). Mät – ögat missar ett kort som bara hamnar i hörnet på mobil.
+11. **Gå igenom checklistan** (`get_guide` med `section: "checklista"`).
+
+## Kontrollera Kottens hörn
+
+Kotten är 56 px och sitter 12 px från kanten, innanför `env(safe-area-inset-*)`: uppe till vänster,
+eller i hörnet appen valt med `<meta name="skolappar:kotten" content="…">`. Klistra in det här i
+webbläsarens konsol på varje skärm och i varje storlek. Det lägger en låtsas-Kotten på rätt plats och
+listar allt klickbart som ligger under den:
+
+```js
+(() => {
+  const corner = document.querySelector('meta[name="skolappar:kotten"]')?.content || 'top-left';
+  const W = innerWidth, H = innerHeight, S = 56, E = 12;
+  const x0 = corner.endsWith('right') ? W - E - S : E, y0 = corner.startsWith('bottom') ? H - E - S : E;
+  const fake = Object.assign(document.createElement('div'), { id: 'fake-kotten' });
+  fake.style.cssText = `position:fixed;left:${x0}px;top:${y0}px;width:${S}px;height:${S}px;border-radius:50%;background:#f06a3b99;pointer-events:none;z-index:2147483647`;
+  document.querySelector('#fake-kotten')?.remove(); document.body.append(fake);
+  const clickable = 'button,a[href],input,select,textarea,label,summary,[role=button],[onclick],[tabindex]:not([tabindex="-1"]),canvas';
+  const hits = new Set();
+  for (let x = x0 - 8; x <= x0 + S + 8; x += 4) for (let y = y0 - 8; y <= y0 + S + 8; y += 4) {
+    for (const el of document.elementsFromPoint(x, y)) { const c = el.closest(clickable); if (c) hits.add(c); }
+  }
+  const list = [...hits].map((el) => `${el.tagName.toLowerCase()}${el.id ? '#' + el.id : ''} "${(el.getAttribute('aria-label') || el.textContent || '').trim().slice(0, 40)}"`);
+  console.log(`Kotten ${corner}, ${W}×${H}:`, list.length ? list : 'fritt');
+  return list;
+})();
+```
+
+- **Fritt:** bra. En `canvas` i listan betyder att spelplanen går in i hörnet – se till att inget
+  spelbart (figurer, mål, knappar som ritas på duken) hamnar där, eller låt spelplanen börja under en
+  överrad på minst 80 px.
+- **En knapp eller ett kort:** flytta det klickbara (marginal på raden, layout som håller hörnet tomt
+  på smala skärmar) – eller välj ett annat hörn med meta-raden, aldrig ett där tummarna styr.
+- Har agenten Playwright: kör samma kod med `page.evaluate` i de tre storlekarna och på varje skärm.
+- `check_app` säger vilket hörn katalogen läser (`kotten` i svaret), men kan inte se skärmarna.
 
 ## Det som oftast går fel
 
