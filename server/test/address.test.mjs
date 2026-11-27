@@ -149,3 +149,45 @@ describe('skolappar.com after the move to skolappar.org', () => {
     } finally { s.stop(); }
   });
 });
+
+test('addresses given under skolappar.com are kept under skolappar.org (migration)', async () => {
+  const { mkdtempSync, rmSync } = await import('node:fs');
+  const { tmpdir } = await import('node:os');
+  const { join } = await import('node:path');
+  const { openDatabase, migrate, schemaVersion, LATEST_SCHEMA_VERSION } = await import('../db.mjs');
+  const dir = mkdtempSync(join(tmpdir(), 'skolappar-move-'));
+  try {
+    const db = openDatabase(dir);
+    const cols = db.prepare('PRAGMA table_info(apps)').all();
+    const insert = (id, url, originUrl = null) => {
+      // every NOT NULL column without a default gets a value of its type
+      const need = cols.filter((c) => c.notnull && c.dflt_value === null && !['id', 'url', 'origin_url'].includes(c.name));
+      const names = ['id', 'url', 'origin_url', ...need.map((c) => c.name)];
+      const values = [id, url, originUrl, ...need.map((c) => (/INT|REAL/i.test(c.type) ? 0 : 'x'))];
+      db.prepare(`INSERT INTO apps (${names.join(', ')}) VALUES (${names.map(() => '?').join(', ')})`).run(...values);
+    };
+    const cases = {
+      given: ['https://klockan.skolappar.com/', 'https://klockan.skolappar.org/'],
+      path: ['https://lasresan.skolappar.com/spel?niva=2', 'https://lasresan.skolappar.org/spel?niva=2'],
+      bare: ['https://memory.skolappar.com', 'https://memory.skolappar.org'],
+      inQuery: ['https://ett.skolappar.com/?fran=tva.skolappar.com', 'https://ett.skolappar.org/?fran=tva.skolappar.com'],
+      already: ['https://nyapp.skolappar.org/', 'https://nyapp.skolappar.org/'],
+      site: ['https://www.skolappar.com/app/1', 'https://www.skolappar.com/app/1'],
+      elsewhere: ['https://exempel.se/', 'https://exempel.se/'],
+      inPath: ['https://exempel.se/x.skolappar.com/', 'https://exempel.se/x.skolappar.com/'],
+      lookalike: ['https://x.skolappar.com.exempel.se/', 'https://x.skolappar.com.exempel.se/'],
+      shipholm: ['https://klockan2.shipholm.dev/', 'https://klockan2.shipholm.dev/'],
+    };
+    for (const [id, [before]] of Object.entries(cases)) insert(id, before, id === 'given' ? 'https://klockan.shipholm.dev/' : null);
+    db.prepare('UPDATE schema_version SET version = ?').run(LATEST_SCHEMA_VERSION - 1);   // run the last migration on this data
+    migrate(db);
+    assert.equal(schemaVersion(db), LATEST_SCHEMA_VERSION);
+    for (const [id, [, after]] of Object.entries(cases)) {
+      assert.equal(db.prepare('SELECT url FROM apps WHERE id = ?').get(id).url, after, id);
+    }
+    assert.equal(db.prepare("SELECT origin_url FROM apps WHERE id = 'given'").get().origin_url, 'https://klockan.shipholm.dev/');
+    db.close();
+  } finally {
+    rmSync(dir, { recursive: true, force: true });
+  }
+});

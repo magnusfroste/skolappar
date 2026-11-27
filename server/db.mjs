@@ -254,6 +254,21 @@ const MIGRATIONS = [
     PRIMARY KEY (day, role, client, kind, name, outcome, detail)
   );
   `,
+  // skolappar.com moved to skolappar.org (2026-11-26). An app listed before the move still had
+  // https://<name>.skolappar.com/ as its address: every click went through a redirect, play
+  // statistics from its pages (now at .org) matched no app, and when it left the catalogue only
+  // the old name was asked back from Shipholm. Only the host changes, and only where the address
+  // IS <name>.skolappar.com (the first "/" after the scheme comes right after the host, or there
+  // is none); www is the site itself.
+  `
+  UPDATE apps
+     SET url = substr(url, 1, 8 + instr(substr(url, 9), '.skolappar.com') - 1)
+               || '.skolappar.org'
+               || substr(url, 8 + instr(substr(url, 9), '.skolappar.com') + 14)
+   WHERE url LIKE 'https://%.skolappar.com%'
+     AND url NOT LIKE 'https://www.skolappar.com%'
+     AND instr(substr(url, 9) || '/', '/') = instr(substr(url, 9), '.skolappar.com') + 14;
+  `,
 ];
 
 export function openDatabase(dataDir) {
