@@ -189,3 +189,17 @@ describe('check_app: where Kotten sits', () => {
     assert.equal(odd.checks.find((c) => c.id === 'kotten').status, 'warn');
   });
 });
+
+describe('check_app: browser speech', () => {
+  test('speechSynthesis is a warning, recorded lines are fine', async () => {
+    const run = (js) => createChecker({ fetchPage: fakeWeb({
+      'https://v.example/': { body: GOOD },
+      'https://v.example/app.css': { type: 'text/css', body: '.b{touch-action:manipulation}' },
+      'https://v.example/app.js': { type: 'text/javascript', body: js },
+    }) })('https://v.example/');
+    const tts = await run('speechSynthesis.speak(new SpeechSynthesisUtterance("Hej"))');
+    assert.equal(tts.checks.find((c) => c.id === 'voice').status, 'warn');
+    assert.equal(tts.passed, true);
+    assert.equal((await run('new Audio("ljud/hej.mp3").play()')).checks.find((c) => c.id === 'voice').status, 'ok');
+  });
+});

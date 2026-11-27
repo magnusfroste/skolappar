@@ -183,6 +183,12 @@ export function createChecker({ fetchPage, now = () => Date.now() }) {
       add('needs_internet', 'ok', 'Appen verkar inte behöva internet medan den används.', 'natet');
     }
 
+    if (/speechSynthesis|SpeechSynthesisUtterance/.test(text)) {
+      add('voice', 'warn', 'Appen använder webbläsarens talsyntes (speechSynthesis). Ersätt den helt med inspelade repliker – Shipholms speak med rösten omni – inte ens som reserv: annars låter appen dubbelt eller byter röst.', 'resurser');
+    } else {
+      add('voice', 'ok', 'Ingen webbläsartalsyntes.', 'resurser');
+    }
+
     const mb = (weight / 1024 / 1024).toFixed(1);
     add('weight', weight > HEAVY ? 'warn' : 'ok',
       `Sidan, dess skript och stilmallar väger ${partial ? 'minst ' : ''}${mb} MB${weight > HEAVY ? '. Det är tungt för en platta på skolans nät; komprimera och ladda bara det som behövs' : ''}.`, 'teknik');

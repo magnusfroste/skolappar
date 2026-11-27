@@ -32,10 +32,11 @@ The template is free to use and change, with or without saying where it came fro
 ## Uppläsning
 
 Frågorna läses upp med inspelade repliker i `ljud/` (en MP3 per replik, gjorda med Shipholms
-`speak`, rösten `nst`). Texterna står i `ljud/lines.json`. Byter du innehåll i `tasks.js`: skriv nya
-repliker i `lines.json`, gör filerna med `speak` (skill `shipholm-voice`), ladda ner dem till `ljud/`
-och sätt `sound`/`hintSound` på uppgifterna. Saknas en fil läser webbläsarens egen röst upp `say` i
-stället, så appen fungerar även utan ljudfiler.
+`speak`, rösten `omni`). Texterna står i `ljud/lines.json`. Byter du innehåll i `tasks.js`: skriv nya
+repliker i `lines.json`, gör filerna med `speak` (rösten `omni`, skill `shipholm-voice`), ladda ner dem
+till `ljud/` och sätt `sound`/`hintSound` på uppgifterna. Webbläsarens talsyntes används inte – inte
+ens som reserv. Saknas en fil läses repliken helt enkelt inte upp; texten står på skärmen. Rösten
+`omni` kräver att raden om rösten står kvar i appen (`.credit` på startskärmen).
 
 Bygger appen meningar av data ("Vilken ordklass är " + ord) ska varje färdig mening ha en egen
 replik i `lines.json`, gjord från appens data – inte fragment. Kontrollera att det verkligen låter:
