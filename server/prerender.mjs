@@ -51,8 +51,8 @@ export function pageFor(path, { store, siteUrl }) {
     const apps = store.listPublicApps({ sort: 'recommended' });
     return {
       status: 200, canonical: canonical('/'), title: fullTitle(),
-      description: 'Bygg en app tillsammans med ditt barn – med en AI-agent som hjälpreda. Gratis pedagogiska appar efter svensk läroplan, utan inloggning och utan reklam.',
-      body: `<h1>Bygg en app tillsammans med ditt barn</h1><p>Barnet har idén, ni bygger den – med en AI-agent som hjälpreda. Efter svensk läroplan, och gratis att spela för alla.</p>` +
+      description: 'Bygg en app med ditt barn – och dela den med alla barn. Med en AI-agent som hjälpreda. Gratis pedagogiska appar efter svensk läroplan, utan inloggning och utan reklam.',
+      body: `<h1>Bygg en app med ditt barn – och dela den med alla barn</h1><p>Barnet har idén, ni bygger den med en AI-agent som hjälpreda. Sen hamnar den här, gratis för alla barn att spela. Efter svensk läroplan.</p>` +
         `<h2>Appar</h2>${appList(apps, siteUrl, 30)}<p><a href="/apps">Alla appar</a> · <a href="/bygg">Så bygger du</a> · <a href="/resurser">Resurser</a></p>`,
     };
   }
