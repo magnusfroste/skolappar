@@ -1090,7 +1090,8 @@ export function createStore(db, { mailer, curriculum, shipholm, siteUrl = 'https
     const label = shipholm?.labelOf(r.origin_url);
     let failed = null;
     try {
-      // under the domain it was given (an app listed before skolappar.org keeps <name>.skolappar.com)
+      // under the domain of the address it has (the catalogue's own, or the one it was given under
+      // before ADDRESS_DOMAIN changed; Shipholm takes back the name under both when a domain has moved)
       const given = (() => { try { return new URL(r.url).hostname.split('.').slice(1).join('.'); } catch { return undefined; } })();
       if (label && shipholm.configured) await shipholm.revoke(label, given || undefined);
     } catch (err) {
