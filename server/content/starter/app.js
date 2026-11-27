@@ -51,25 +51,16 @@ function paintSound() {
   $('sound').setAttribute('aria-label', soundOn ? 'Ljud på' : 'Ljud av');
 }
 
-// ---- speech, for those who do not read yet: a recorded line (ljud/<id>.mp3) when there is one –
-// the same voice on every device, offline too – otherwise the browser's own Swedish voice ----
+// ---- speech, for those who do not read yet: a recorded line (ljud/<id>.mp3), the same voice on every
+// device and offline too. No browser speech, not even as a fallback: a line without a file is simply
+// not read aloud – the text is on the screen. ----
 let playing = null;
-function browserVoice(text) {
-  if (!('speechSynthesis' in window)) return;
-  speechSynthesis.cancel();
-  const u = new SpeechSynthesisUtterance(text);
-  u.lang = 'sv-SE';
-  u.rate = 0.9;
-  speechSynthesis.speak(u);
-}
 function speak(text, sound) {
-  if (!soundOn) return;
+  if (!soundOn || !sound) return;
   if (playing) { playing.pause(); playing = null; }
-  if ('speechSynthesis' in window) speechSynthesis.cancel();
-  if (!sound) return browserVoice(text);
   const audio = new Audio(`ljud/${sound}.mp3`);
   playing = audio;
-  audio.play().catch(() => { if (playing === audio) browserVoice(text); });
+  audio.play().catch(() => { if (playing === audio) playing = null; });
 }
 
 // ---- a round ----
@@ -191,7 +182,6 @@ $('speak').addEventListener('click', () => speak(round.task.say, round.task.soun
 $('sound').addEventListener('click', () => {
   soundOn = !soundOn;
   store.write({ sound: soundOn });
-  if (!soundOn && 'speechSynthesis' in window) speechSynthesis.cancel();
   if (!soundOn && playing) { playing.pause(); playing = null; }
   if (!soundOn) report('sound_off');
   paintSound();

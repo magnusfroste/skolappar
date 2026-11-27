@@ -77,3 +77,5 @@ button:focus-visible { outline: 0.2em solid var(--brand-light); outline-offset: 
 @keyframes burst { from { transform: translate(-50%, -50%) scale(0.2); opacity: 0; } 30% { opacity: 1; } to { transform: translate(calc(-50% + var(--dx)), calc(-50% + var(--dy))) scale(1); opacity: 1; } }
 @keyframes shake { 25% { transform: translateX(-0.2em); } 75% { transform: translateX(0.2em); } }
 @media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation: none !important; transition: none !important; } }
+
+.credit { font-size: 0.65em; opacity: 0.6; max-width: 40em; margin-top: auto; }

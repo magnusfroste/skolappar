@@ -63,7 +63,7 @@ export const GUIDE_SECTIONS = [
 - **Stigande svårighet**: börja lätt, öka i små steg, och gå tillbaka ett steg när det blir för svårt.
 - **Korta omgångar**, fem till tio uppgifter, med ett tydligt slut och en belöning (stjärnor, en animation, ett ljud).
 - Slumpa uppgifterna så att appen tål att spelas många gånger.
-- **Uppläst text** för dem som inte läser än (förskoleklass till årskurs 2): en högtalarknapp vid varje instruktion, till exempel med webbläsarens talsyntes på svenska.
+- **Uppläst text** för dem som inte läser än (förskoleklass till årskurs 2): en högtalarknapp vid varje instruktion, med inspelade repliker (se avsnittet resurser) – inte webbläsarens talsyntes.
 - Visa framsteg på ett sätt barnet förstår: en stapel som fylls, en samling som växer.`,
   },
   {
@@ -169,11 +169,11 @@ export const GUIDE_SECTIONS = [
 - **Google Fonts** (fonts.google.com): de flesta har licensen OFL och får läggas i appen. Ladda ner filerna i stället för att länka, så skickas ingenting om barnet till Google. Lättlästa val: Atkinson Hyperlegible, Lexend, Andika, Nunito.
 
 **Uppläsning på svenska**
-- **Inspelade repliker** (bäst för det appen säger varje gång: frågor, instruktioner, beröm): Shipholm gör MP3-filer av text med en svensk röst (Piper, rösten nst – fri att använda), gratis och utan tokens – verktyget speak på Shipholms MCP, skill shipholm-voice. Ladda ner filerna till appen (till exempel \`ljud/fraga-3.mp3\`) och spela dem efter ett tryck; länka aldrig till adressen. Då låter det likadant på alla enheter och fungerar utan nät. Startmallen gör så och har sina repliker i \`ljud/lines.json\`. Verktyget kräver ett gratis Shipholm-konto: ligger appen inte på Shipholm, fråga föräldern om ni ska skaffa ett (\`publish_on_shipholm\` på Skolappars MCP visar hur – föräldern godkänner i webbläsaren). Säger föräldern nej fungerar webbläsarens talsyntes nedan.
-- **Hela meningar, också de som byggs av data.** Säger appen \`fråga + ord\` – "Vilken ordklass är *katt*?" – ska varje sådan mening spelas in som en helhet, gjord av appens egna data (ordlistan, frågebanken) när appen byggs. Fragment som pusslas ihop låter fel, och spelar appen inte filen hörs bara webbläsarens röst.
+- **Inspelade repliker** (bäst för det appen säger varje gång: frågor, instruktioner, beröm): Shipholm gör MP3-filer av text med en svensk röst, gratis och utan tokens – verktyget speak på Shipholms MCP, skill shipholm-voice. **Välj rösten \`omni\`**: den låter naturligast, för repliker och för sagor. Den kräver att appen visar raden om rösten som speak svarar med (\`attribution\`) – i en Om-ruta eller sidfot. Rösten \`nst\` är enklare och kräver ingen rad. Ladda ner filerna till appen (till exempel \`ljud/fraga-3.mp3\`) och spela dem efter ett tryck; länka aldrig till adressen. Då låter det likadant på alla enheter och fungerar utan nät. Startmallen gör så och har sina repliker i \`ljud/lines.json\`. Verktyget kräver ett gratis Shipholm-konto: ligger appen inte på Shipholm, fråga föräldern om ni ska skaffa ett (\`publish_on_shipholm\` på Skolappars MCP visar hur – föräldern godkänner i webbläsaren). Säger föräldern nej: spela in replikerna själv, eller låt appen vara utan uppläsning.
+- **Hela meningar, också de som byggs av data.** Säger appen \`fråga + ord\` – "Vilken ordklass är *katt*?" – ska varje sådan mening spelas in som en helhet, gjord av appens egna data (ordlistan, frågebanken) när appen byggs. Fragment som pusslas ihop låter fel, och spelar appen inte filen hörs ingenting.
 - **Bevis på att det låter:** en fil som finns är inte en fil som spelas. Spela appen i webbläsaren och se att \`ljud/*.mp3\` hämtas, eller titta i \`app_stats\`: kodsnutten räknar själv hur mycket som spelades in (\`in_app.voice.share_recorded\`).
-- **Text som inte går att veta i förväg** – en saga barnet skrivit, ett svar från appens AI – läses upp av samma svenska röst medan appen används: \`POST https://api.shipholm.com/speak\` med \`{"text": …}\` ger tillbaka MP3. Ingen nyckel och ingen egen server; bara appens egen adress på Shipholm får anropa den, högst 3 000 tecken per gång (skill shipholm-voice). Den går över nätet – se avsnittet natet.
-- **Webbläsarens talsyntes** (\`speechSynthesis\` med \`lang = "sv-SE"\`) som reserv när en fil saknas eller nätet är borta. Rösten finns på enheten och låter olika på olika enheter; på iPad måste den startas av ett tryck.
+- **Text som inte går att veta i förväg** – en saga barnet skrivit, ett svar från appens AI – läses upp av samma svenska röst medan appen används: \`POST https://api.shipholm.com/speak\` med \`{"text": …, "voice": "omni"}\` ger tillbaka MP3, och inget sparas. Ingen nyckel och ingen egen server; bara appens egen adress på Shipholm får anropa den, högst 3 000 tecken per gång (skill shipholm-voice). Den går över nätet – se avsnittet natet.
+- **Ingen webbläsartalsyntes** (\`speechSynthesis\`) – inte ens som reserv. Den låter olika på olika enheter, och en app som spelar MP3 *och* talsyntes låter dubbelt eller byter röst mitt i. Saknas en fil eller svarar inte tjänsten: visa texten och var tyst.
 - Inga personuppgifter i replikerna – barnets namn eller svar ska aldrig skickas för att bli uppläst.
 - Vill du ha en alldeles egen röst: spela in själv, gärna med barnet. Det är fritt, och roligare.
 
@@ -229,6 +229,7 @@ export const GUIDE_SECTIONS = [
 - Svårigheten stiger i små steg och en omgång har ett tydligt slut.
 - All text är på svenska med å, ä och ö, och passar åldern.
 - Appen går att använda utan ljud och har en ljudknapp.
+- Allt som läses upp är inspelat (rösten omni eller nst) – ingen \`speechSynthesis\` i koden.
 - AI och uppläsning visar ett vänligt besked om de inte svarar.
 - Sidan har titel, ikon och rätt viewport.
 - Namn, beskrivning, ämne, årskurs, typ och kortbild är klara.
