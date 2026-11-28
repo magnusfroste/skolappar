@@ -21,7 +21,7 @@ export const PUBLIC_INSTRUCTIONS =
   'Du behöver ingen nyckel. Arbetsgången finns som skills (list_skills, get_skill) och en färdig startmall med get_starter. Läs get_guide INNAN du bygger: den säger vad en skolapp ska klara (iPad och touch, inget konto, ' +
   'svenska, återkoppling) och slutar med en checklista. ' +
   'Två saker som oftast blir fel: 1) Rösten är inspelad – Shipholms speak med rösten omni (visa dess attribution), eller POST api.shipholm.com/speak för text som skapas medan appen körs. ' +
-  'Ingen speechSynthesis, inte ens som reserv: saknas ljudet, visa texten och var tyst. 2) Kotten, Skolappars hemknapp, flyter uppe till vänster när appen spelas här: håll det hörnet (ca 80 × 80 px) fritt, ' +
+  'Ingen speechSynthesis, inte ens som reserv: saknas ljudet, visa texten och var tyst. 2) Kotten, Skolappars hemknapp, flyter uppe till vänster när appen spelas här: de 80 × 80 px närmast hörnet ska vara helt tomma på varje skärm – ingen rubrik, logga, text, bild eller knapp, bara bakgrund (skillen skolappar-bygg mäter det), ' +
   'eller välj ett annat med <meta name="skolappar:kotten" content="top-right">. ' +
   'Lägg in Skolappars kodsnutt (<script src="https://www.skolappar.org/kotten.js" defer></script>, guidens avsnitt kodsnutten) och rapportera ' +
   'omgångar och nivåer med skolappar.event – anonymt, så ser föräldern hur långt barnen kommer. ' +

@@ -45,40 +45,74 @@ innehåll ligger på `https://www.skolappar.org/guide.md` och `https://www.skola
 9. **Prova som ett barn**: i webbläsarens enhetsläge 1024 × 768 och 768 × 1024, med bara klick.
    Svara fel med flit – får man en ledtråd och ett nytt försök? Tar en omgång slut?
 10. **Kontrollera Kottens hörn** (se nedan) i 1024 × 768, 768 × 1024 och 390 × 844, på varje skärm i
-    appen (start, spel, slut). Mät – ögat missar ett kort som bara hamnar i hörnet på mobil.
+    appen (start, spel, slut). Hörnet ska vara helt tomt, inte bara fritt från knappar. Mät – ögat
+    missar en rubrik som bara hamnar i hörnet på mobil.
 11. **Gå igenom checklistan** (`get_guide` med `section: "checklista"`).
 
 ## Kontrollera Kottens hörn
 
 Kotten är 56 px och sitter 12 px från kanten, innanför `env(safe-area-inset-*)`: uppe till vänster,
-eller i hörnet appen valt med `<meta name="skolappar:kotten" content="…">`. Klistra in det här i
-webbläsarens konsol på varje skärm och i varje storlek. Det lägger en låtsas-Kotten på rätt plats och
-listar allt klickbart som ligger under den:
+eller i hörnet appen valt med `<meta name="skolappar:kotten" content="…">`. **De 80 × 80 px närmast
+hörnet ska vara helt tomma** – ingen rubrik, logga, text, bild, ikon, poäng, förloppsstapel eller knapp,
+bara bakgrund. Det som ligger där hamnar under Kotten, också om det inte går att trycka på.
+
+Klistra in det här i webbläsarens konsol på varje skärm (start, spel, slut) och i varje storlek. Det
+ritar Kottens yta och listar allt som syns i den:
 
 ```js
 (() => {
   const corner = document.querySelector('meta[name="skolappar:kotten"]')?.content || 'top-left';
-  const W = innerWidth, H = innerHeight, S = 56, E = 12;
-  const x0 = corner.endsWith('right') ? W - E - S : E, y0 = corner.startsWith('bottom') ? H - E - S : E;
-  const fake = Object.assign(document.createElement('div'), { id: 'fake-kotten' });
-  fake.style.cssText = `position:fixed;left:${x0}px;top:${y0}px;width:${S}px;height:${S}px;border-radius:50%;background:#f06a3b99;pointer-events:none;z-index:2147483647`;
-  document.querySelector('#fake-kotten')?.remove(); document.body.append(fake);
-  const clickable = 'button,a[href],input,select,textarea,label,summary,[role=button],[onclick],[tabindex]:not([tabindex="-1"]),canvas';
-  const hits = new Set();
-  for (let x = x0 - 8; x <= x0 + S + 8; x += 4) for (let y = y0 - 8; y <= y0 + S + 8; y += 4) {
-    for (const el of document.elementsFromPoint(x, y)) { const c = el.closest(clickable); if (c) hits.add(c); }
+  const W = innerWidth, H = innerHeight, Z = 80;
+  const zx = corner.endsWith('right') ? W - Z : 0, zy = corner.startsWith('bottom') ? H - Z : 0;
+  const inZone = (r) => r.width > 0 && r.height > 0 && r.right > zx && r.left < zx + Z && r.bottom > zy && r.top < zy + Z;
+  const shown = (el) => { for (let e = el; e && e.nodeType === 1; e = e.parentElement) { const s = getComputedStyle(e); if (s.display === 'none' || s.visibility === 'hidden' || s.opacity === '0') return false; } return true; };
+  const big = (r) => r.width * r.height > W * H * 0.5;
+  // a game board: is anything drawn in the corner? Sharp edges (a figure, a text) count; an even colour
+  // or a soft gradient is background
+  const drawn = (cv, r) => {
+    try {
+      const sx = cv.width / r.width, sy = cv.height / r.height;
+      const x = Math.max(zx, r.left), y = Math.max(zy, r.top), w = Math.min(zx + Z, r.right) - x, h = Math.min(zy + Z, r.bottom) - y;
+      const t = Object.assign(document.createElement('canvas'), { width: Math.round(w), height: Math.round(h) });
+      const g = t.getContext('2d'); g.drawImage(cv, (x - r.left) * sx, (y - r.top) * sy, w * sx, h * sy, 0, 0, t.width, t.height);
+      const px = g.getImageData(0, 0, t.width, t.height).data; let edges = 0;
+      for (let i = 4; i < px.length; i += 4) if (Math.abs(px[i] - px[i - 4]) + Math.abs(px[i + 1] - px[i - 3]) + Math.abs(px[i + 2] - px[i - 2]) > 90) edges++;
+      return edges > px.length / 4 * 0.01 ? 'ritat på spelplanen (canvas)' : null;
+    } catch { return 'spelplan (canvas) som inte gick att läsa – titta själv'; }
+  };
+  const hits = new Map();
+  const walk = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT);
+  for (let n; (n = walk.nextNode());) {
+    if (!n.textContent.trim() || !shown(n.parentElement)) continue;
+    const r = document.createRange(); r.selectNodeContents(n);
+    if ([...r.getClientRects()].some(inZone)) hits.set(n.parentElement, 'text');
   }
-  const list = [...hits].map((el) => `${el.tagName.toLowerCase()}${el.id ? '#' + el.id : ''} "${(el.getAttribute('aria-label') || el.textContent || '').trim().slice(0, 40)}"`);
-  console.log(`Kotten ${corner}, ${W}×${H}:`, list.length ? list : 'fritt');
+  for (const el of document.querySelectorAll('img,svg,video,canvas,button,a[href],input,select,textarea,[role=button],[role=progressbar],[onclick]')) {
+    if (el.closest('#fake-kotten') || (el.ownerSVGElement && el.tagName !== 'svg') || !shown(el)) continue;
+    const r = el.getBoundingClientRect();
+    if (!inZone(r)) continue;
+    if (el.matches('canvas')) { const d = drawn(el, r); if (d) hits.set(el, d); continue; }
+    hits.set(el, big(r) ? 'bakgrundsbild' : el.matches('img,svg,video') ? 'bild' : 'knapp/stapel');
+  }
+  const fake = Object.assign(document.createElement('div'), { id: 'fake-kotten' });
+  fake.style.cssText = `position:fixed;left:${zx}px;top:${zy}px;width:${Z}px;height:${Z}px;outline:2px dashed #f06a3b;background:#f06a3b33;pointer-events:none;z-index:2147483647`;
+  document.querySelector('#fake-kotten')?.remove(); document.body.append(fake);
+  const list = [...hits].map(([el, what]) => `${what}: ${el.tagName.toLowerCase()}${el.id ? '#' + el.id : ''} "${(el.getAttribute('aria-label') || el.getAttribute('alt') || el.textContent || '').trim().slice(0, 40)}"`);
+  console.log(`Kottens hörn ${corner}, ${W}×${H}:`, list.length ? list : 'tomt');
   return list;
 })();
 ```
 
-- **Fritt:** bra. En `canvas` i listan betyder att spelplanen går in i hörnet – se till att inget
-  spelbart (figurer, mål, knappar som ritas på duken) hamnar där, eller låt spelplanen börja under en
-  överrad på minst 80 px.
-- **En knapp eller ett kort:** flytta det klickbara (marginal på raden, layout som håller hörnet tomt
-  på smala skärmar) – eller välj ett annat hörn med meta-raden, aldrig ett där tummarna styr.
+- **Tomt:** bra.
+- **text, bild, knapp/stapel:** flytta det. Ge raden högst upp plats, till exempel
+  `padding-left: calc(88px + env(safe-area-inset-left))`, eller låt innehållet börja 80 px ner. Gäller
+  också rubriken och appens logga. Behöver appen hörnet: välj ett annat med meta-raden – aldrig ett där
+  tummarna styr.
+- **bakgrundsbild:** en bild som täcker skärmen är bakgrund och går bra, så länge inget i den som barnet
+  ska se (en figur, en text i bilden) ligger i hörnet.
+- **ritat på spelplanen (canvas):** något på spelplanen (en figur, en text, en knapp som ritas på duken)
+  ligger i hörnet. Flytta det, eller låt spelplanen börja under en överrad på minst 80 px. Mät också
+  mitt i spelet: en figur som rör sig kan hamna där senare. En tom spelplan i hörnet går bra.
 - Har agenten Playwright: kör samma kod med `page.evaluate` i de tre storlekarna och på varje skärm.
 - `check_app` säger vilket hörn katalogen läser (`kotten` i svaret), men kan inte se skärmarna.
 
@@ -86,8 +120,9 @@ listar allt klickbart som ligger under den:
 
 - Appen kräver inloggning eller ligger på en förhandsvisningsadress som bara byggaren kan öppna.
 - Knapparna är för små, eller något bygger på hover.
-- En knapp där Kotten sitter. På skolappar.org flyter Kotten, Skolappars hemknapp, uppe till vänster
-  ovanpå appen. Lämna ungefär 80 × 80 px fritt där, eller välj ett annat hörn med
+- Något där Kotten sitter – en rubrik, en logga, en stapel eller en knapp. På skolappar.org flyter
+  Kotten, Skolappars hemknapp, uppe till vänster ovanpå appen. De 80 × 80 px där ska vara helt tomma,
+  eller välj ett annat hörn med
   `<meta name="skolappar:kotten" content="top-right">` – aldrig där tummarna styr ett spel.
 - Sidan zoomar vid dubbeltryck (`touch-action: manipulation` saknas).
 - Text på engelska, eller å, ä och ö som blivit fel.
